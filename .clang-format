@@ -5,6 +5,12 @@ EmptyLineBeforeAccessModifier: Never
 EmptyLineAfterAccessModifier: Never
 
 AllowShortFunctionsOnASingleLine: Empty
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: False
+#AllowShortCompoundRequirementOnASingleLine: True
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: Empty
+AllowShortLoopsOnASingleLine: False
 
 FixNamespaceComments: False
 NamespaceIndentation: All
