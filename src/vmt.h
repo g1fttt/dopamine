@@ -12,7 +12,7 @@ public:
 
   template <typename T, size_t index, typename... Args>
   constexpr auto get_original() {
-    return reinterpret_cast<T(__thiscall *)(void *, Args...)>(
+    return reinterpret_cast<T(THISCALL *)(void *, Args...)>(
         original_vmt[index]);
   }
 

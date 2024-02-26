@@ -4,8 +4,8 @@ namespace utils {
   namespace __vmethod {
     template <typename T, size_t index, typename... Args>
     T call(void *base, Args... args) {
-      return (*reinterpret_cast<T(__thiscall ***)(void *, Args...)>(
-          base))[index](base, args...);
+      return (*reinterpret_cast<T(THISCALL ***)(void *, Args...)>(base))[index](
+          base, args...);
     }
   }
 

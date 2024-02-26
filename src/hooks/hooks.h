@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace hooks {
-  void __stdcall frame_stage_notify(int stage);
+  void STDCALL frame_stage_notify(int32_t stage);
 }
