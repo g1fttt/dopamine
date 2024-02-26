@@ -1,0 +1,10 @@
+BasedOnStyle: LLVM
+DisableFormat: False
+
+EmptyLineBeforeAccessModifier: Never
+EmptyLineAfterAccessModifier: Never
+
+AllowShortFunctionsOnASingleLine: Empty
+
+FixNamespaceComments: False
+NamespaceIndentation: All
