@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-auto calc_vmt_size(uintptr_t *vmt) -> size_t {
+size_t calc_vmt_size(uintptr_t *vmt) {
   MEMORY_BASIC_INFORMATION info;
   size_t len = 0;
 
