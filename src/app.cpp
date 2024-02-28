@@ -1,16 +1,73 @@
 #include "app.h"
 
-#include <utils/utils.h>
+#include "hooks/hooks.h"
+#include "utils/utils.h"
+
+#include <imgui.h>
+#include <imgui_impl_dx9.h>
+#include <imgui_impl_win32.h>
+
+void find_interfaces(App &app) {
+  app.client = utils::interface_base("client.dll", "VClient017");
+  app.cvar = reinterpret_cast<interfaces::CVar *>(
+      utils::interface_base("vstdlib.dll", "VEngineCvar004"));
+}
+
+void find_patterns(App &app) {
+  const auto d3d9 = utils::find_pattern(
+      "shaderapidx9.dll",
+      L"\xA1\xCC\xCC\xCC\xCC\x50\x8B\x08\xFF\x51\xCC\x8B\xF8");
+  if (d3d9) {
+    app.d3d9 = **reinterpret_cast<IDirect3DDevice9 ***>(d3d9.value() + 1);
+  } else {
+    // TODO: Log error to file
+  }
+}
+
+void init_imgui(App &app) {
+  ImGui::CreateContext();
+  ImGui_ImplDX9_Init(app.d3d9);
+  ImGui_ImplWin32_Init(app.window);
+
+  ImGui::StyleColorsDark();
+
+  auto style = ImGui::GetStyle();
+  style.ScrollbarSize = 9.0f;
+
+  auto io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.LogFilename = nullptr;
+  io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+  io.Fonts->AddFontDefault();
+}
+
+void init_vmts(App &app) {
+  app.client_vmt.init(app.client);
+  app.d3d9_vmt.init(app.d3d9);
+}
+
+void setup_hooks(App &app) {
+  app.client_vmt.hook(LPVOID(hooks::frame_stage_notify), 36);
+
+  app.d3d9_vmt.hook(LPVOID(hooks::reset), 16);
+  app.d3d9_vmt.hook(LPVOID(hooks::present), 17);
+}
 
 App &App::get() {
-  static App APP;
+  static App APP{};
 
   if (static bool inited = false; !inited) {
-    APP.client = utils::interface_base("client.dll", "VClient017");
-    APP.cvar = reinterpret_cast<interfaces::CVar *>(
-        utils::interface_base("vstdlib.dll", "VEngineCvar004"));
+    APP.window = FindWindowA(nullptr, "Counter-Strike: Source Offensive");
+    APP.original_wnd_proc = WNDPROC(
+        SetWindowLongPtrW(APP.window, GWLP_WNDPROC, LONG_PTR(hooks::wnd_proc)));
 
-    APP.client_vmt.init(APP.client);
+    find_interfaces(APP);
+    find_patterns(APP);
+
+    init_imgui(APP);
+    init_vmts(APP);
+
+    setup_hooks(APP);
 
     inited = true;
   }
@@ -19,4 +76,15 @@ App &App::get() {
 
 void App::with(const std::function<void(App &)> &cb) {
   cb(App::get());
+}
+
+void App::reset() {
+  client_vmt.reset();
+  d3d9_vmt.reset();
+
+  ImGui_ImplWin32_Shutdown();
+  ImGui_ImplDX9_Shutdown();
+  ImGui::DestroyContext();
+
+  SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(original_wnd_proc));
 }

@@ -1,0 +1,20 @@
+#include "hooks.h"
+
+#include <app.h>
+
+#include <imgui.h>
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM,
+                                                             LPARAM);
+
+LRESULT WINAPI hooks::wnd_proc(HWND window, UINT message, WPARAM wparam,
+                               LPARAM lparam) {
+  if (ImGui_ImplWin32_WndProcHandler(window, message, wparam, lparam)) {
+    return true;
+  }
+
+  // TODO: Toggle in-game input while *future* menu is open
+
+  return CallWindowProcW(App::get().original_wnd_proc, window, message, wparam,
+                         lparam);
+}

@@ -1,5 +1,12 @@
 #pragma once
 
+#include <expected>
+#include <string>
+#include <string_view>
+
 namespace utils {
-  void *interface_base(const char *module_name, const char *interface_name);
+  void *interface_base(std::string_view module_name,
+                       std::string_view interface_name);
+  std::expected<std::byte *, std::string>
+  find_pattern(std::string_view module_name, std::wstring_view pattern);
 }
