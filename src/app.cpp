@@ -13,8 +13,6 @@ void find_interfaces(App &app) {
       utils::interface_base("vstdlib.dll", "VEngineCvar004"));
   app.input_system = reinterpret_cast<interfaces::InputSystem *>(
       utils::interface_base("inputsystem.dll", "InputSystemVersion001"));
-  app.player_info_manager = reinterpret_cast<interfaces::PlayerInfoManager *>(
-      utils::interface_base("server.dll", "PlayerInfoManager002"));
 }
 
 void find_patterns(App &app) {

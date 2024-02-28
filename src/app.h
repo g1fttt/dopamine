@@ -11,7 +11,6 @@ struct IDirect3DDevice9;
 namespace interfaces {
   class CVar;
   class InputSystem;
-  class PlayerInfoManager;
 }
 
 struct App {
@@ -32,5 +31,4 @@ struct App {
   IDirect3DDevice9 *d3d9;
   interfaces::CVar *cvar;
   interfaces::InputSystem *input_system;
-  interfaces::PlayerInfoManager *player_info_manager;
 };
