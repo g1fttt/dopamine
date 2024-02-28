@@ -1,6 +1,8 @@
 #include "hooks.h"
+#include "menu.h"
 
 #include <app.h>
+#include <menu.h>
 
 #include <interfaces/input_system.h>
 
@@ -14,6 +16,8 @@ LRESULT WINAPI hooks::wnd_proc(HWND window, UINT message, WPARAM wparam,
   if (ImGui_ImplWin32_WndProcHandler(window, message, wparam, lparam)) {
     return true;
   }
+
+  menu::handle_toggle();
 
   App::with([](App &app) {
     app.input_system->enable_input(!app.should_render_menu);

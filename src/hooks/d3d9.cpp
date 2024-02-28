@@ -3,6 +3,7 @@
 #include <d3d9.h>
 
 #include <app.h>
+#include <menu.h>
 
 #include <interfaces/input_system.h>
 
@@ -34,19 +35,7 @@ HRESULT STDCALL hooks::present(IDirect3DDevice9 *self, const RECT *src,
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    App::with([](App &app) {
-      if (GetAsyncKeyState(VK_INSERT) & 1) {
-        app.should_render_menu = !app.should_render_menu;
-
-        if (!app.should_render_menu) {
-          app.input_system->reset_input_state();
-        }
-      }
-
-      if (app.should_render_menu) {
-        ImGui::ShowDemoWindow();
-      }
-    });
+    menu::render();
 
     ImGui::EndFrame();
     ImGui::Render();
