@@ -1,8 +1,10 @@
 #include "hooks.h"
 
+#include <d3d9.h>
+
 #include <app.h>
 
-#include <d3d9.h>
+#include <interfaces/input_system.h>
 
 #include <imgui.h>
 #include <imgui_impl_dx9.h>
@@ -13,7 +15,6 @@ HRESULT STDCALL hooks::reset(void *self, D3DPRESENT_PARAMETERS *params) {
 
   const auto result =
       App::get().d3d9_vmt.call_original<HRESULT, 16>(self, params);
-  App::get().window = params->hDeviceWindow;
 
   ImGui_ImplDX9_CreateDeviceObjects();
 
@@ -33,7 +34,19 @@ HRESULT STDCALL hooks::present(IDirect3DDevice9 *self, const RECT *src,
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::ShowDemoWindow();
+    App::with([](App &app) {
+      if (GetAsyncKeyState(VK_INSERT) & 1) {
+        app.should_render_menu = !app.should_render_menu;
+
+        if (!app.should_render_menu) {
+          app.input_system->reset_input_state();
+        }
+      }
+
+      if (app.should_render_menu) {
+        ImGui::ShowDemoWindow();
+      }
+    });
 
     ImGui::EndFrame();
     ImGui::Render();

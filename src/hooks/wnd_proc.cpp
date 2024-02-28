@@ -2,6 +2,8 @@
 
 #include <app.h>
 
+#include <interfaces/input_system.h>
+
 #include <imgui.h>
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM,
@@ -13,8 +15,9 @@ LRESULT WINAPI hooks::wnd_proc(HWND window, UINT message, WPARAM wparam,
     return true;
   }
 
-  // TODO: Toggle in-game input while *future* menu is open
-
+  App::with([](App &app) {
+    app.input_system->enable_input(!app.should_render_menu);
+  });
   return CallWindowProcW(App::get().original_wnd_proc, window, message, wparam,
                          lparam);
 }

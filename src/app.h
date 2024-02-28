@@ -10,6 +10,8 @@ struct IDirect3DDevice9;
 
 namespace interfaces {
   class CVar;
+  class InputSystem;
+  class PlayerInfoManager;
 }
 
 struct App {
@@ -19,6 +21,7 @@ struct App {
   void reset();
 
   bool should_unhook = false;
+  bool should_render_menu = false;
 
   WNDPROC original_wnd_proc;
   HWND window;
@@ -28,4 +31,6 @@ struct App {
   void *client;
   IDirect3DDevice9 *d3d9;
   interfaces::CVar *cvar;
+  interfaces::InputSystem *input_system;
+  interfaces::PlayerInfoManager *player_info_manager;
 };
