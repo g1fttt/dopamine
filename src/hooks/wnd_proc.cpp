@@ -1,5 +1,4 @@
 #include "hooks.h"
-#include "menu.h"
 
 #include <app.h>
 #include <menu.h>
