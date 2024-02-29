@@ -4,6 +4,7 @@
 
 #include <functional>
 
+#include "menu.h"
 #include "vmt.h"
 
 struct IDirect3DDevice9;
@@ -20,7 +21,7 @@ struct App {
   void reset();
 
   bool should_unhook = false;
-  bool should_render_menu = false;
+  Menu menu;
 
   WNDPROC original_wnd_proc;
   HWND window;

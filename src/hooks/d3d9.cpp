@@ -4,6 +4,7 @@
 
 #include <app.h>
 #include <menu.h>
+#include <post_processing.h>
 
 #include <interfaces/input_system.h>
 
@@ -12,6 +13,8 @@
 #include <imgui_impl_win32.h>
 
 HRESULT STDCALL hooks::reset(void *device, D3DPRESENT_PARAMETERS *params) {
+  post_processing::BlurEffect::get().clear_textures();
+
   ImGui_ImplDX9_InvalidateDeviceObjects();
 
   const auto result =
@@ -35,7 +38,19 @@ HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    menu::render();
+    auto &blur_effect = post_processing::BlurEffect::get();
+
+    blur_effect.set_device(device);
+    blur_effect.new_frame();
+
+    App::with([&](App &app) {
+      app.menu.render();
+
+      if (!app.menu.is_fully_closed()) {
+        blur_effect.draw(ImGui::GetBackgroundDrawList(),
+                         app.menu.get_transparency());
+      }
+    });
 
     ImGui::EndFrame();
     ImGui::Render();
