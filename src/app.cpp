@@ -18,7 +18,7 @@ void find_interfaces(App &app) {
 void find_patterns(App &app) {
   const auto d3d9 = utils::find_pattern(
       "shaderapidx9.dll",
-      L"\xA1\xCC\xCC\xCC\xCC\x50\x8B\x08\xFF\x51\xCC\x8B\xF8");
+      u8"\xA1\xCC\xCC\xCC\xCC\x50\x8B\x08\xFF\x51\xCC\x8B\xF8");
   if (d3d9) {
     app.d3d9 = **reinterpret_cast<IDirect3DDevice9 ***>(d3d9.value() + 1);
   } else {

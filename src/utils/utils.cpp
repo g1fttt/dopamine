@@ -19,7 +19,7 @@ void *utils::interface_base(std::string_view module_name,
 }
 
 std::expected<std::byte *, std::string>
-utils::find_pattern(std::string_view module_name, std::wstring_view pattern) {
+utils::find_pattern(std::string_view module_name, std::u8string_view pattern) {
   const auto module = GetModuleHandleA(module_name.data());
 
   static size_t pattern_id = 0;
@@ -43,7 +43,7 @@ utils::find_pattern(std::string_view module_name, std::wstring_view pattern) {
     for (size_t j = 0; j < pattern.length(); j += 1) {
       // 0xCC is a breakpoint opcode (usually unused in regular assembly),
       // so we can use it as wildcard
-      if (pattern[j] != wchar_t(base[i + j]) && pattern[j] != L'\xCC') {
+      if (pattern[j] != char8_t(base[i + j]) && pattern[j] != u8'\xCC') {
         found = false;
         break;
       }
