@@ -50,7 +50,6 @@ static void draw_imgui_frame(IDirect3DDevice9 *device) {
 HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
                                const RECT *dest, HWND window_override,
                                const RGNDATA *dirty_region) {
-
   App::with([&](App &app) {
     app.menu.update_animation();
 
