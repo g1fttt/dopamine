@@ -15,7 +15,7 @@ LRESULT WINAPI hooks::wnd_proc(HWND window, UINT message, WPARAM wparam,
     return true;
   }
 
-  App::with([](App &app) {
+  App::with_mut([](App &app) {
     app.menu.handle_toggle();
     app.input_system->enable_input(!app.menu.is_open());
   });

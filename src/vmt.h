@@ -11,13 +11,13 @@ public:
   void hook(void *hook, size_t index);
 
   template <typename T, size_t index, typename... Args>
-  constexpr auto get_original() {
+  constexpr auto get_original() const {
     return reinterpret_cast<T(THISCALL *)(void *, Args...)>(
         original_vmt[index]);
   }
 
   template <typename T, size_t index, typename... Args>
-  constexpr auto call_original(Args... args) {
+  constexpr auto call_original(Args... args) const {
     return get_original<T, index, Args...>()(base, args...);
   }
 private:

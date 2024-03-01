@@ -18,4 +18,6 @@ namespace hooks {
   HRESULT STDCALL present(IDirect3DDevice9 *device, const RECT *src,
                           const RECT *dest, HWND window_override,
                           const RGNDATA *dirty_region);
+
+  void STDCALL lock_cursor();
 }

@@ -7,14 +7,14 @@
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 
-// TODO: ISurface LockCursor & UnlockCursor
-
 static void find_interfaces(App &app) {
   app.client = utils::interface_base("client.dll", "VClient017");
   app.cvar = reinterpret_cast<interfaces::CVar *>(
       utils::interface_base("vstdlib.dll", "VEngineCvar004"));
   app.input_system = reinterpret_cast<interfaces::InputSystem *>(
       utils::interface_base("inputsystem.dll", "InputSystemVersion001"));
+  app.surface = reinterpret_cast<interfaces::Surface *>(
+      utils::interface_base("vguimatsurface.dll", "VGUI_Surface030"));
 }
 
 static void find_patterns(App &app) {
@@ -60,6 +60,7 @@ static void init_imgui(App &app) {
 static void init_vmts(App &app) {
   app.client_vmt.init(app.client);
   app.d3d9_vmt.init(app.d3d9);
+  app.surface_vmt.init(app.surface);
 }
 
 static void setup_hooks(App &app) {
@@ -67,6 +68,8 @@ static void setup_hooks(App &app) {
 
   app.d3d9_vmt.hook(LPVOID(hooks::reset), 16);
   app.d3d9_vmt.hook(LPVOID(hooks::present), 17);
+
+  app.surface_vmt.hook(LPVOID(hooks::lock_cursor), 62);
 }
 
 App &App::get() {
@@ -91,7 +94,11 @@ App &App::get() {
   return APP;
 }
 
-void App::with(const std::function<void(App &)> &cb) {
+void App::with_mut(const std::function<void(App &)> &cb) {
+  cb(App::get());
+}
+
+void App::with(const std::function<void(const App &)> &cb) {
   cb(App::get());
 }
 

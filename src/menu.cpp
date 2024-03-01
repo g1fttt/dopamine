@@ -8,7 +8,7 @@
 
 #include <imgui.h>
 
-void Menu::render() {
+void Menu::render() const {
   if (open && toggle_animation_end < 1.0f) {
     ImGui::SetNextWindowFocus();
   }

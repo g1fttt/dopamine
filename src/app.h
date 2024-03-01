@@ -14,12 +14,14 @@ struct IDirect3DDevice9;
 namespace interfaces {
   class CVar;
   class InputSystem;
+  class Surface;
 }
 
 struct App {
   static App &get();
 
-  static void with(const std::function<void(App &)> &cb);
+  static void with_mut(const std::function<void(App &)> &cb);
+  static void with(const std::function<void(const App &)> &cb);
 
   void reset();
 
@@ -31,10 +33,13 @@ struct App {
   WNDPROC original_wnd_proc;
   HWND window;
 
-  VMT client_vmt, d3d9_vmt;
+  VMT client_vmt;
+  VMT d3d9_vmt;
+  VMT surface_vmt;
 
   void *client;
   IDirect3DDevice9 *d3d9;
   interfaces::CVar *cvar;
   interfaces::InputSystem *input_system;
+  interfaces::Surface *surface;
 };

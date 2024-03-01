@@ -10,7 +10,7 @@ namespace utils {
   }
 
 #define VMETHOD(RetType, name, index, args_def, args)                          \
-  RetType name args_def {                                                      \
+  constexpr RetType name args_def {                                            \
     return utils::__vmethod::call<RetType, index> args;                        \
   }
 }
