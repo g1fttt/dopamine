@@ -15,8 +15,6 @@ void Menu::render() {
 
   ImGui::PushStyleVar(ImGuiStyleVar_Alpha, get_transparency());
   {
-    toggle_animation_end += ImGui::GetIO().DeltaTime / animation_len();
-
     if (!open) {
       goto end;
     }
@@ -24,6 +22,10 @@ void Menu::render() {
   }
 end:
   ImGui::PopStyleVar();
+}
+
+void Menu::update_animation() {
+  toggle_animation_end += ImGui::GetIO().DeltaTime / animation_len();
 }
 
 void Menu::handle_toggle() {

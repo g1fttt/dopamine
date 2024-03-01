@@ -5,6 +5,7 @@
 class Menu {
 public:
   void render();
+  void update_animation();
   void handle_toggle();
 
   constexpr bool is_open() {

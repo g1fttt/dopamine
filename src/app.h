@@ -7,6 +7,8 @@
 #include "menu.h"
 #include "vmt.h"
 
+struct ImGuiContext;
+
 struct IDirect3DDevice9;
 
 namespace interfaces {
@@ -16,12 +18,15 @@ namespace interfaces {
 
 struct App {
   static App &get();
+
   static void with(const std::function<void(App &)> &cb);
 
   void reset();
 
   bool should_unhook = false;
   Menu menu;
+
+  ImGuiContext *blur_ctx, *menu_ctx;
 
   WNDPROC original_wnd_proc;
   HWND window;
