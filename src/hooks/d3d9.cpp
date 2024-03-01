@@ -53,7 +53,6 @@ HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
     ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
     device->EndScene();
   }
-
   return App::get().d3d9_vmt.call_original<HRESULT, 17>(
       device, src, dest, window_override, dirty_region);
 }
