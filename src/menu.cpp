@@ -8,7 +8,6 @@
 
 #include <imgui.h>
 
-// FIXME: Menu isn't rendering in-game
 void Menu::render() {
   if (open && toggle_animation_end < 1.0f) {
     ImGui::SetNextWindowFocus();
@@ -19,11 +18,11 @@ void Menu::render() {
     toggle_animation_end += ImGui::GetIO().DeltaTime / animation_len();
 
     if (!open) {
-      goto render_end;
+      goto end;
     }
     ImGui::ShowDemoWindow();
   }
-render_end:
+end:
   ImGui::PopStyleVar();
 }
 
@@ -39,5 +38,8 @@ void Menu::handle_toggle() {
     } else {
       toggle_animation_end = 0.0f;
     }
+
+    ImGui::GetIO().MouseDrawCursor = open;
+    ShowCursor(!open);
   }
 }

@@ -28,20 +28,13 @@ HRESULT STDCALL hooks::reset(void *device, D3DPRESENT_PARAMETERS *params) {
 HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
                                const RECT *dest, HWND window_override,
                                const RGNDATA *dirty_region) {
-  DWORD srgb = 0;
-  device->GetRenderState(D3DRS_SRGBWRITEENABLE, &srgb);
+  ImGui_ImplDX9_NewFrame();
+  ImGui_ImplWin32_NewFrame();
 
-  // Source engine color correction
-  device->SetRenderState(D3DRS_SRGBWRITEENABLE, false);
+  ImGui::NewFrame();
   {
-    ImGui_ImplDX9_NewFrame();
-    ImGui_ImplWin32_NewFrame();
-    ImGui::NewFrame();
-
     auto &blur_effect = post_processing::BlurEffect::get();
-
     blur_effect.set_device(device);
-    blur_effect.new_frame();
 
     App::with([&](App &app) {
       app.menu.render();
@@ -51,16 +44,15 @@ HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
                          app.menu.get_transparency());
       }
     });
-
-    ImGui::EndFrame();
-    ImGui::Render();
-
-    if (device->BeginScene() == D3D_OK) {
-      ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-      device->EndScene();
-    }
   }
-  device->SetRenderState(D3DRS_SRGBWRITEENABLE, srgb);
+  ImGui::EndFrame();
+
+  ImGui::Render();
+
+  if (device->BeginScene() == D3D_OK) {
+    ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+    device->EndScene();
+  }
 
   return App::get().d3d9_vmt.call_original<HRESULT, 17>(
       device, src, dest, window_override, dirty_region);

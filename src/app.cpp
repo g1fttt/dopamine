@@ -7,7 +7,9 @@
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 
-void find_interfaces(App &app) {
+// TODO: ISurface LockCursor & UnlockCursor
+
+static void find_interfaces(App &app) {
   app.client = utils::interface_base("client.dll", "VClient017");
   app.cvar = reinterpret_cast<interfaces::CVar *>(
       utils::interface_base("vstdlib.dll", "VEngineCvar004"));
@@ -15,7 +17,7 @@ void find_interfaces(App &app) {
       utils::interface_base("inputsystem.dll", "InputSystemVersion001"));
 }
 
-void find_patterns(App &app) {
+static void find_patterns(App &app) {
   const auto d3d9 = utils::find_pattern(
       "shaderapidx9.dll",
       u8"\xA1\xCC\xCC\xCC\xCC\x50\x8B\x08\xFF\x51\xCC\x8B\xF8");
@@ -26,7 +28,7 @@ void find_patterns(App &app) {
   }
 }
 
-void init_imgui(App &app) {
+static void init_imgui(App &app) {
   ImGui::CreateContext();
   ImGui_ImplDX9_Init(app.d3d9);
   ImGui_ImplWin32_Init(app.window);
@@ -43,12 +45,12 @@ void init_imgui(App &app) {
   io.Fonts->AddFontDefault();
 }
 
-void init_vmts(App &app) {
+static void init_vmts(App &app) {
   app.client_vmt.init(app.client);
   app.d3d9_vmt.init(app.d3d9);
 }
 
-void setup_hooks(App &app) {
+static void setup_hooks(App &app) {
   app.client_vmt.hook(LPVOID(hooks::frame_stage_notify), 36);
 
   app.d3d9_vmt.hook(LPVOID(hooks::reset), 16);
