@@ -94,6 +94,8 @@ namespace post_processing {
 
     device->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
     device->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+
+    device->SetRenderState(D3DRS_SCISSORTESTENABLE, false);
   }
 
   void BlurEffect::first_pass() {
@@ -109,6 +111,7 @@ namespace post_processing {
     rt_backup->Release();
 
     device->SetPixelShader(nullptr);
+    device->SetRenderState(D3DRS_SCISSORTESTENABLE, true);
   }
 
   void BlurEffect::set_device(IDirect3DDevice9 *device) {
