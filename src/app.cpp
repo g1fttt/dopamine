@@ -94,11 +94,7 @@ App &App::get() {
   return APP;
 }
 
-void App::with_mut(const std::function<void(App &)> &cb) {
-  cb(App::get());
-}
-
-void App::with(const std::function<void(const App &)> &cb) {
+void App::with(const std::function<void(App &)> &cb) {
   cb(App::get());
 }
 

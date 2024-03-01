@@ -20,8 +20,7 @@ namespace interfaces {
 struct App {
   static App &get();
 
-  static void with_mut(const std::function<void(App &)> &cb);
-  static void with(const std::function<void(const App &)> &cb);
+  static void with(const std::function<void(App &)> &cb);
 
   void reset();
 
