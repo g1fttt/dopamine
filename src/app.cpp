@@ -36,10 +36,7 @@ static void init_imgui_context(App &app, ImGuiContext **ctx) {
   ImGui_ImplWin32_Init(app.window);
 }
 
-static void init_imgui(App &app) {
-  init_imgui_context(app, &app.menu_ctx);
-  init_imgui_context(app, &app.blur_ctx);
-
+static void init_imgui_style() {
   ImGui::StyleColorsDark();
 
   auto &style = ImGui::GetStyle();
@@ -50,6 +47,14 @@ static void init_imgui(App &app) {
   io.LogFilename = nullptr;
   io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
   io.Fonts->AddFontDefault();
+}
+
+static void init_imgui(App &app) {
+  init_imgui_context(app, &app.menu_ctx);
+  init_imgui_style();
+
+  init_imgui_context(app, &app.blur_ctx);
+  init_imgui_style();
 }
 
 static void init_vmts(App &app) {

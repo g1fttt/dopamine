@@ -61,7 +61,7 @@ HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
 
     state_block->Capture();
 
-    // Fix menu (and blur) not rendering without net_graph & cl_showfps
+    // Fix menu (and blur) not rendering without `net_graph` or `cl_showfps`
     device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
 
     if (!app.menu.is_fully_closed()) {
