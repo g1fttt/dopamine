@@ -53,6 +53,17 @@ HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
   App::with([&](App &app) {
     app.menu.update_animation();
 
+    ComPtr<IDirect3DStateBlock9> state_block{};
+    if (device->CreateStateBlock(D3DSBT_ALL, state_block.GetAddressOf()) !=
+        D3D_OK) {
+      return;
+    }
+
+    state_block->Capture();
+
+    // Fix menu (and blur) not rendering without net_graph & cl_showfps
+    device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
+
     if (!app.menu.is_fully_closed()) {
       ImGui::SetCurrentContext(app.blur_ctx);
 
@@ -66,22 +77,17 @@ HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
       draw_imgui_frame(device);
     }
 
-    ComPtr<IDirect3DStateBlock9> state_block{};
-    if (device->CreateStateBlock(D3DSBT_ALL, state_block.GetAddressOf()) ==
-        D3D_OK) {
-      ImGui::SetCurrentContext(app.menu_ctx);
+    ImGui::SetCurrentContext(app.menu_ctx);
 
-      create_imgui_frame();
-      {
-        state_block->Capture();
+    create_imgui_frame();
+    {
+      // Fix broken ImGui menu colors with Source engine gamma correction
+      device->SetRenderState(D3DRS_SRGBWRITEENABLE, false);
 
-        device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
-        device->SetRenderState(D3DRS_SRGBWRITEENABLE, false);
-
-        app.menu.render();
-      }
-      draw_imgui_frame(device);
+      app.menu.render();
     }
+    draw_imgui_frame(device);
+
     state_block->Apply();
   });
   return App::get().d3d9_vmt.call_original<HRESULT, 17>(

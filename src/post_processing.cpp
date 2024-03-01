@@ -9,7 +9,7 @@
 
 namespace post_processing {
   void ShaderProgram::use(float uniform) {
-    device->SetPixelShader(pixel_shader);
+    device->SetPixelShader(pixel_shader.Get());
 
     const float params[4] = {uniform};
     device->SetPixelShaderConstantF(0, params, 1);
@@ -87,7 +87,10 @@ namespace post_processing {
 
     device->GetRenderTarget(0, &rt_backup);
 
-    set_render_target_texture(device.Get(), blur_texture.Get(), D3DTEXF_NONE);
+    set_render_target_texture(device, blur_texture.Get(), D3DTEXF_NONE);
+
+    // Fix blur became brightly white with D3DRS_COLORWRITEENABLE
+    device->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, true);
 
     device->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
     device->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);

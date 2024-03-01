@@ -19,6 +19,8 @@ namespace post_processing {
   namespace {
     class ShaderProgram {
     public:
+      ~ShaderProgram() = default;
+
       void use(float uniform);
       void init(const BYTE *pixel_shader_src);
 
@@ -27,7 +29,7 @@ namespace post_processing {
       }
     private:
       IDirect3DDevice9 *device;
-      IDirect3DPixelShader9 *pixel_shader;
+      ComPtr<IDirect3DPixelShader9> pixel_shader;
       bool inited = false;
     };
   }
@@ -56,8 +58,8 @@ namespace post_processing {
     void create_shaders();
     void create_textures();
   private:
+    IDirect3DDevice9 *device;
     // Yes, I LOVE smart pointers
-    ComPtr<IDirect3DDevice9> device;
     ComPtr<IDirect3DSurface9> rt_backup;
     ComPtr<IDirect3DTexture9> blur_texture;
     ShaderProgram blur_shader_x, blur_shader_y;
