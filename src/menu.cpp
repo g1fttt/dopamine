@@ -18,7 +18,14 @@ void Menu::render() const {
     if (!open) {
       goto end;
     }
-    ImGui::ShowDemoWindow();
+
+    constexpr auto WINDOW_FLAGS = ImGuiWindowFlags_NoCollapse |
+                                  ImGuiWindowFlags_NoResize |
+                                  ImGuiWindowFlags_NoScrollbar;
+
+    ImGui::Begin("Dopamine", nullptr, WINDOW_FLAGS);
+    ImGui::Text("Hello, World!");
+    ImGui::End();
   }
 end:
   ImGui::PopStyleVar();
@@ -29,19 +36,21 @@ void Menu::update_animation() {
 }
 
 void Menu::handle_toggle() {
-  if (GetAsyncKeyState(VK_INSERT) & 1) {
-    open = !open;
-    if (!open) {
-      App::get().input_system->reset_input_state();
-    }
+  App::with([&](App &app) {
+    if (app.input.key_is_up(VK_INSERT)) {
+      open = !open;
+      if (!open) {
+        app.input_system->reset_input_state();
+      }
 
-    if (toggle_animation_end > 0.0f && toggle_animation_end < 1.0f) {
-      toggle_animation_end = 1.0f - toggle_animation_end;
-    } else {
-      toggle_animation_end = 0.0f;
-    }
+      if (toggle_animation_end > 0.0f && toggle_animation_end < 1.0f) {
+        toggle_animation_end = 1.0f - toggle_animation_end;
+      } else {
+        toggle_animation_end = 0.0f;
+      }
 
-    ImGui::GetIO().MouseDrawCursor = open;
-    ShowCursor(!open);
-  }
+      ImGui::GetIO().MouseDrawCursor = open;
+      ShowCursor(!open);
+    }
+  });
 }

@@ -7,6 +7,8 @@
 #include "menu.h"
 #include "vmt.h"
 
+#include "utils/input.h"
+
 struct ImGuiContext;
 
 struct IDirect3DDevice9;
@@ -26,6 +28,8 @@ struct App {
 
   bool should_unhook = false;
   Menu menu;
+
+  utils::Input input;
 
   ImGuiContext *blur_ctx, *menu_ctx;
 

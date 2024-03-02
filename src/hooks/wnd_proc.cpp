@@ -15,9 +15,11 @@ LRESULT WINAPI hooks::wnd_proc(HWND window, UINT message, WPARAM wparam,
     return true;
   }
 
-  App::with([](App &app) {
+  App::with([=](App &app) {
+    app.input.update_state(message, wparam, lparam);
     app.menu.handle_toggle();
     app.input_system->enable_input(!app.menu.is_open());
+    app.input.reset_state();
   });
   return CallWindowProcW(App::get().original_wnd_proc, window, message, wparam,
                          lparam);

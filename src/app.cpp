@@ -64,7 +64,7 @@ static void init_vmts(App &app) {
 }
 
 static void setup_hooks(App &app) {
-  app.client_vmt.hook(LPVOID(hooks::frame_stage_notify), 36);
+  app.client_vmt.hook(LPVOID(hooks::frame_stage_notify), 35);
 
   app.d3d9_vmt.hook(LPVOID(hooks::reset), 16);
   app.d3d9_vmt.hook(LPVOID(hooks::present), 17);
@@ -76,7 +76,7 @@ App &App::get() {
   static App APP{};
 
   if (static bool inited = false; !inited) {
-    APP.window = FindWindowA(nullptr, "Counter-Strike: Source Offensive");
+    APP.window = FindWindowA("Valve001", nullptr);
 
     find_interfaces(APP);
     find_patterns(APP);
