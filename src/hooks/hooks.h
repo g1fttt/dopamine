@@ -14,7 +14,8 @@ namespace hooks {
 
   void STDCALL frame_stage_notify(int32_t stage);
 
-  HRESULT STDCALL reset(void *device, D3DPRESENT_PARAMETERS *params);
+  HRESULT STDCALL reset(IDirect3DDevice9 *device,
+                        D3DPRESENT_PARAMETERS *params);
   HRESULT STDCALL present(IDirect3DDevice9 *device, const RECT *src,
                           const RECT *dest, HWND window_override,
                           const RGNDATA *dirty_region);

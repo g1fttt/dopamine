@@ -1,8 +1,10 @@
 #include "hooks.h"
 
 #include <app.h>
+#include <menu.h>
 
 #include <interfaces/input_system.h>
+#include <utils/input.h>
 
 #include <imgui.h>
 
@@ -15,11 +17,8 @@ LRESULT WINAPI hooks::wnd_proc(HWND window, UINT message, WPARAM wparam,
     return true;
   }
 
-  App::with([=](App &app) {
-    app.input.update_state(message, wparam, lparam);
-    app.menu.handle_toggle();
-    app.input_system->enable_input(!app.menu.is_open());
-    app.input.reset_state();
+  utils::Input::with(message, wparam, lparam, [] {
+    core::Menu::get().handle_toggle();
   });
   return CallWindowProcW(App::get().original_wnd_proc, window, message, wparam,
                          lparam);

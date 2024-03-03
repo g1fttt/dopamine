@@ -1,6 +1,19 @@
 #include "input.h"
 
 namespace utils {
+  Input &Input::get() {
+    static Input input{};
+    return input;
+  }
+
+  void Input::with(UINT message, WPARAM wparam, LPARAM lparam,
+                   const std::function<void()> &cb) {
+    auto &input = Input::get();
+    input.update_state(message, wparam, lparam);
+    { cb(); }
+    input.reset_state();
+  }
+
   void Input::update_state(UINT message, WPARAM wparam, LPARAM lparam) {
     switch (message) {
     case WM_KEYUP:

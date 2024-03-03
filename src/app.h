@@ -4,10 +4,7 @@
 
 #include <functional>
 
-#include "menu.h"
 #include "vmt.h"
-
-#include "utils/input.h"
 
 struct ImGuiContext;
 
@@ -19,7 +16,22 @@ namespace interfaces {
   class Surface;
 }
 
-struct App {
+class App {
+public:
+  struct Interfaces {
+    void *client;
+    IDirect3DDevice9 *d3d9;
+    interfaces::CVar *cvar;
+    interfaces::InputSystem *input_system;
+    interfaces::Surface *surface;
+  };
+
+  struct VMTs {
+    VMT client;
+    VMT d3d9;
+    VMT surface;
+  };
+public:
   static App &get();
 
   static void with(const std::function<void(App &)> &cb);
@@ -27,22 +39,12 @@ struct App {
   void reset();
 
   bool should_unhook = false;
-  Menu menu;
 
-  utils::Input input;
+  Interfaces interfaces;
+  VMTs vmts;
 
   ImGuiContext *blur_ctx, *menu_ctx;
 
   WNDPROC original_wnd_proc;
   HWND window;
-
-  VMT client_vmt;
-  VMT d3d9_vmt;
-  VMT surface_vmt;
-
-  void *client;
-  IDirect3DDevice9 *d3d9;
-  interfaces::CVar *cvar;
-  interfaces::InputSystem *input_system;
-  interfaces::Surface *surface;
 };

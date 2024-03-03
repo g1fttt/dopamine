@@ -16,13 +16,14 @@
 
 using namespace Microsoft::WRL;
 
-HRESULT STDCALL hooks::reset(void *device, D3DPRESENT_PARAMETERS *params) {
+HRESULT STDCALL hooks::reset(IDirect3DDevice9 *device,
+                             D3DPRESENT_PARAMETERS *params) {
   post_processing::BlurEffect::get().clear_textures();
 
   ImGui_ImplDX9_InvalidateDeviceObjects();
 
   const auto result =
-      App::get().d3d9_vmt.call_original<HRESULT, 16>(device, params);
+      App::get().vmts.d3d9.call_original<HRESULT, 16>(device, params);
 
   ImGui_ImplDX9_CreateDeviceObjects();
 
@@ -50,46 +51,46 @@ static void draw_imgui_frame(IDirect3DDevice9 *device) {
 HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
                                const RECT *dest, HWND window_override,
                                const RGNDATA *dirty_region) {
-  App::with([&](App &app) {
-    app.menu.update_animation();
+  auto &menu = core::Menu::get();
 
-    ComPtr<IDirect3DStateBlock9> state_block{};
-    if (device->CreateStateBlock(D3DSBT_ALL, state_block.GetAddressOf()) !=
-        D3D_OK) {
-      return;
-    }
+  menu.update_animation();
 
-    state_block->Capture();
+  ComPtr<IDirect3DStateBlock9> state_block{};
+  if (device->CreateStateBlock(D3DSBT_ALL, state_block.GetAddressOf()) !=
+      D3D_OK) {
+    goto end;
+  }
 
-    // Fix menu (and blur) not rendering without `net_graph` or `cl_showfps`
-    device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
+  state_block->Capture();
 
-    if (!app.menu.is_fully_closed()) {
-      ImGui::SetCurrentContext(app.blur_ctx);
+  // Fix menu (and blur) not rendering without `net_graph` or `cl_showfps`
+  device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
 
-      create_imgui_frame();
-      {
-        auto &blur_effect = post_processing::BlurEffect::get();
-        blur_effect.set_device(device);
-        blur_effect.draw(ImGui::GetBackgroundDrawList(),
-                         app.menu.get_transparency());
-      }
-      draw_imgui_frame(device);
-    }
-
-    ImGui::SetCurrentContext(app.menu_ctx);
+  if (!menu.is_fully_closed()) {
+    ImGui::SetCurrentContext(App::get().blur_ctx);
 
     create_imgui_frame();
     {
-      // Fix broken ImGui menu colors with Source engine gamma correction
-      device->SetRenderState(D3DRS_SRGBWRITEENABLE, false);
-
-      app.menu.render();
+      auto &blur_effect = post_processing::BlurEffect::get();
+      blur_effect.set_device(device);
+      blur_effect.draw(ImGui::GetBackgroundDrawList(), menu.get_transparency());
     }
     draw_imgui_frame(device);
+  }
 
-    state_block->Apply();
-  });
-  return App::get().d3d9_vmt.call_original<HRESULT, 17>(
+  ImGui::SetCurrentContext(App::get().menu_ctx);
+
+  create_imgui_frame();
+  {
+    // Fix broken ImGui menu colors with Source engine gamma correction
+    device->SetRenderState(D3DRS_SRGBWRITEENABLE, false);
+
+    menu.render();
+  }
+  draw_imgui_frame(device);
+
+  state_block->Apply();
+end:
+  return App::get().vmts.d3d9.call_original<HRESULT, 17>(
       device, src, dest, window_override, dirty_region);
 }

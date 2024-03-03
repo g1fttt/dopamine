@@ -1,14 +1,15 @@
 #include "hooks.h"
 
 #include <app.h>
+#include <menu.h>
 
 #include <interfaces/surface.h>
 
 void STDCALL hooks::lock_cursor() {
   App::with([](const App &app) {
-    if (app.menu.is_open()) {
-      return app.surface->unlock_cursor();
+    if (core::Menu::get().is_open()) {
+      return app.interfaces.surface->unlock_cursor();
     }
-    app.surface_vmt.call_original<void, 62>();
+    app.vmts.surface.call_original<void, 62>();
   });
 }
