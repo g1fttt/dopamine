@@ -88,20 +88,13 @@ namespace post_processing {
       return;
     }
 
-    const float offset_x = -1.0f / (backbuf_width / BLUR_DOWNSAMPLE);
-    const float offset_y = 1.0f / (backbuf_width / BLUR_DOWNSAMPLE);
-
     draw_list->AddCallback(post_processing::begin, nullptr);
     {
       for (int i = 0; i < 8; i += 1) {
         draw_list->AddCallback(post_processing::first_pass, nullptr);
-        draw_list->AddImage(blur_texture1.Get(),
-                            {-1.0f + offset_x, -1.0f + offset_y},
-                            {1.0f + offset_x, 1.0f + offset_y});
+        draw_list->AddImage(blur_texture1.Get(), {-1.0f, -1.0f}, {1.0f, 1.0f});
         draw_list->AddCallback(post_processing::second_pass, nullptr);
-        draw_list->AddImage(blur_texture2.Get(),
-                            {-1.0f + offset_x, -1.0f + offset_y},
-                            {1.0f + offset_x, 1.0f + offset_y});
+        draw_list->AddImage(blur_texture2.Get(), {-1.0f, -1.0f}, {1.0f, 1.0f});
       }
     }
     draw_list->AddCallback(post_processing::end, nullptr);
@@ -127,10 +120,19 @@ namespace post_processing {
 
     device->SetRenderState(D3DRS_SCISSORTESTENABLE, false);
 
-    constexpr D3DMATRIX identity = {{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-                                     0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-                                     0.0f, 1.0f}};
-    device->SetTransform(D3DTS_PROJECTION, &identity);
+    const auto offset_x = -1.0f / (backbuf_width / BLUR_DOWNSAMPLE);
+    const auto offset_y = 1.0f / (backbuf_height / BLUR_DOWNSAMPLE);
+
+    // clang-format off
+    const D3DMATRIX projection = {{
+      1.0f, 0.0f, 0.0f, 0.0f,
+      0.0f, 1.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, 1.0f, 0.0f,
+      offset_x, offset_y, 0.0f, 1.0f
+    }};
+    // clang-format on
+
+    device->SetTransform(D3DTS_PROJECTION, &projection);
   }
 
   void BlurEffect::first_pass() {
