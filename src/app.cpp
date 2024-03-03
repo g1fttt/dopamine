@@ -8,7 +8,6 @@
 #include <imgui_impl_win32.h>
 
 static void find_interfaces(App &app) {
-  app.interfaces.client = utils::interface_base("client.dll", "VClient017");
   app.interfaces.cvar = reinterpret_cast<interfaces::CVar *>(
       utils::interface_base("vstdlib.dll", "VEngineCvar004"));
   app.interfaces.input_system = reinterpret_cast<interfaces::InputSystem *>(
@@ -59,14 +58,11 @@ static void init_imgui(App &app) {
 }
 
 static void init_vmts(App &app) {
-  app.vmts.client.init(app.interfaces.client);
   app.vmts.d3d9.init(app.interfaces.d3d9);
   app.vmts.surface.init(app.interfaces.surface);
 }
 
 static void setup_hooks(App &app) {
-  app.vmts.client.hook(LPVOID(hooks::frame_stage_notify), 35);
-
   app.vmts.d3d9.hook(LPVOID(hooks::reset), 16);
   app.vmts.d3d9.hook(LPVOID(hooks::present), 17);
 
@@ -107,7 +103,6 @@ static void destroy_imgui_context(ImGuiContext *ctx) {
 }
 
 void App::reset() {
-  vmts.client.reset();
   vmts.d3d9.reset();
 
   destroy_imgui_context(blur_ctx);

@@ -26,9 +26,9 @@ namespace core {
         goto end;
       }
 
-      constexpr auto WINDOW_FLAGS = ImGuiWindowFlags_NoCollapse |
-                                    ImGuiWindowFlags_NoResize |
-                                    ImGuiWindowFlags_NoScrollbar;
+      constexpr auto WINDOW_FLAGS =
+          ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize;
 
       ImGui::Begin("Dopamine", nullptr, WINDOW_FLAGS);
       ImGui::Text("Hello, World!");

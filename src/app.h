@@ -19,7 +19,6 @@ namespace interfaces {
 class App {
 public:
   struct Interfaces {
-    void *client;
     IDirect3DDevice9 *d3d9;
     interfaces::CVar *cvar;
     interfaces::InputSystem *input_system;
@@ -27,7 +26,6 @@ public:
   };
 
   struct VMTs {
-    VMT client;
     VMT d3d9;
     VMT surface;
   };
