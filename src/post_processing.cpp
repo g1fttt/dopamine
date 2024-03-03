@@ -17,15 +17,16 @@ namespace post_processing {
 
   void ShaderProgram::init(const BYTE *pixel_shader_src) {
     if (!inited) {
-      device->CreatePixelShader(PDWORD(BLUR_X), &pixel_shader);
+      device->CreatePixelShader(PDWORD(pixel_shader_src),
+                                pixel_shader.GetAddressOf());
       inited = true;
     }
   }
 }
 
-static void set_render_target_texture(IDirect3DDevice9 *device,
-                                      IDirect3DTexture9 *texture,
-                                      D3DTEXTUREFILTERTYPE filter) {
+static void copy_backbuf_to_texture(IDirect3DDevice9 *device,
+                                    IDirect3DTexture9 *texture,
+                                    D3DTEXTUREFILTERTYPE filter) {
   ComPtr<IDirect3DSurface9> backbuf{};
   if (device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO,
                             backbuf.GetAddressOf()) == D3D_OK) {
@@ -33,10 +34,27 @@ static void set_render_target_texture(IDirect3DDevice9 *device,
     if (texture->GetSurfaceLevel(0, surface.GetAddressOf()) == D3D_OK) {
       device->StretchRect(backbuf.Get(), nullptr, surface.Get(), nullptr,
                           filter);
-      device->SetRenderTarget(0, surface.Get());
     }
   }
 }
+
+static void set_render_target(IDirect3DDevice9 *device,
+                              IDirect3DTexture9 *texture) {
+  ComPtr<IDirect3DSurface9> surface{};
+  if (texture->GetSurfaceLevel(0, surface.GetAddressOf()) == D3D_OK) {
+    device->SetRenderTarget(0, surface.Get());
+  }
+}
+
+static IDirect3DTexture9 *create_texture(IDirect3DDevice9 *device,
+                                         uint32_t width, uint32_t height) {
+  IDirect3DTexture9 *texture{};
+  device->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET,
+                        D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &texture, nullptr);
+  return texture;
+}
+
+constexpr auto BLUR_DOWNSAMPLE = 4.0f;
 
 namespace post_processing {
   static void begin(const ImDrawList *, const ImDrawCmd *) {
@@ -61,33 +79,45 @@ namespace post_processing {
   }
 
   void BlurEffect::draw(ImDrawList *draw_list, float alpha) {
+    new_frame();
+
+    create_textures();
+    create_shaders();
+
+    if (!blur_texture1 || !blur_texture2) {
+      return;
+    }
+
+    const float offset_x = -1.0f / (backbuf_width / BLUR_DOWNSAMPLE);
+    const float offset_y = 1.0f / (backbuf_width / BLUR_DOWNSAMPLE);
+
     draw_list->AddCallback(post_processing::begin, nullptr);
     {
       for (int i = 0; i < 8; i += 1) {
         draw_list->AddCallback(post_processing::first_pass, nullptr);
-        draw_list->AddImage(blur_texture.Get(), {0.0f, 0.0f},
-                            {backbuf_width * 1.0f, backbuf_height * 1.0f});
+        draw_list->AddImage(blur_texture1.Get(),
+                            {-1.0f + offset_x, -1.0f + offset_y},
+                            {1.0f + offset_x, 1.0f + offset_y});
         draw_list->AddCallback(post_processing::second_pass, nullptr);
-        draw_list->AddImage(blur_texture.Get(), {0.0f, 0.0f},
-                            {backbuf_width * 1.0f, backbuf_height * 1.0f});
+        draw_list->AddImage(blur_texture2.Get(),
+                            {-1.0f + offset_x, -1.0f + offset_y},
+                            {1.0f + offset_x, 1.0f + offset_y});
       }
     }
     draw_list->AddCallback(post_processing::end, nullptr);
 
-    draw_list->AddImage(blur_texture.Get(), {0.0f, 0.0f},
+    draw_list->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
+
+    draw_list->AddImage(blur_texture1.Get(), {0.0f, 0.0f},
                         {backbuf_width * 1.0f, backbuf_height * 1.0f},
                         {0.0f, 0.0f}, {1.0f, 1.0f},
                         IM_COL32(255, 255, 255, 255 * alpha));
   }
 
   void BlurEffect::begin() {
-    create_shaders();
-
-    new_frame();
-
     device->GetRenderTarget(0, &rt_backup);
 
-    set_render_target_texture(device, blur_texture.Get(), D3DTEXF_NONE);
+    copy_backbuf_to_texture(device, blur_texture1.Get(), D3DTEXF_LINEAR);
 
     // Fix blur became brightly white with D3DRS_COLORWRITEENABLE
     device->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, true);
@@ -96,14 +126,21 @@ namespace post_processing {
     device->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
 
     device->SetRenderState(D3DRS_SCISSORTESTENABLE, false);
+
+    constexpr D3DMATRIX identity = {{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                                     0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+                                     0.0f, 1.0f}};
+    device->SetTransform(D3DTS_PROJECTION, &identity);
   }
 
   void BlurEffect::first_pass() {
-    blur_shader_x.use(1.0f / backbuf_width);
+    blur_shader_x.use(1.0f / (backbuf_width / BLUR_DOWNSAMPLE));
+    set_render_target(device, blur_texture2.Get());
   }
 
   void BlurEffect::second_pass() {
-    blur_shader_y.use(1.0f / backbuf_height);
+    blur_shader_y.use(1.0f / (backbuf_height / BLUR_DOWNSAMPLE));
+    set_render_target(device, blur_texture1.Get());
   }
 
   void BlurEffect::end() {
@@ -121,9 +158,14 @@ namespace post_processing {
   }
 
   void BlurEffect::clear_textures() {
-    if (blur_texture) {
-      blur_texture->Release();
-      blur_texture = nullptr;
+    if (blur_texture1) {
+      blur_texture1->Release();
+      blur_texture1 = nullptr;
+    }
+
+    if (blur_texture2) {
+      blur_texture2->Release();
+      blur_texture2 = nullptr;
     }
   }
 
@@ -135,8 +177,6 @@ namespace post_processing {
 
       backbuf_width = width;
       backbuf_height = height;
-
-      create_textures();
     }
   }
 
@@ -146,10 +186,14 @@ namespace post_processing {
   }
 
   void BlurEffect::create_textures() {
-    if (!blur_texture) {
-      device->CreateTexture(backbuf_width, backbuf_height, 1,
-                            D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8,
-                            D3DPOOL_DEFAULT, &blur_texture, nullptr);
+    if (!blur_texture1) {
+      blur_texture1 = create_texture(device, backbuf_width / BLUR_DOWNSAMPLE,
+                                     backbuf_height / BLUR_DOWNSAMPLE);
+    }
+
+    if (!blur_texture2) {
+      blur_texture2 = create_texture(device, backbuf_width / BLUR_DOWNSAMPLE,
+                                     backbuf_height / BLUR_DOWNSAMPLE);
     }
   }
 }

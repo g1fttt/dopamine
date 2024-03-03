@@ -61,7 +61,7 @@ namespace post_processing {
     IDirect3DDevice9 *device;
     // Yes, I LOVE smart pointers
     ComPtr<IDirect3DSurface9> rt_backup;
-    ComPtr<IDirect3DTexture9> blur_texture;
+    ComPtr<IDirect3DTexture9> blur_texture1, blur_texture2;
     ShaderProgram blur_shader_x, blur_shader_y;
     uint32_t backbuf_width, backbuf_height;
   };
