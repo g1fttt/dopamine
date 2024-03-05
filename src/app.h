@@ -6,8 +6,6 @@
 
 #include "vmt.h"
 
-struct ImGuiContext;
-
 struct IDirect3DDevice9;
 
 namespace interfaces {
