@@ -2,20 +2,26 @@
 
 #include <Windows.h>
 
-#include "app.h"
+#include <interfaces/input_system.h>
+#include <utils/input.h>
 
-#include "interfaces/input_system.h"
-#include "utils/input.h"
+#include <app.h>
 
 #include <imgui.h>
 
-namespace core {
+namespace ui {
+  Menu::~Menu() {
+    ImGui::DestroyContext(ctx);
+  }
+
   Menu &Menu::get() {
     static Menu menu{};
     return menu;
   }
 
   void Menu::render() const {
+    ImGui::SetCurrentContext(ctx);
+
     if (open && toggle_animation_end < 1.0f) {
       ImGui::SetNextWindowFocus();
     }
@@ -38,14 +44,10 @@ namespace core {
     ImGui::PopStyleVar();
   }
 
-  void Menu::update_animation() {
-    toggle_animation_end += ImGui::GetIO().DeltaTime / animation_len();
-  }
-
   void Menu::handle_toggle() {
     if (utils::Input::get().key_is_up(VK_INSERT)) {
+      open = !open;
       App::with([&](App &app) {
-        open = !open;
         if (!open) {
           app.interfaces.input_system->reset_input_state();
         }
@@ -61,5 +63,17 @@ namespace core {
       ImGui::GetIO().MouseDrawCursor = open;
       ShowCursor(!open);
     }
+  }
+
+  void Menu::update_animation() {
+    toggle_animation_end += ImGui::GetIO().DeltaTime / animation_len();
+  }
+
+  void Menu::set_context(ImGuiContext *ctx) {
+    this->ctx = ctx;
+  }
+
+  void Menu::make_current() {
+    ImGui::SetCurrentContext(ctx);
   }
 }

@@ -20,29 +20,31 @@ size_t calc_vmt_size(uintptr_t *vmt) {
   return len;
 }
 
-void VMT::init(void *base) {
-  this->base = base;
-  vmt = *reinterpret_cast<uintptr_t **>(base);
-  vmt_size = calc_vmt_size(vmt);
-  original_vmt = std::make_unique<uintptr_t[]>(vmt_size);
-  std::copy(vmt, vmt + vmt_size, original_vmt.get());
-}
-
-void VMT::reset() {
-  DWORD old = 0;
-
-  if (VirtualProtect(vmt, vmt_size, PAGE_EXECUTE_READWRITE, &old)) {
-    std::copy(original_vmt.get(), original_vmt.get() + vmt_size, vmt);
-    VirtualProtect(vmt, vmt_size, old, nullptr);
+namespace core {
+  void VMT::init(void *base) {
+    this->base = base;
+    vmt = *reinterpret_cast<uintptr_t **>(base);
+    vmt_size = calc_vmt_size(vmt);
+    original_vmt = std::make_unique<uintptr_t[]>(vmt_size);
+    std::copy(vmt, vmt + vmt_size, original_vmt.get());
   }
-}
 
-void VMT::hook(void *hook, size_t index) {
-  uintptr_t *target = vmt + index;
-  DWORD old = 0;
+  void VMT::reset() {
+    DWORD old = 0;
 
-  if (VirtualProtect(target, sizeof(target), PAGE_EXECUTE_READWRITE, &old)) {
-    *target = uintptr_t(hook);
-    VirtualProtect(target, sizeof(target), old, nullptr);
+    if (VirtualProtect(vmt, vmt_size, PAGE_EXECUTE_READWRITE, &old)) {
+      std::copy(original_vmt.get(), original_vmt.get() + vmt_size, vmt);
+      VirtualProtect(vmt, vmt_size, old, nullptr);
+    }
+  }
+
+  void VMT::hook(void *hook, size_t index) {
+    uintptr_t *target = vmt + index;
+    DWORD old = 0;
+
+    if (VirtualProtect(target, sizeof(target), PAGE_EXECUTE_READWRITE, &old)) {
+      *target = uintptr_t(hook);
+      VirtualProtect(target, sizeof(target), old, nullptr);
+    }
   }
 }

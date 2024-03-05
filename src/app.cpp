@@ -1,7 +1,11 @@
 #include "app.h"
 
 #include "hooks/hooks.h"
+#include "interfaces/input_system.h"
 #include "utils/utils.h"
+
+#include "ui/menu.h"
+#include "ui/post_processing.h"
 
 #include <imgui.h>
 #include <imgui_impl_dx9.h>
@@ -28,15 +32,13 @@ static void find_patterns(App &app) {
   }
 }
 
-static void init_imgui_context(App &app, ImGuiContext **ctx) {
-  *ctx = ImGui::CreateContext();
-  ImGui::SetCurrentContext(*ctx);
+static ImGuiContext *create_imgui_context(App &app) {
+  auto *ctx = ImGui::CreateContext();
+  ImGui::SetCurrentContext(ctx);
 
   ImGui_ImplDX9_Init(app.interfaces.d3d9);
   ImGui_ImplWin32_Init(app.window);
-}
 
-static void init_imgui_style() {
   ImGui::StyleColorsDark();
 
   auto &style = ImGui::GetStyle();
@@ -47,14 +49,16 @@ static void init_imgui_style() {
   io.LogFilename = nullptr;
   io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
   io.Fonts->AddFontDefault();
+
+  return ctx;
 }
 
 static void init_imgui(App &app) {
-  init_imgui_context(app, &app.menu_ctx);
-  init_imgui_style();
+  auto *menu_ctx = create_imgui_context(app);
+  ui::Menu::get().set_context(menu_ctx);
 
-  init_imgui_context(app, &app.blur_ctx);
-  init_imgui_style();
+  auto *blur_ctx = create_imgui_context(app);
+  ui::BlurEffect::get().set_context(blur_ctx);
 }
 
 static void init_vmts(App &app) {
@@ -95,18 +99,14 @@ void App::with(const std::function<void(App &)> &cb) {
   cb(App::get());
 }
 
-static void destroy_imgui_context(ImGuiContext *ctx) {
+void App::reset() {
+  SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(original_wnd_proc));
+
+  interfaces.input_system->enable_input(true);
+
+  vmts.d3d9.reset();
+  vmts.surface.reset();
+
   ImGui_ImplWin32_Shutdown();
   ImGui_ImplDX9_Shutdown();
-
-  ImGui::DestroyContext(ctx);
-}
-
-void App::reset() {
-  vmts.d3d9.reset();
-
-  destroy_imgui_context(blur_ctx);
-  destroy_imgui_context(menu_ctx);
-
-  SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(original_wnd_proc));
 }

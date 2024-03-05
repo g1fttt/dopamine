@@ -5,10 +5,11 @@
 #include <wrl/client.h>
 
 #include <app.h>
-#include <menu.h>
-#include <post_processing.h>
 
 #include <interfaces/input_system.h>
+
+#include <ui/menu.h>
+#include <ui/post_processing.h>
 
 #include <imgui.h>
 #include <imgui_impl_dx9.h>
@@ -18,7 +19,7 @@ using namespace Microsoft::WRL;
 
 HRESULT STDCALL hooks::reset(IDirect3DDevice9 *device,
                              D3DPRESENT_PARAMETERS *params) {
-  post_processing::BlurEffect::get().clear_textures();
+  ui::BlurEffect::get().clear_textures();
 
   ImGui_ImplDX9_InvalidateDeviceObjects();
 
@@ -51,9 +52,10 @@ static void draw_imgui_frame(IDirect3DDevice9 *device) {
 HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
                                const RECT *dest, HWND window_override,
                                const RGNDATA *dirty_region) {
-  auto &menu = core::Menu::get();
-
+  auto &menu = ui::Menu::get();
   menu.update_animation();
+
+  auto &app = App::get();
 
   ComPtr<IDirect3DStateBlock9> state_block{};
   if (device->CreateStateBlock(D3DSBT_ALL, state_block.GetAddressOf()) !=
@@ -67,18 +69,18 @@ HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
   device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
 
   if (!menu.is_fully_closed()) {
-    ImGui::SetCurrentContext(App::get().blur_ctx);
+    auto &blur_effect = ui::BlurEffect::get();
+    blur_effect.make_current();
 
     create_imgui_frame();
     {
-      auto &blur_effect = post_processing::BlurEffect::get();
       blur_effect.set_device(device);
       blur_effect.draw(ImGui::GetBackgroundDrawList(), menu.get_transparency());
     }
     draw_imgui_frame(device);
   }
 
-  ImGui::SetCurrentContext(App::get().menu_ctx);
+  menu.make_current();
 
   create_imgui_frame();
   {
@@ -90,7 +92,12 @@ HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
   draw_imgui_frame(device);
 
   state_block->Apply();
+
+  if (app.should_unhook) {
+    ShowCursor(true);
+    app.must_unhook = true;
+  }
 end:
-  return App::get().vmts.d3d9.call_original<HRESULT, 17>(
+  return app.vmts.d3d9.call_original<HRESULT, 17>(
       device, src, dest, window_override, dirty_region);
 }

@@ -2,12 +2,12 @@
 
 #include <d3d9.h>
 
-#include "resources/blur_x.h"
-#include "resources/blur_y.h"
+#include <resources/blur_x.h>
+#include <resources/blur_y.h>
 
 #include <imgui.h>
 
-namespace post_processing {
+namespace ui {
   void ShaderProgram::use(float uniform) {
     device->SetPixelShader(pixel_shader.Get());
 
@@ -46,17 +46,18 @@ static void set_render_target(IDirect3DDevice9 *device,
   }
 }
 
-static IDirect3DTexture9 *create_texture(IDirect3DDevice9 *device,
-                                         uint32_t width, uint32_t height) {
-  IDirect3DTexture9 *texture{};
+static ComPtr<IDirect3DTexture9>
+create_texture(IDirect3DDevice9 *device, uint32_t width, uint32_t height) {
+  ComPtr<IDirect3DTexture9> texture{};
   device->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET,
-                        D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &texture, nullptr);
+                        D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT,
+                        texture.GetAddressOf(), nullptr);
   return texture;
 }
 
-constexpr auto BLUR_DOWNSAMPLE = 4.0f;
+namespace ui {
+  constexpr auto BLUR_DOWNSAMPLE = 4.0f;
 
-namespace post_processing {
   static void begin(const ImDrawList *, const ImDrawCmd *) {
     BlurEffect::get().begin();
   }
@@ -71,6 +72,10 @@ namespace post_processing {
 
   static void end(const ImDrawList *, const ImDrawCmd *) {
     BlurEffect::get().end();
+  }
+
+  BlurEffect::~BlurEffect() {
+    ImGui::DestroyContext(ctx);
   }
 
   BlurEffect &BlurEffect::get() {
@@ -88,16 +93,16 @@ namespace post_processing {
       return;
     }
 
-    draw_list->AddCallback(post_processing::begin, nullptr);
+    draw_list->AddCallback(ui::begin, nullptr);
     {
       for (int i = 0; i < 8; i += 1) {
-        draw_list->AddCallback(post_processing::first_pass, nullptr);
+        draw_list->AddCallback(ui::first_pass, nullptr);
         draw_list->AddImage(blur_texture1.Get(), {-1.0f, -1.0f}, {1.0f, 1.0f});
-        draw_list->AddCallback(post_processing::second_pass, nullptr);
+        draw_list->AddCallback(ui::second_pass, nullptr);
         draw_list->AddImage(blur_texture2.Get(), {-1.0f, -1.0f}, {1.0f, 1.0f});
       }
     }
-    draw_list->AddCallback(post_processing::end, nullptr);
+    draw_list->AddCallback(ui::end, nullptr);
 
     draw_list->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
 
@@ -157,6 +162,14 @@ namespace post_processing {
     this->device = device;
     blur_shader_x.set_device(device);
     blur_shader_y.set_device(device);
+  }
+
+  void BlurEffect::set_context(ImGuiContext *ctx) {
+    this->ctx = ctx;
+  }
+
+  void BlurEffect::make_current() {
+    ImGui::SetCurrentContext(ctx);
   }
 
   void BlurEffect::clear_textures() {

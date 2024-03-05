@@ -7,10 +7,10 @@ namespace utils {
   }
 
   void Input::with(UINT message, WPARAM wparam, LPARAM lparam,
-                   const std::function<void()> &cb) {
+                   const std::function<void(const Input &)> &cb) {
     auto &input = Input::get();
     input.update_state(message, wparam, lparam);
-    { cb(); }
+    { cb(input); }
     input.reset_state();
   }
 

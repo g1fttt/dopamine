@@ -19,7 +19,7 @@ namespace utils {
     static Input &get();
 
     static void with(UINT message, WPARAM wparam, LPARAM lparam,
-                     const std::function<void()> &cb);
+                     const std::function<void(const Input &)> &cb);
 
     void update_state(UINT message, WPARAM wparam, LPARAM lparam);
     void reset_state();

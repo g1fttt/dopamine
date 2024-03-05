@@ -26,8 +26,8 @@ public:
   };
 
   struct VMTs {
-    VMT d3d9;
-    VMT surface;
+    core::VMT d3d9;
+    core::VMT surface;
   };
 public:
   static App &get();
@@ -36,12 +36,14 @@ public:
 
   void reset();
 
+  // true if VK_END is pressed
   bool should_unhook = false;
+
+  // true if `should_unhook` && IDirect3DDevice9::Present finished resetting
+  bool must_unhook = false;
 
   Interfaces interfaces;
   VMTs vmts;
-
-  ImGuiContext *blur_ctx, *menu_ctx;
 
   WNDPROC original_wnd_proc;
   HWND window;
