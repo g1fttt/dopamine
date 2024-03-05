@@ -4,8 +4,6 @@
 
 #include "shared.h"
 
-struct ImGuiContext;
-
 namespace ui {
   class Menu : public ImGuiContextual {
   public:
