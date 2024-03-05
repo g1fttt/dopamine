@@ -10,18 +10,12 @@
 #include <imgui.h>
 
 namespace ui {
-  Menu::~Menu() {
-    ImGui::DestroyContext(ctx);
-  }
-
   Menu &Menu::get() {
     static Menu menu{};
     return menu;
   }
 
   void Menu::render() const {
-    ImGui::SetCurrentContext(ctx);
-
     if (open && toggle_animation_end < 1.0f) {
       ImGui::SetNextWindowFocus();
     }
@@ -67,13 +61,5 @@ namespace ui {
 
   void Menu::update_animation() {
     toggle_animation_end += ImGui::GetIO().DeltaTime / animation_len();
-  }
-
-  void Menu::set_context(ImGuiContext *ctx) {
-    this->ctx = ctx;
-  }
-
-  void Menu::make_current() {
-    ImGui::SetCurrentContext(ctx);
   }
 }

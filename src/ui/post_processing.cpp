@@ -74,10 +74,6 @@ namespace ui {
     BlurEffect::get().end();
   }
 
-  BlurEffect::~BlurEffect() {
-    ImGui::DestroyContext(ctx);
-  }
-
   BlurEffect &BlurEffect::get() {
     static BlurEffect self{};
     return self;
@@ -162,14 +158,6 @@ namespace ui {
     this->device = device;
     blur_shader_x.set_device(device);
     blur_shader_y.set_device(device);
-  }
-
-  void BlurEffect::set_context(ImGuiContext *ctx) {
-    this->ctx = ctx;
-  }
-
-  void BlurEffect::make_current() {
-    ImGui::SetCurrentContext(ctx);
   }
 
   void BlurEffect::clear_textures() {

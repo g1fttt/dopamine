@@ -6,9 +6,10 @@
 
 #include <cstdint>
 
+#include "shared.h"
+
 using namespace Microsoft::WRL;
 
-struct ImGuiContext;
 struct ImDrawList;
 
 struct IDirect3DDevice9;
@@ -37,10 +38,8 @@ namespace ui {
 }
 
 namespace ui {
-  class BlurEffect {
+  class BlurEffect : public ImGuiContextual {
   public:
-    ~BlurEffect();
-
     static BlurEffect &get();
 
     void draw(ImDrawList *draw_list, float alpha);
@@ -51,8 +50,6 @@ namespace ui {
     void end();
 
     void set_device(IDirect3DDevice9 *device);
-    void set_context(ImGuiContext *ctx);
-    void make_current();
 
     void clear_textures();
   private:
@@ -67,6 +64,5 @@ namespace ui {
     ComPtr<IDirect3DTexture9> blur_texture1, blur_texture2;
     ShaderProgram blur_shader_x, blur_shader_y;
     uint32_t backbuf_width, backbuf_height;
-    ImGuiContext *ctx;
   };
 }

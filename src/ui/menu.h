@@ -2,21 +2,19 @@
 
 #include <algorithm>
 
+#include "shared.h"
+
 struct ImGuiContext;
 
 namespace ui {
-  class Menu {
+  class Menu : public ImGuiContextual {
   public:
-    ~Menu();
-
     static Menu &get();
 
     void render() const;
     void handle_toggle();
 
     void update_animation();
-    void set_context(ImGuiContext *ctx);
-    void make_current();
 
     constexpr bool is_open() const {
       return open;
@@ -38,6 +36,6 @@ namespace ui {
   private:
     bool open = false;
     float toggle_animation_end = 1.0f;
-    ImGuiContext *ctx;
+    // ImGuiContext *ctx;
   };
 }

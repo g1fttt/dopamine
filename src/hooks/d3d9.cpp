@@ -70,7 +70,7 @@ HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
 
   if (!menu.is_fully_closed()) {
     auto &blur_effect = ui::BlurEffect::get();
-    blur_effect.make_current();
+    blur_effect.make_context_current();
 
     create_imgui_frame();
     {
@@ -80,7 +80,7 @@ HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
     draw_imgui_frame(device);
   }
 
-  menu.make_current();
+  menu.make_context_current();
 
   create_imgui_frame();
   {
