@@ -18,17 +18,45 @@
 using namespace Microsoft::WRL;
 
 HRESULT STDCALL hooks::reset(IDirect3DDevice9 *device,
-                             D3DPRESENT_PARAMETERS *params) {
+                             _D3DPRESENT_PARAMETERS *params) {
   ui::BlurEffect::get().clear_textures();
 
   ImGui_ImplDX9_InvalidateDeviceObjects();
 
-  const auto result =
-      App::get().vmts.d3d9.call_original<HRESULT, 16>(device, params);
+  const auto result = App::get().d3d9_reset_original(device, params);
 
   ImGui_ImplDX9_CreateDeviceObjects();
 
   return result;
+}
+
+static ImGuiContext *create_imgui_context(IDirect3DDevice9 *device) {
+  auto *ctx = ImGui::CreateContext();
+  ImGui::SetCurrentContext(ctx);
+
+  ImGui_ImplDX9_Init(device);
+  ImGui_ImplWin32_Init(App::get().window);
+
+  ImGui::StyleColorsDark();
+
+  auto &style = ImGui::GetStyle();
+  style.ScrollbarSize = 9.0f;
+
+  auto &io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.LogFilename = nullptr;
+  io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+  io.Fonts->AddFontDefault();
+
+  return ctx;
+}
+
+void init_imgui(IDirect3DDevice9 *device) {
+  auto *menu_ctx = create_imgui_context(device);
+  ui::Menu::get().set_context(menu_ctx);
+
+  auto *blur_ctx = create_imgui_context(device);
+  ui::BlurEffect::get().set_context(blur_ctx);
 }
 
 static void create_imgui_frame() {
@@ -52,6 +80,12 @@ static void draw_imgui_frame(IDirect3DDevice9 *device) {
 HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
                                const RECT *dest, HWND window_override,
                                const RGNDATA *dirty_region) {
+  if (static bool inited = false; !inited) {
+    init_imgui(device);
+
+    inited = true;
+  }
+
   auto &menu = ui::Menu::get();
   menu.update_animation();
 
@@ -98,6 +132,6 @@ HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
     app.must_unhook = true;
   }
 end:
-  return app.vmts.d3d9.call_original<HRESULT, 17>(
-      device, src, dest, window_override, dirty_region);
+  return app.d3d9_present_original(device, src, dest, window_override,
+                                   dirty_region);
 }
