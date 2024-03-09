@@ -21,7 +21,7 @@ void App::find_patterns() {
   /*
     0:  FF 15 ? ? ? ?           call   DWORD PTR ds:0x????????
               |
-              +> GameOverlayRenderer.dll IDirect3DDevice9::Present hook
+              +-> GameOverlayRenderer.dll IDirect3DDevice9::Present hook
     6:  8B F0                   mov    esi, eax
     8:  85 FF                   test   edi, edi
   */
@@ -38,7 +38,7 @@ void App::find_patterns() {
     0:  C7 45 FC ? ? ? ?        mov    DWORD PTR [ebp-0x4], 0x????????
     7:  FF 15 ? ? ? ?           call   DWORD PTR ds:0x????????
               |
-              +> GameOverlayRenderer.dll IDirect3DDevice9::Reset hook
+              +-> GameOverlayRenderer.dll IDirect3DDevice9::Reset hook
     d:  8B D8                   mov    ebx, eax
   */
   // I believe that exactly this signature was made and +9 offset used because
