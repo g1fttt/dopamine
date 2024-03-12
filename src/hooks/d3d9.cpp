@@ -17,8 +17,8 @@
 
 using namespace Microsoft::WRL;
 
-HRESULT STDCALL hooks::reset(IDirect3DDevice9 *device,
-                             _D3DPRESENT_PARAMETERS *params) {
+HRESULT WINAPI hooks::reset(IDirect3DDevice9 *device,
+                            _D3DPRESENT_PARAMETERS *params) {
   ui::BlurEffect::get().clear_textures();
 
   ImGui_ImplDX9_InvalidateDeviceObjects();
@@ -77,9 +77,9 @@ static void draw_imgui_frame(IDirect3DDevice9 *device) {
   }
 }
 
-HRESULT STDCALL hooks::present(IDirect3DDevice9 *device, const RECT *src,
-                               const RECT *dest, HWND window_override,
-                               const RGNDATA *dirty_region) {
+HRESULT WINAPI hooks::present(IDirect3DDevice9 *device, const RECT *src,
+                              const RECT *dest, HWND window_override,
+                              const RGNDATA *dirty_region) {
   if (static bool inited = false; !inited) {
     init_imgui(device);
 
