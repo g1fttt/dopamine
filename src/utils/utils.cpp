@@ -18,17 +18,21 @@ void *utils::interface_base(std::string_view module_name,
   return create_interface(interface_name.data(), nullptr);
 }
 
-std::expected<std::byte *, std::string>
-utils::find_pattern(std::string_view module_name, std::u8string_view pattern) {
+#define MESSAGE_BOX_AND_UNREACHABLE(msg, args...)                              \
+  MessageBoxA(nullptr, std::format(msg, args).data(), nullptr, MB_OK);         \
+  std::unreachable()
+
+std::byte *utils::find_pattern(std::string_view module_name,
+                               std::u8string_view pattern) {
   const auto module = GetModuleHandleA(module_name.data());
 
   static size_t pattern_id = 0;
   pattern_id += 1;
 
   if (!module) {
-    return std::unexpected(
-        std::format("Failed to find pattern (#{}): handle to `{}` is nullptr",
-                    pattern_id, module_name));
+    MESSAGE_BOX_AND_UNREACHABLE(
+        "Failed to find pattern (#{}): handle to `{}` is nullptr", pattern_id,
+        module_name);
   }
 
   MODULEINFO info{};
@@ -53,6 +57,8 @@ utils::find_pattern(std::string_view module_name, std::u8string_view pattern) {
       return base + i;
     }
   }
-  return std::unexpected(std::format(
-      "Failed to find pattern (#{}): invalid or outdated pattern", pattern_id));
+  MESSAGE_BOX_AND_UNREACHABLE(
+      "Failed to find pattern (#{}): invalid or outdated pattern", pattern_id);
 }
+
+#undef MESSAGE_BOX_AND_UNREACHABLE
