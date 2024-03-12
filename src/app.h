@@ -37,10 +37,10 @@ public:
   WNDPROC original_wnd_proc;
   HWND window;
 
-  using D3D9_Present = HRESULT STDCALL(IDirect3DDevice9 *, const RECT *,
-                                       const RECT *, HWND, const RGNDATA *);
-  using D3D9_Reset = HRESULT STDCALL(IDirect3DDevice9 *,
-                                     _D3DPRESENT_PARAMETERS *);
+  using D3D9_Present = HRESULT WINAPI(IDirect3DDevice9 *, const RECT *,
+                                      const RECT *, HWND, const RGNDATA *);
+  using D3D9_Reset = HRESULT WINAPI(IDirect3DDevice9 *,
+                                    _D3DPRESENT_PARAMETERS *);
 
   std::add_pointer_t<D3D9_Present> d3d9_present_original;
   std::add_pointer_t<D3D9_Reset> d3d9_reset_original;
