@@ -49,7 +49,11 @@ namespace ui {
     void second_pass();
     void end();
 
-    void set_device(IDirect3DDevice9 *device);
+    constexpr void set_device(IDirect3DDevice9 *device) {
+      this->device = device;
+      blur_shader_x.set_device(device);
+      blur_shader_y.set_device(device);
+    }
 
     void clear_textures();
   private:

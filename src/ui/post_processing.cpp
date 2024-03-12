@@ -154,12 +154,6 @@ namespace ui {
     device->SetRenderState(D3DRS_SCISSORTESTENABLE, true);
   }
 
-  void BlurEffect::set_device(IDirect3DDevice9 *device) {
-    this->device = device;
-    blur_shader_x.set_device(device);
-    blur_shader_y.set_device(device);
-  }
-
   void BlurEffect::clear_textures() {
     if (blur_texture1) {
       blur_texture1->Release();
