@@ -11,20 +11,29 @@ struct IDirect3DDevice9;
 struct _D3DPRESENT_PARAMETERS;
 
 namespace interfaces {
+  class EntityList;
+  class Engine;
   class CVar;
   class InputSystem;
   class Surface;
 }
 
+namespace internal {
+  class Entity;
+}
+
 class App {
 public:
   struct Interfaces {
+    interfaces::EntityList *entity_list;
+    interfaces::Engine *engine;
     interfaces::CVar *cvar;
     interfaces::InputSystem *input_system;
     interfaces::Surface *surface;
   };
 
   struct VMTs {
+    core::VMT client_mode;
     core::VMT surface;
   };
 public:
@@ -51,15 +60,18 @@ public:
   // true if `should_unhook` && IDirect3DDevice9::Present finished resetting
   bool must_unhook = false;
 
+  internal::Entity *local_player;
+
   Interfaces interfaces;
   VMTs vmts;
 private:
   void find_interfaces();
   void find_patterns();
-  // void init_imgui();
   void init_vmts();
   void setup_hooks();
 private:
-  uintptr_t d3d9_present_raw;
-  uintptr_t d3d9_reset_raw;
+  void *client_mode;
+
+  void *d3d9_present_raw;
+  void *d3d9_reset_raw;
 };

@@ -3,7 +3,7 @@
 #include <app.h>
 
 #include <interfaces/surface.h>
-#include <ui/menu.h>
+#include <ui/menu.h>
 
 void STDCALL hooks::lock_cursor() {
   App::with([](const App &app) {

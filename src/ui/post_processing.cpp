@@ -91,7 +91,7 @@ namespace ui {
 
     draw_list->AddCallback(ui::begin, nullptr);
     {
-      for (int i = 0; i < 8; i += 1) {
+      for (uint8_t i = 0; i < 8; i += 1) {
         draw_list->AddCallback(ui::first_pass, nullptr);
         draw_list->AddImage(blur_texture1.Get(), {-1.0f, -1.0f}, {1.0f, 1.0f});
         draw_list->AddCallback(ui::second_pass, nullptr);

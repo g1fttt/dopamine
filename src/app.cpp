@@ -9,6 +9,14 @@
 #include <imgui_impl_win32.h>
 
 void App::find_interfaces() {
+  const auto client = utils::interface_base("client.dll", "VClient017");
+  client_mode = **reinterpret_cast<void ***>(
+      (*reinterpret_cast<uintptr_t **>(client))[10] + 5);
+
+  interfaces.entity_list = reinterpret_cast<interfaces::EntityList *>(
+      utils::interface_base("client.dll", "VClientEntityList003"));
+  interfaces.engine = reinterpret_cast<interfaces::Engine *>(
+      utils::interface_base("engine.dll", "VEngineClient013"));
   interfaces.cvar = reinterpret_cast<interfaces::CVar *>(
       utils::interface_base("vstdlib.dll", "VEngineCvar004"));
   interfaces.input_system = reinterpret_cast<interfaces::InputSystem *>(
@@ -20,7 +28,7 @@ void App::find_interfaces() {
 void App::find_patterns() {
   const auto d3d9_present_addr = utils::find_pattern(
       "GameOverlayRenderer.dll", u8"\xA1\xCC\xCC\xCC\xCC\x51\xFF\x75\x14");
-  const auto d3d9_present = uintptr_t(d3d9_present_addr + 1);
+  const auto d3d9_present = d3d9_present_addr + 1;
   d3d9_present_original =
       **reinterpret_cast<decltype(d3d9_present_original) **>(d3d9_present);
   d3d9_present_raw = d3d9_present;
@@ -28,13 +36,14 @@ void App::find_patterns() {
   const auto d3d9_reset_addr = utils::find_pattern(
       "GameOverlayRenderer.dll",
       u8"\xA1\xCC\xCC\xCC\xCC\x57\x53\xC7\x45\xFC\x00\x00\x00\x00");
-  const auto d3d9_reset = uintptr_t(d3d9_reset_addr + 1);
+  const auto d3d9_reset = d3d9_reset_addr + 1;
   d3d9_reset_original =
       **reinterpret_cast<decltype(d3d9_reset_original) **>(d3d9_reset);
   d3d9_reset_raw = d3d9_reset;
 }
 
 void App::init_vmts() {
+  vmts.client_mode.init(client_mode);
   vmts.surface.init(interfaces.surface);
 }
 
@@ -43,6 +52,7 @@ void App::setup_hooks() {
       hooks::present;
   **reinterpret_cast<decltype(hooks::reset) ***>(d3d9_reset_raw) = hooks::reset;
 
+  vmts.client_mode.hook(LPVOID(hooks::create_move), 21);
   vmts.surface.hook(LPVOID(hooks::lock_cursor), 62);
 }
 

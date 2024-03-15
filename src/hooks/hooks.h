@@ -5,6 +5,10 @@
 struct IDirect3DDevice9;
 struct _D3DPRESENT_PARAMETERS;
 
+namespace internal {
+  class UserCommand;
+}
+
 namespace hooks {
   LRESULT WINAPI wnd_proc(HWND window, UINT message, WPARAM wparam,
                           LPARAM lparam);
@@ -14,6 +18,9 @@ namespace hooks {
   HRESULT WINAPI present(IDirect3DDevice9 *device, const RECT *src,
                          const RECT *dest, HWND window_override,
                          const RGNDATA *dirty_region);
+
+  bool STDCALL create_move(float input_sample_frame_time,
+                           internal::UserCommand *cmd);
 
   void STDCALL lock_cursor();
 }
