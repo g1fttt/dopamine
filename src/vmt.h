@@ -4,7 +4,7 @@
 #include <memory>
 
 namespace core {
-  class VMT final {
+  class VMT {
   public:
     void init(void *base);
     void reset();

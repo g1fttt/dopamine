@@ -11,11 +11,11 @@
 
 namespace ui {
   Menu &Menu::get() {
-    static Menu menu{};
-    return menu;
+    static Menu self{};
+    return self;
   }
 
-  void Menu::render() const {
+  void Menu::draw() const {
     if (open && toggle_animation_end < 1.0f) {
       ImGui::SetNextWindowFocus();
     }

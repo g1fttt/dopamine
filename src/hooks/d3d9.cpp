@@ -10,6 +10,7 @@
 
 #include <ui/menu.h>
 #include <ui/post_processing.h>
+#include <ui/shared.h>
 
 #include <imgui.h>
 #include <imgui_impl_dx9.h>
@@ -51,7 +52,7 @@ static ImGuiContext *create_imgui_context(IDirect3DDevice9 *device) {
   return ctx;
 }
 
-void init_imgui(IDirect3DDevice9 *device) {
+static void init_imgui(IDirect3DDevice9 *device) {
   auto *menu_ctx = create_imgui_context(device);
   ui::Menu::get().set_context(menu_ctx);
 
@@ -59,14 +60,15 @@ void init_imgui(IDirect3DDevice9 *device) {
   ui::BlurEffect::get().set_context(blur_ctx);
 }
 
-static void create_imgui_frame() {
+static void draw_frame(IDirect3DDevice9 *device, ui::ImGuiContextual &im_ctx,
+                       const std::function<void()> &cb) {
+  im_ctx.make_current();
+
   ImGui_ImplDX9_NewFrame();
   ImGui_ImplWin32_NewFrame();
 
   ImGui::NewFrame();
-}
-
-static void draw_imgui_frame(IDirect3DDevice9 *device) {
+  { cb(); }
   ImGui::EndFrame();
 
   ImGui::Render();
@@ -104,26 +106,19 @@ HRESULT WINAPI hooks::present(IDirect3DDevice9 *device, const RECT *src,
 
   if (!menu.is_fully_closed()) {
     auto &blur_effect = ui::BlurEffect::get();
-    blur_effect.make_context_current();
 
-    create_imgui_frame();
-    {
+    draw_frame(device, blur_effect, [&] {
       blur_effect.set_device(device);
       blur_effect.draw(ImGui::GetBackgroundDrawList(), menu.get_transparency());
-    }
-    draw_imgui_frame(device);
+    });
   }
 
-  menu.make_context_current();
-
-  create_imgui_frame();
-  {
+  draw_frame(device, menu, [&] {
     // Fix broken ImGui menu colors with Source engine gamma correction
     device->SetRenderState(D3DRS_SRGBWRITEENABLE, false);
 
-    menu.render();
-  }
-  draw_imgui_frame(device);
+    menu.draw();
+  });
 
   state_block->Apply();
 

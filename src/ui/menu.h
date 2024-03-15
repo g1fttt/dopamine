@@ -9,7 +9,7 @@ namespace ui {
   public:
     static Menu &get();
 
-    void render() const;
+    void draw() const;
     void handle_toggle();
 
     void update_animation();
@@ -34,6 +34,5 @@ namespace ui {
   private:
     bool open = false;
     float toggle_animation_end = 1.0f;
-    // ImGuiContext *ctx;
   };
 }

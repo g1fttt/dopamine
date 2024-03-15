@@ -8,6 +8,8 @@
 
 #include <imgui.h>
 
+using utils::Input;
+
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM,
                                                              LPARAM);
 
@@ -17,13 +19,15 @@ LRESULT WINAPI hooks::wnd_proc(HWND window, UINT message, WPARAM wparam,
     return true;
   }
 
-  utils::Input::with(message, wparam, lparam, [](const utils::Input &input) {
+  auto &app = App::get();
+
+  Input::with(message, wparam, lparam, [&](const Input &input) {
     ui::Menu::get().handle_toggle();
 
     if (input.key_is_up(VK_END)) {
-      App::get().should_unhook = true;
+      app.should_unhook = true;
     }
   });
-  return CallWindowProcW(App::get().original_wnd_proc, window, message, wparam,
+  return CallWindowProcW(app.original_wnd_proc, window, message, wparam,
                          lparam);
 }

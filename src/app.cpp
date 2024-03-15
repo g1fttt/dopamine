@@ -57,25 +57,25 @@ void App::setup_hooks() {
 }
 
 App &App::get() {
-  static App app{};
+  static App self{};
 
   if (static bool inited = false; !inited) {
-    app.window = FindWindowA("Valve001", nullptr);
+    self.window = FindWindowA("Valve001", nullptr);
 
-    app.find_interfaces();
-    app.find_patterns();
+    self.find_interfaces();
+    self.find_patterns();
 
-    app.init_vmts();
-    app.setup_hooks();
+    self.init_vmts();
+    self.setup_hooks();
 
     // Hook WndProc at the end of App initialization to prevent multiple
     // initialization
-    app.original_wnd_proc = WNDPROC(
-        SetWindowLongPtrW(app.window, GWLP_WNDPROC, LONG_PTR(hooks::wnd_proc)));
+    self.original_wnd_proc = WNDPROC(SetWindowLongPtrW(
+        self.window, GWLP_WNDPROC, LONG_PTR(hooks::wnd_proc)));
 
     inited = true;
   }
-  return app;
+  return self;
 }
 
 void App::with(const std::function<void(App &)> &cb) {
