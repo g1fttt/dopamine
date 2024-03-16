@@ -9,10 +9,8 @@
 #include <imgui_impl_win32.h>
 
 void App::find_interfaces() {
-  const auto client = utils::interface_base("client.dll", "VClient017");
-  client_mode = **reinterpret_cast<void ***>(
-      (*reinterpret_cast<uintptr_t **>(client))[10] + 5);
-
+  interfaces.client = reinterpret_cast<interfaces::Client *>(
+      utils::interface_base("client.dll", "VClient017"));
   interfaces.entity_list = reinterpret_cast<interfaces::EntityList *>(
       utils::interface_base("client.dll", "VClientEntityList003"));
   interfaces.engine = reinterpret_cast<interfaces::Engine *>(
@@ -23,6 +21,9 @@ void App::find_interfaces() {
       utils::interface_base("inputsystem.dll", "InputSystemVersion001"));
   interfaces.surface = reinterpret_cast<interfaces::Surface *>(
       utils::interface_base("vguimatsurface.dll", "VGUI_Surface030"));
+
+  client_mode = **reinterpret_cast<void ***>(
+      (*reinterpret_cast<uintptr_t **>(interfaces.client))[10] + 5);
 }
 
 void App::find_patterns() {

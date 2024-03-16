@@ -1,21 +1,19 @@
 #pragma once
 
-#include <utils/pad.h>
-
-#include <cstdint>
+#include <utils/fnv_hash.h>
+#include <utils/netvars.h>
 
 namespace internal {
   class Entity {
   public:
-    constexpr bool is_on_ground() const {
-      return flags & Flag::OnGround;
-    }
-  private:
     enum Flag {
       OnGround = 1 << 0,
     };
-  private:
-    PAD(0x350);
-    int32_t flags;
+  public:
+    constexpr bool is_on_ground() {
+      return flags() & OnGround;
+    }
+
+    NETVAR(Flag, flags, "CBasePlayer", "m_fFlags")
   };
 }

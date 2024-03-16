@@ -11,6 +11,7 @@ struct IDirect3DDevice9;
 struct _D3DPRESENT_PARAMETERS;
 
 namespace interfaces {
+  class Client;
   class EntityList;
   class Engine;
   class CVar;
@@ -25,6 +26,7 @@ namespace internal {
 class App {
 public:
   struct Interfaces {
+    interfaces::Client *client;
     interfaces::EntityList *entity_list;
     interfaces::Engine *engine;
     interfaces::CVar *cvar;
@@ -36,6 +38,11 @@ public:
     core::VMT client_mode;
     core::VMT surface;
   };
+
+  using D3D9_Present = HRESULT WINAPI(IDirect3DDevice9 *, const RECT *,
+                                      const RECT *, HWND, const RGNDATA *);
+  using D3D9_Reset = HRESULT WINAPI(IDirect3DDevice9 *,
+                                    _D3DPRESENT_PARAMETERS *);
 public:
   static App &get();
 
@@ -45,11 +52,6 @@ public:
 public:
   WNDPROC original_wnd_proc;
   HWND window;
-
-  using D3D9_Present = HRESULT WINAPI(IDirect3DDevice9 *, const RECT *,
-                                      const RECT *, HWND, const RGNDATA *);
-  using D3D9_Reset = HRESULT WINAPI(IDirect3DDevice9 *,
-                                    _D3DPRESENT_PARAMETERS *);
 
   std::add_pointer_t<D3D9_Present> d3d9_present_original;
   std::add_pointer_t<D3D9_Reset> d3d9_reset_original;
