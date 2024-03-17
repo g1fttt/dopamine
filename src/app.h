@@ -44,9 +44,18 @@ public:
   using D3D9_Reset = HRESULT WINAPI(IDirect3DDevice9 *,
                                     _D3DPRESENT_PARAMETERS *);
 public:
-  static App &get();
+  constexpr App(const App &&) = delete;
+  constexpr App(App &&) = delete;
 
-  static void with(const std::function<void(App &)> &cb);
+  static App &get() {
+    static App self{};
+    { self.init_or_nothing(); }
+    return self;
+  }
+
+  template <typename T> static T with(const std::function<T(App &)> &cb) {
+    return cb(App::get());
+  }
 
   void reset();
 public:
@@ -67,6 +76,9 @@ public:
   Interfaces interfaces;
   VMTs vmts;
 private:
+  constexpr App() = default;
+
+  void init_or_nothing();
   void find_interfaces();
   void find_patterns();
   void init_vmts();

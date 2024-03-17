@@ -57,32 +57,6 @@ void App::setup_hooks() {
   vmts.surface.hook(LPVOID(hooks::lock_cursor), 62);
 }
 
-App &App::get() {
-  static App self{};
-
-  if (static bool inited = false; !inited) {
-    self.window = FindWindowA("Valve001", nullptr);
-
-    self.find_interfaces();
-    self.find_patterns();
-
-    self.init_vmts();
-    self.setup_hooks();
-
-    // Hook WndProc at the end of App initialization to prevent multiple
-    // initialization
-    self.original_wnd_proc = WNDPROC(SetWindowLongPtrW(
-        self.window, GWLP_WNDPROC, LONG_PTR(hooks::wnd_proc)));
-
-    inited = true;
-  }
-  return self;
-}
-
-void App::with(const std::function<void(App &)> &cb) {
-  cb(App::get());
-}
-
 void App::reset() {
   SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(original_wnd_proc));
 
@@ -96,4 +70,23 @@ void App::reset() {
 
   ImGui_ImplWin32_Shutdown();
   ImGui_ImplDX9_Shutdown();
+}
+
+void App::init_or_nothing() {
+  if (static bool inited = false; !inited) {
+    window = FindWindowA("Valve001", nullptr);
+
+    find_interfaces();
+    find_patterns();
+
+    init_vmts();
+    setup_hooks();
+
+    // Hook WndProc at the end of App initialization to prevent multiple
+    // initialization
+    original_wnd_proc = WNDPROC(
+        SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(hooks::wnd_proc)));
+
+    inited = true;
+  }
 }

@@ -16,7 +16,11 @@ namespace utils {
     constexpr Netvars(const Netvars &&) = delete;
     constexpr Netvars(Netvars &&) = delete;
 
-    static Netvars &get();
+    static Netvars &get() {
+      static Netvars self{};
+      { self.init_or_nothing(); }
+      return self;
+    }
 
     std::optional<uintptr_t> find_by_hash(uintptr_t hash);
   private:

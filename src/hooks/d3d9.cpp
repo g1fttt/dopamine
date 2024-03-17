@@ -91,8 +91,6 @@ HRESULT WINAPI hooks::present(IDirect3DDevice9 *device, const RECT *src,
   auto &menu = ui::Menu::get();
   menu.update_animation();
 
-  auto &app = App::get();
-
   ComPtr<IDirect3DStateBlock9> state_block{};
   if (device->CreateStateBlock(D3DSBT_ALL, state_block.GetAddressOf()) !=
       D3D_OK) {
@@ -121,12 +119,13 @@ HRESULT WINAPI hooks::present(IDirect3DDevice9 *device, const RECT *src,
   });
 
   state_block->Apply();
-
-  if (app.should_unhook) {
-    ShowCursor(true);
-    app.must_unhook = true;
-  }
 end:
-  return app.d3d9_present_original(device, src, dest, window_override,
-                                   dirty_region);
+  return App::with<HRESULT>([&](App &app) {
+    if (app.should_unhook) {
+      ShowCursor(true);
+      app.must_unhook = true;
+    }
+    return app.d3d9_present_original(device, src, dest, window_override,
+                                     dirty_region);
+  });
 }

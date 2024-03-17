@@ -9,11 +9,11 @@ namespace ui {
       ImGui::DestroyContext(imgui_ctx);
     }
 
-    constexpr void set_context(ImGuiContext *ctx) {
+    void set_context(ImGuiContext *ctx) {
       imgui_ctx = ctx;
     }
 
-    constexpr void make_current() const {
+    void make_current() const {
       ImGui::SetCurrentContext(imgui_ctx);
     }
   private:

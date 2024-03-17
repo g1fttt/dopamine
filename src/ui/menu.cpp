@@ -41,7 +41,7 @@ namespace ui {
   void Menu::handle_toggle() {
     if (utils::Input::get().key_is_up(VK_INSERT)) {
       open = !open;
-      App::with([&](App &app) {
+      App::with<void>([&](App &app) {
         if (!open) {
           app.interfaces.input_system->reset_input_state();
         }

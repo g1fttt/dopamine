@@ -74,11 +74,6 @@ namespace ui {
     BlurEffect::get().end();
   }
 
-  BlurEffect &BlurEffect::get() {
-    static BlurEffect self{};
-    return self;
-  }
-
   void BlurEffect::draw(ImDrawList *draw_list, float alpha) {
     new_frame();
 

@@ -6,7 +6,7 @@
 #include <ui/menu.h>
 
 void STDCALL hooks::lock_cursor() {
-  App::with([](const App &app) {
+  App::with<void>([](const App &app) {
     if (ui::Menu::get().is_open()) {
       return app.interfaces.surface->unlock_cursor();
     }

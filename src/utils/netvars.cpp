@@ -14,12 +14,6 @@
 #include <string_view>
 
 namespace utils {
-  Netvars &Netvars::get() {
-    static Netvars self{};
-    { self.init_or_nothing(); }
-    return self;
-  }
-
   std::optional<uintptr_t> Netvars::find_by_hash(uintptr_t hash) {
     const auto it = std::ranges::lower_bound(offsets, hash, {}, &Offset::first);
 

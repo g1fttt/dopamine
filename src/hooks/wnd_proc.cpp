@@ -18,16 +18,15 @@ LRESULT WINAPI hooks::wnd_proc(HWND window, UINT message, WPARAM wparam,
   if (ImGui_ImplWin32_WndProcHandler(window, message, wparam, lparam)) {
     return true;
   }
+  return App::with<LRESULT>([&](App &app) {
+    Input::with(message, wparam, lparam, [&](const Input &input) {
+      ui::Menu::get().handle_toggle();
 
-  auto &app = App::get();
-
-  Input::with(message, wparam, lparam, [&](const Input &input) {
-    ui::Menu::get().handle_toggle();
-
-    if (input.key_is_up(VK_END)) {
-      app.should_unhook = true;
-    }
+      if (input.key_is_up(VK_END)) {
+        app.should_unhook = true;
+      }
+    });
+    return CallWindowProcW(app.original_wnd_proc, window, message, wparam,
+                           lparam);
   });
-  return CallWindowProcW(app.original_wnd_proc, window, message, wparam,
-                         lparam);
 }
