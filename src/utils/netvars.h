@@ -14,7 +14,7 @@ namespace utils {
   class Netvars {
   public:
     constexpr Netvars(const Netvars &&) = delete;
-    constexpr Netvars(Netvars &&) = delete;
+    constexpr Netvars(const Netvars &) = delete;
 
     static Netvars &get() {
       static Netvars self{};
@@ -24,7 +24,7 @@ namespace utils {
 
     std::optional<uintptr_t> find_by_hash(uintptr_t hash);
   private:
-    using Offset = std::pair<uintptr_t, uintptr_t>;
+    using HashOffset = std::pair<uintptr_t, uintptr_t>;
   private:
     constexpr Netvars() = default;
 
@@ -33,7 +33,7 @@ namespace utils {
                     const internal::RecvTable *recv_table,
                     uintptr_t offset = 0);
   private:
-    std::vector<Offset> offsets;
+    std::vector<HashOffset> hashed;
   };
 }
 

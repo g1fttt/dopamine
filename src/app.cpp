@@ -8,6 +8,22 @@
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 
+void App::reset() {
+  SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(original_wnd_proc));
+
+  interfaces.input_system->enable_input(true);
+
+  vmts.client_mode.reset();
+  vmts.surface.reset();
+
+  **reinterpret_cast<void ***>(d3d9_present_raw) =
+      LPVOID(d3d9_present_original);
+  **reinterpret_cast<void ***>(d3d9_reset_raw) = LPVOID(d3d9_reset_original);
+
+  ImGui_ImplWin32_Shutdown();
+  ImGui_ImplDX9_Shutdown();
+}
+
 void App::find_interfaces() {
   interfaces.client = reinterpret_cast<interfaces::Client *>(
       utils::interface_base("client.dll", "VClient017"));
@@ -57,23 +73,10 @@ void App::setup_hooks() {
   vmts.surface.hook(LPVOID(hooks::lock_cursor), 62);
 }
 
-void App::reset() {
-  SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(original_wnd_proc));
-
-  interfaces.input_system->enable_input(true);
-
-  vmts.surface.reset();
-
-  **reinterpret_cast<void ***>(d3d9_present_raw) =
-      LPVOID(d3d9_present_original);
-  **reinterpret_cast<void ***>(d3d9_reset_raw) = LPVOID(d3d9_reset_original);
-
-  ImGui_ImplWin32_Shutdown();
-  ImGui_ImplDX9_Shutdown();
-}
-
 void App::init_or_nothing() {
   if (static bool inited = false; !inited) {
+    logger.open_log_file(L"dopamine.log");
+
     window = FindWindowA("Valve001", nullptr);
 
     find_interfaces();

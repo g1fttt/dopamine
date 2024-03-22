@@ -5,7 +5,7 @@
 #include <functional>
 #include <type_traits>
 
-#include "vmt.h"
+#include "utils/vmt.h"
 
 struct IDirect3DDevice9;
 struct _D3DPRESENT_PARAMETERS;
@@ -35,8 +35,8 @@ public:
   };
 
   struct VMTs {
-    core::VMT client_mode;
-    core::VMT surface;
+    utils::VMT client_mode;
+    utils::VMT surface;
   };
 
   using D3D9_Present = HRESULT WINAPI(IDirect3DDevice9 *, const RECT *,
@@ -45,7 +45,7 @@ public:
                                     _D3DPRESENT_PARAMETERS *);
 public:
   constexpr App(const App &&) = delete;
-  constexpr App(App &&) = delete;
+  constexpr App(const App &) = delete;
 
   static App &get() {
     static App self{};
@@ -76,7 +76,7 @@ public:
   Interfaces interfaces;
   VMTs vmts;
 private:
-  constexpr App() = default;
+  App() = default;
 
   void init_or_nothing();
   void find_interfaces();

@@ -18,14 +18,12 @@ namespace ui {
   void Menu::draw() const {
     if (open && toggle_animation_end < 1.0f) {
       ImGui::SetNextWindowFocus();
+    } else if (!open) {
+      return;
     }
 
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, get_transparency());
     {
-      if (!open) {
-        goto end;
-      }
-
       constexpr auto WINDOW_FLAGS =
           ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize;
@@ -34,7 +32,6 @@ namespace ui {
       ImGui::Text("Hello, World!");
       ImGui::End();
     }
-  end:
     ImGui::PopStyleVar();
   }
 

@@ -4,8 +4,9 @@
 
 #include <Psapi.h>
 
+#include <utils/logger.h>
+
 #include <cstdint>
-#include <format>
 
 void *utils::interface_base(std::string_view module_name,
                             std::string_view interface_name) {
@@ -18,9 +19,9 @@ void *utils::interface_base(std::string_view module_name,
   return create_interface(interface_name.data(), nullptr);
 }
 
-#define MESSAGE_BOX_AND_UNREACHABLE(msg, args...)                              \
-  MessageBoxA(nullptr, std::format(msg, args).data(), nullptr, MB_OK);         \
-  std::unreachable()
+#define LOG_FATAL_AND_EXIT(msg, args...)                                       \
+  Logger::get().log<Level::Fatal>(msg, args);                                  \
+  std::exit(1)
 
 std::byte *utils::find_pattern(std::string_view module_name,
                                std::u8string_view pattern) {
@@ -30,7 +31,7 @@ std::byte *utils::find_pattern(std::string_view module_name,
   pattern_id += 1;
 
   if (!module) {
-    MESSAGE_BOX_AND_UNREACHABLE(
+    LOG_FATAL_AND_EXIT(
         "Failed to find pattern (#{}): handle to `{}` is nullptr", pattern_id,
         module_name);
   }
@@ -57,8 +58,6 @@ std::byte *utils::find_pattern(std::string_view module_name,
       return base + i;
     }
   }
-  MESSAGE_BOX_AND_UNREACHABLE(
+  LOG_FATAL_AND_EXIT(
       "Failed to find pattern (#{}): invalid or outdated pattern", pattern_id);
 }
-
-#undef MESSAGE_BOX_AND_UNREACHABLE

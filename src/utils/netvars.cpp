@@ -6,6 +6,7 @@
 #include <interfaces/client.h>
 
 #include <utils/fnv_hash.h>
+#include <utils/logger.h>
 
 #include <app.h>
 
@@ -15,9 +16,10 @@
 
 namespace utils {
   std::optional<uintptr_t> Netvars::find_by_hash(uintptr_t hash) {
-    const auto it = std::ranges::lower_bound(offsets, hash, {}, &Offset::first);
+    const auto it =
+        std::ranges::lower_bound(hashed, hash, {}, &HashOffset::first);
 
-    if (it != offsets.end() && it->first == hash) {
+    if (it != hashed.end() && it->first == hash) {
       return it->second;
     }
     return std::nullopt;
@@ -25,14 +27,11 @@ namespace utils {
 
   void Netvars::init_or_nothing() {
     if (static bool inited = false; !inited) {
-      // TODO: Modern C++ for-each
       for (auto *client_class = App::get().interfaces.client->get_all_classes();
            client_class; client_class = client_class->next) {
         walk_table(client_class->network_name, client_class->recv_table);
       }
-      std::ranges::sort(offsets, {}, &Offset::first);
-
-      offsets.shrink_to_fit();
+      std::ranges::sort(hashed, {}, &HashOffset::first);
 
       inited = true;
     }
@@ -59,7 +58,7 @@ namespace utils {
 
       const auto hash =
           fnv::hash({network_name.data() + std::string("->") + prop->var_name});
-      offsets.emplace_back(hash, prop->offset + offset);
+      hashed.emplace_back(hash, prop->offset + offset);
     }
   }
 }

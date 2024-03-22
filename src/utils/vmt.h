@@ -3,12 +3,11 @@
 #include <cstdint>
 #include <memory>
 
-namespace core {
+namespace utils {
   class VMT {
   public:
-    void init(void *base);
     void reset();
-
+    void init(void *base);
     void hook(void *hook, size_t index);
 
     template <typename T, size_t index, typename... Args>

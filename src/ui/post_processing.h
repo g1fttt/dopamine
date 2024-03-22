@@ -40,6 +40,9 @@ namespace ui {
 namespace ui {
   class BlurEffect : public ImGuiContextual {
   public:
+    constexpr BlurEffect(const BlurEffect &&) = delete;
+    constexpr BlurEffect(const BlurEffect &) = delete;
+
     static BlurEffect &get() {
       static BlurEffect self{};
       return self;
@@ -60,6 +63,8 @@ namespace ui {
 
     void clear_textures();
   private:
+    BlurEffect() = default;
+
     void new_frame();
 
     void create_shaders();

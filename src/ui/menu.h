@@ -7,6 +7,9 @@
 namespace ui {
   class Menu : public ImGuiContextual {
   public:
+    constexpr Menu(const Menu &&) = delete;
+    constexpr Menu(const Menu &) = delete;
+
     static Menu &get();
 
     void draw() const;
