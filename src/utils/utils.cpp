@@ -6,26 +6,13 @@
 
 #include <utils/logger.h>
 
-#include <cstdint>
-
-void *utils::interface_base(std::string_view module_name,
-                            std::string_view interface_name) {
-  const auto module = GetModuleHandleA(module_name.data());
-
-  using CreateInterface = void *(*)(const char *, int32_t *);
-  const auto create_interface = reinterpret_cast<CreateInterface>(
-      GetProcAddress(module, "CreateInterface"));
-
-  return create_interface(interface_name.data(), nullptr);
-}
-
 #define LOG_FATAL_AND_EXIT(msg, args...)                                       \
   Logger::get().log<Level::Fatal>(msg, args);                                  \
   std::exit(1)
 
-std::byte *utils::find_pattern(std::string_view module_name,
-                               std::u8string_view pattern) {
-  const auto module = GetModuleHandleA(module_name.data());
+Ptr<void> utils::find_pattern(std::wstring_view module_name,
+                              std::u8string_view pattern) {
+  const auto module = GetModuleHandleW(module_name.data());
 
   static size_t pattern_id = 0;
   pattern_id += 1;
@@ -33,7 +20,7 @@ std::byte *utils::find_pattern(std::string_view module_name,
   if (!module) {
     LOG_FATAL_AND_EXIT(
         "Failed to find pattern (#{}): handle to `{}` is nullptr", pattern_id,
-        module_name);
+        WSV_TO_S(module_name));
   }
 
   MODULEINFO info{};
@@ -61,3 +48,5 @@ std::byte *utils::find_pattern(std::string_view module_name,
   LOG_FATAL_AND_EXIT(
       "Failed to find pattern (#{}): invalid or outdated pattern", pattern_id);
 }
+
+#undef LOG_FATAL_AND_EXIT

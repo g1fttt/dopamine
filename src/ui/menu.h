@@ -31,6 +31,8 @@ namespace ui {
                         0.0f, 1.0f);
     }
   private:
+    constexpr Menu() = default;
+
     constexpr float animation_len() const {
       return 0.35f;
     }

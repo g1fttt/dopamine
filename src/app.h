@@ -5,6 +5,7 @@
 #include <functional>
 #include <type_traits>
 
+#include "utils/ptr.h"
 #include "utils/vmt.h"
 
 struct IDirect3DDevice9;
@@ -26,12 +27,12 @@ namespace internal {
 class App {
 public:
   struct Interfaces {
-    interfaces::Client *client;
-    interfaces::EntityList *entity_list;
-    interfaces::Engine *engine;
-    interfaces::CVar *cvar;
-    interfaces::InputSystem *input_system;
-    interfaces::Surface *surface;
+    Ptr<interfaces::Client> client;
+    Ptr<interfaces::EntityList> entity_list;
+    Ptr<interfaces::Engine> engine;
+    Ptr<interfaces::CVar> cvar;
+    Ptr<interfaces::InputSystem> input_system;
+    Ptr<interfaces::Surface> surface;
   };
 
   struct VMTs {
@@ -86,6 +87,6 @@ private:
 private:
   void *client_mode;
 
-  void *d3d9_present_raw;
-  void *d3d9_reset_raw;
+  Ptr<void> d3d9_present_raw;
+  Ptr<void> d3d9_reset_raw;
 };
