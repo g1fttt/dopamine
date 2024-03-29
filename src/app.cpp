@@ -15,6 +15,7 @@ void App::reset() {
 
   vmts.client_mode.reset();
   vmts.surface.reset();
+  vmts.engine.reset();
 
   **d3d9_present_raw.cast<decltype(hooks::present) **>() =
       d3d9_present_original;
@@ -73,6 +74,7 @@ void App::find_patterns() {
 void App::init_vmts() {
   vmts.client_mode.init(client_mode);
   vmts.surface.init(interfaces.surface.get());
+  vmts.engine.init(interfaces.engine.get());
 }
 
 void App::setup_hooks() {
@@ -81,10 +83,17 @@ void App::setup_hooks() {
 
   vmts.client_mode.hook(LPVOID(hooks::create_move), 21);
   vmts.surface.hook(LPVOID(hooks::lock_cursor), 62);
+  vmts.engine.hook(LPVOID(hooks::get_screen_aspect_ratio), 95);
 }
 
 void App::init_or_nothing() {
   if (static bool inited = false; !inited) {
+    config.init_or_nothing();
+
+    std::atexit([] {
+      App::get().config.save();
+    });
+
     window = FindWindowA("Valve001", nullptr);
 
     find_interfaces();

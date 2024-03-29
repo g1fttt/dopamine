@@ -19,6 +19,8 @@ namespace hooks {
                          const RECT *dest, HWND window_override,
                          const RGNDATA *dirty_region);
 
+  float STDCALL get_screen_aspect_ratio();
+
   bool STDCALL create_move(float input_sample_frame_time,
                            internal::UserCommand *cmd);
 

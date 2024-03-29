@@ -1,7 +1,5 @@
 #include "menu.h"
 
-#include <Windows.h>
-
 #include <interfaces/input_system.h>
 #include <utils/input.h>
 
@@ -10,27 +8,23 @@
 #include <imgui.h>
 
 namespace ui {
-  Menu &Menu::get() {
-    static Menu self{};
-    return self;
-  }
+  constexpr auto WINDOW_FLAGS = ImGuiWindowFlags_NoResize |
+                                ImGuiWindowFlags_NoScrollbar |
+                                ImGuiWindowFlags_AlwaysAutoResize;
 
-  void Menu::draw() const {
+  void Menu::draw() {
     if (open && toggle_animation_end < 1.0f) {
       ImGui::SetNextWindowFocus();
     } else if (!open) {
       return;
     }
 
+    auto &cfg = App::get().config;
+
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, get_transparency());
     {
-      constexpr auto WINDOW_FLAGS =
-          ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize;
-
-      ImGui::Begin("Dopamine", nullptr, WINDOW_FLAGS);
-      ImGui::Text("Hello, World!");
-      ImGui::End();
+      draw_menu_bar();
+      draw_misc_window(cfg);
     }
     ImGui::PopStyleVar();
   }
@@ -58,5 +52,46 @@ namespace ui {
 
   void Menu::update_animation() {
     toggle_animation_end += ImGui::GetIO().DeltaTime / animation_len();
+  }
+
+  void Menu::draw_menu_bar() {
+    if (ImGui::BeginMainMenuBar()) {
+      draw_menu_bar_item("Misc", should_draw_window.misc);
+      ImGui::EndMainMenuBar();
+    }
+  }
+
+  void Menu::draw_menu_bar_item(std::string_view window_name,
+                                bool &should_draw_window) {
+    const auto name = window_name.data();
+    if (ImGui::MenuItem(name)) {
+      should_draw_window = true;
+      ImGui::SetWindowFocus(name);
+    }
+  }
+
+  void Menu::draw_misc_window(Config &cfg) {
+    if (!should_draw_window.misc) {
+      return;
+    }
+
+    if (ImGui::Begin("Misc", &should_draw_window.misc, WINDOW_FLAGS)) {
+      ImGui::Checkbox("Bunnyhop", &cfg.misc.bunnyhop.enabled);
+      if (cfg.misc.bunnyhop.enabled) {
+        ImGui::SameLine();
+        ImGui::PushID("BunnyhopChance");
+        ImGui::SliderFloat("Chance", &cfg.misc.bunnyhop.chance, 10.0f, 100.0f);
+        ImGui::PopID();
+      }
+
+      ImGui::Checkbox("Aspect ratio", &cfg.misc.aspect_ratio.enabled);
+      if (cfg.misc.aspect_ratio.enabled) {
+        ImGui::SameLine();
+        ImGui::PushID("AspectRatioValue");
+        ImGui::SliderFloat("Value", &cfg.misc.aspect_ratio.value, 0.1f, 10.0f);
+        ImGui::PopID();
+      }
+    }
+    ImGui::End();
   }
 }

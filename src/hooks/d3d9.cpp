@@ -2,21 +2,15 @@
 
 #include <d3d9.h>
 
-#include <wrl/client.h>
-
-#include <app.h>
-
-#include <interfaces/input_system.h>
-
 #include <ui/menu.h>
 #include <ui/post_processing.h>
 #include <ui/shared.h>
 
+#include <app.h>
+
 #include <imgui.h>
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
-
-using namespace Microsoft::WRL;
 
 HRESULT WINAPI hooks::reset(IDirect3DDevice9 *device,
                             _D3DPRESENT_PARAMETERS *params) {
@@ -52,12 +46,14 @@ static ImGuiContext *create_imgui_context(IDirect3DDevice9 *device) {
   return ctx;
 }
 
-static void init_imgui(IDirect3DDevice9 *device) {
+static bool init_imgui(IDirect3DDevice9 *device) {
   auto *menu_ctx = create_imgui_context(device);
   ui::Menu::get().set_context(menu_ctx);
 
   auto *blur_ctx = create_imgui_context(device);
   ui::BlurEffect::get().set_context(blur_ctx);
+
+  return true;
 }
 
 static void draw_frame(IDirect3DDevice9 *device, ui::ImGuiContextual &im_ctx,
@@ -82,11 +78,7 @@ static void draw_frame(IDirect3DDevice9 *device, ui::ImGuiContextual &im_ctx,
 HRESULT WINAPI hooks::present(IDirect3DDevice9 *device, const RECT *src,
                               const RECT *dest, HWND window_override,
                               const RGNDATA *dirty_region) {
-  if (static bool inited = false; !inited) {
-    init_imgui(device);
-
-    inited = true;
-  }
+  static auto _ = init_imgui(device);
 
   auto &menu = ui::Menu::get();
   menu.update_animation();

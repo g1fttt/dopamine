@@ -6,8 +6,8 @@
 
 #include <utils/logger.h>
 
-#define LOG_FATAL_AND_EXIT(msg, args...)                                       \
-  Logger::get().log<Level::Fatal>(msg, args);                                  \
+#define LOG_FATAL_AND_EXIT(msg, ...)                                           \
+  Logger::get().log<Level::Fatal>(msg, __VA_ARGS__);                           \
   std::exit(1)
 
 Ptr<void> utils::find_pattern(std::wstring_view module_name,

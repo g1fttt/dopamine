@@ -1,5 +1,3 @@
-#include <Windows.h>
-
 #include <thread>
 
 #include "app.h"

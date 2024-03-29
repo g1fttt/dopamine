@@ -5,6 +5,10 @@ set_languages('c99', 'c++23')
 
 add_defines('STDCALL=__stdcall', 'THISCALL=__thiscall')
 add_cxflags('-xc++', { force = true }) -- Fix for clangd treating .h files as C files
+add_cxflags('-pedantic', '-pedantic-errors')
+
+add_requires('vcpkg::toml11 3.7.1', { alias = 'toml11' })
+add_requires('vcpkg::serdepp 0.1.4.1', { alias = 'serdepp' })
 
 add_requires('vcpkg::imgui 1.90', {
   alias = 'imgui',
@@ -22,6 +26,6 @@ target('dopamine')
     'src/utils/*.cpp',
     'src/ui/*.cpp',
     'src/hacks/*.cpp')
-  add_packages('imgui')
+  add_packages('imgui', 'toml11', 'serdepp')
   add_links('d3d9')
   add_includedirs('src/')

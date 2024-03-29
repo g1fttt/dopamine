@@ -1,7 +1,6 @@
 #pragma once
 
-#include <cstdint>
-#include <format>
+#include <filesystem>
 #include <fstream>
 #include <string_view>
 
@@ -46,8 +45,8 @@ namespace utils {
       };
     }
 
-    constexpr void open_log_file(std::wstring_view file_name) {
-      file_desc.open(file_name.data());
+    constexpr void open_log_file(std::filesystem::path file_path) {
+      file_desc.open(file_path);
     }
 
     constexpr void init_or_nothing() {

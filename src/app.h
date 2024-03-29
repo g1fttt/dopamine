@@ -2,11 +2,10 @@
 
 #include <Windows.h>
 
-#include <functional>
-#include <type_traits>
-
 #include "utils/ptr.h"
 #include "utils/vmt.h"
+
+#include "config.h"
 
 struct IDirect3DDevice9;
 struct _D3DPRESENT_PARAMETERS;
@@ -38,6 +37,7 @@ public:
   struct VMTs {
     utils::VMT client_mode;
     utils::VMT surface;
+    utils::VMT engine;
   };
 
   using D3D9_Present = HRESULT WINAPI(IDirect3DDevice9 *, const RECT *,
@@ -74,10 +74,12 @@ public:
 
   internal::Entity *local_player;
 
+  Config config;
+
   Interfaces interfaces;
   VMTs vmts;
 private:
-  App() = default;
+  constexpr App() = default;
 
   void init_or_nothing();
   void find_interfaces();

@@ -16,7 +16,10 @@ namespace utils {
 
   class Input {
   public:
-    static Input &get();
+    static Input &get() {
+      static Input self{};
+      return self;
+    }
 
     static void with(UINT message, WPARAM wparam, LPARAM lparam,
                      const std::function<void(const Input &)> &cb);

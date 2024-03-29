@@ -1,11 +1,6 @@
 #include "input.h"
 
 namespace utils {
-  Input &Input::get() {
-    static Input input{};
-    return input;
-  }
-
   void Input::with(UINT message, WPARAM wparam, LPARAM lparam,
                    const std::function<void(const Input &)> &cb) {
     auto &input = Input::get();
