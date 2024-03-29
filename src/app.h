@@ -59,6 +59,8 @@ public:
   }
 
   void reset();
+
+  bool should_anti_screenshot() const;
 public:
   WNDPROC original_wnd_proc;
   HWND window;

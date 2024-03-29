@@ -1,8 +1,10 @@
 #include "app.h"
 
 #include "hooks/hooks.h"
-#include "interfaces/input_system.h"
 #include "utils/utils.h"
+
+#include "interfaces/engine.h"
+#include "interfaces/input_system.h"
 
 #include <imgui.h>
 #include <imgui_impl_dx9.h>
@@ -23,6 +25,11 @@ void App::reset() {
 
   ImGui_ImplWin32_Shutdown();
   ImGui_ImplDX9_Shutdown();
+}
+
+bool App::should_anti_screenshot() const {
+  return config.misc.anti_screenshot &&
+         interfaces.engine->is_taking_screenshot();
 }
 
 template <typename T>

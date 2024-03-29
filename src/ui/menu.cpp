@@ -91,6 +91,8 @@ namespace ui {
         ImGui::SliderFloat("Value", &cfg.misc.aspect_ratio.value, 0.1f, 10.0f);
         ImGui::PopID();
       }
+
+      ImGui::Checkbox("Anti-screenshot", &cfg.misc.anti_screenshot);
     }
     ImGui::End();
   }

@@ -5,6 +5,8 @@
 #include <serdepp/adaptor/toml11.hpp>
 #include <serdepp/serde.hpp>
 
+#define FIELD(field, key, value) (&field, key, default_<decltype(field)>(value))
+
 namespace {
   template <typename T>
   concept Fundamental = std::is_fundamental_v<T>;
@@ -19,39 +21,41 @@ namespace {
   struct Feature {
     // clang-format off
     DERIVE_SERDE(Feature,
-      (&Self::enabled, "enabled")
-      (&Self::value, "value"))
+      FIELD(Self::enabled, "enabled", false)
+      FIELD(Self::value, "value", {}))
     // clang-format on
 
-    bool enabled = false;
+    bool enabled;
     T value;
   };
 
   struct Bunnyhop {
     // clang-format off
     DERIVE_SERDE(Bunnyhop,
-      (&Self::enabled, "enabled")
-      (&Self::chance, "chance"))
+      FIELD(Self::enabled, "enabled", false)
+      FIELD(Self::chance, "chance", 100.0f))
     // clang-format on
 
-    bool enabled = false;
-    float chance = 100.0f;
+    bool enabled;
+    float chance;
   };
 
   struct Misc {
     // clang-format off
     DERIVE_SERDE(Misc,
-      (&Self::bunnyhop, "bunnyhop")
-      (&Self::aspect_ratio, "aspect_ratio"))
+      FIELD(Self::bunnyhop, "bunnyhop", {})
+      FIELD(Self::aspect_ratio, "aspect_ratio", {.value = 1.0f})
+      FIELD(Self::anti_screenshot, "anti_screenshot", false))
     // clang-format on
 
     Bunnyhop bunnyhop;
-    Feature<float> aspect_ratio = {.value = 1.0f};
+    Feature<float> aspect_ratio;
+    bool anti_screenshot;
   };
 
   class ConfigAux {
   public:
-    DERIVE_SERDE(ConfigAux, (&Self::misc, "misc"))
+    DERIVE_SERDE(ConfigAux, FIELD(Self::misc, "misc", {}))
   public:
     Misc misc;
   protected:
