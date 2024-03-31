@@ -3,9 +3,6 @@
 #include "shared.h"
 
 #include <algorithm>
-#include <string_view>
-
-class Config;
 
 namespace ui {
   class Menu : public ImGuiContextual {
@@ -39,6 +36,7 @@ namespace ui {
   private:
     struct ShouldDrawWindow {
       bool misc = false;
+      bool visuals = false;
     };
   private:
     constexpr Menu() = default;
@@ -48,9 +46,9 @@ namespace ui {
     }
 
     void draw_menu_bar();
-    void draw_menu_bar_item(std::string_view window_name,
-                            bool &should_draw_window);
-    void draw_misc_window(Config &cfg);
+    void draw_menu_bar_item(const char *window_name, bool &should_draw_window);
+    void draw_misc_window();
+    void draw_visuals_window();
   private:
     bool open = false;
     float toggle_animation_end = 1.0f;

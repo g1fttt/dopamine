@@ -7,6 +7,8 @@ struct _D3DPRESENT_PARAMETERS;
 
 namespace internal {
   class UserCommand;
+
+  struct ViewSetup;
 }
 
 namespace hooks {
@@ -25,4 +27,6 @@ namespace hooks {
                            internal::UserCommand *cmd);
 
   void STDCALL lock_cursor();
+
+  void STDCALL override_view(internal::ViewSetup *view);
 }

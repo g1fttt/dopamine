@@ -1,9 +1,12 @@
 #include "hooks.h"
 
+#include <internal/view.h>
+
 #include <interfaces/engine.h>
 #include <interfaces/entity_list.h>
 
-#include <hacks/hacks.h>
+#include <hacks/misc.h>
+#include <hacks/visuals.h>
 
 #include <app.h>
 
@@ -21,8 +24,22 @@ bool STDCALL hooks::create_move(float input_sample_frame_time,
     const auto result = app.vmts.client_mode.call_original<bool, 21>(
         input_sample_frame_time, cmd);
 
-    hacks::bunnyhop(app.config, cmd);
+    const auto &misc = hacks::Misc::get();
+    { misc.bunnyhop(cmd); }
 
     return result;
+  });
+}
+
+void STDCALL hooks::override_view(internal::ViewSetup *view) {
+  App::with<void>([&](const App &app) {
+    app.vmts.client_mode.call_original<void, 16>(view);
+
+    const auto &visuals = hacks::Visuals::get();
+    {
+      if (const auto &fov = visuals.config.fov; fov.enabled) {
+        view->fov = fov.value;
+      }
+    }
   });
 }

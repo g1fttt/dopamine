@@ -3,9 +3,30 @@
 #include <interfaces/input_system.h>
 #include <utils/input.h>
 
+#include <hacks/misc.h>
+#include <hacks/visuals.h>
+
 #include <app.h>
+#include <config.h>
 
 #include <imgui.h>
+
+template <typename T>
+static void draw_feature(T &feat, const char *name, const char *id,
+                         const std::function<void(T &)> &f)
+  requires requires {
+    feat.enabled;
+    config::Serde<T>;
+  }
+{
+  ImGui::Checkbox(name, &feat.enabled);
+  if (feat.enabled) {
+    ImGui::SameLine();
+    ImGui::PushID(id);
+    { f(feat); }
+    ImGui::PopID();
+  }
+}
 
 namespace ui {
   constexpr auto WINDOW_FLAGS = ImGuiWindowFlags_NoResize |
@@ -19,12 +40,11 @@ namespace ui {
       return;
     }
 
-    auto &cfg = App::get().config;
-
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, get_transparency());
     {
       draw_menu_bar();
-      draw_misc_window(cfg);
+      draw_misc_window();
+      draw_visuals_window();
     }
     ImGui::PopStyleVar();
   }
@@ -57,42 +77,56 @@ namespace ui {
   void Menu::draw_menu_bar() {
     if (ImGui::BeginMainMenuBar()) {
       draw_menu_bar_item("Misc", should_draw_window.misc);
+      draw_menu_bar_item("Visuals", should_draw_window.visuals);
       ImGui::EndMainMenuBar();
     }
   }
 
-  void Menu::draw_menu_bar_item(std::string_view window_name,
+  void Menu::draw_menu_bar_item(const char *window_name,
                                 bool &should_draw_window) {
-    const auto name = window_name.data();
-    if (ImGui::MenuItem(name)) {
+    if (ImGui::MenuItem(window_name)) {
       should_draw_window = true;
-      ImGui::SetWindowFocus(name);
+      ImGui::SetWindowFocus(window_name);
     }
   }
 
-  void Menu::draw_misc_window(Config &cfg) {
+  void Menu::draw_misc_window() {
     if (!should_draw_window.misc) {
       return;
     }
 
+    using Misc = hacks::Misc;
+
+    auto &cfg = Misc::get().config;
+
     if (ImGui::Begin("Misc", &should_draw_window.misc, WINDOW_FLAGS)) {
-      ImGui::Checkbox("Bunnyhop", &cfg.misc.bunnyhop.enabled);
-      if (cfg.misc.bunnyhop.enabled) {
-        ImGui::SameLine();
-        ImGui::PushID("BunnyhopChance");
-        ImGui::SliderFloat("Chance", &cfg.misc.bunnyhop.chance, 10.0f, 100.0f);
-        ImGui::PopID();
-      }
+      draw_feature<Misc::Bunnyhop>(
+          cfg.bunnyhop, "Bunnyhop", "bunnyhop_chance", [](auto &feat) {
+            ImGui::SliderFloat("Chance", &feat.chance, 10.0f, 100.0f);
+          });
+    }
+    ImGui::End();
+  }
 
-      ImGui::Checkbox("Aspect ratio", &cfg.misc.aspect_ratio.enabled);
-      if (cfg.misc.aspect_ratio.enabled) {
-        ImGui::SameLine();
-        ImGui::PushID("AspectRatioValue");
-        ImGui::SliderFloat("Value", &cfg.misc.aspect_ratio.value, 0.1f, 10.0f);
-        ImGui::PopID();
-      }
+  void Menu::draw_visuals_window() {
+    if (!should_draw_window.visuals) {
+      return;
+    }
 
-      ImGui::Checkbox("Anti-screenshot", &cfg.misc.anti_screenshot);
+    auto &cfg = hacks::Visuals::get().config;
+
+    if (ImGui::Begin("Visuals", &should_draw_window.visuals, WINDOW_FLAGS)) {
+      draw_feature<config::Feature<float>>(
+          cfg.aspect_ratio, "Aspect ratio", "aspect_ratio", [](auto &feat) {
+            ImGui::SliderFloat("Value", &feat.value, 0.5f, 5.0f);
+          });
+
+      ImGui::Checkbox("Anti-screenshot", &cfg.anti_screenshot);
+
+      draw_feature<config::Feature<float>>(
+          cfg.fov, "FOV", "fov_value", [](auto &feat) {
+            ImGui::SliderFloat("Value", &feat.value, 50.0f, 150.0f);
+          });
     }
     ImGui::End();
   }

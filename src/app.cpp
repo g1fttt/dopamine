@@ -1,10 +1,13 @@
 #include "app.h"
 
+#include "hacks/visuals.h"
 #include "hooks/hooks.h"
 #include "utils/utils.h"
 
 #include "interfaces/engine.h"
 #include "interfaces/input_system.h"
+
+#include "config.h"
 
 #include <imgui.h>
 #include <imgui_impl_dx9.h>
@@ -28,8 +31,8 @@ void App::reset() {
 }
 
 bool App::should_anti_screenshot() const {
-  return config.misc.anti_screenshot &&
-         interfaces.engine->is_taking_screenshot();
+  const auto anti_screenshot = hacks::Visuals::get().config.anti_screenshot;
+  return anti_screenshot && interfaces.engine->is_taking_screenshot();
 }
 
 template <typename T>
@@ -89,16 +92,17 @@ void App::setup_hooks() {
   **d3d9_reset_raw.cast<decltype(hooks::reset) **>() = hooks::reset;
 
   vmts.client_mode.hook(LPVOID(hooks::create_move), 21);
+  vmts.client_mode.hook(LPVOID(hooks::override_view), 16);
   vmts.surface.hook(LPVOID(hooks::lock_cursor), 62);
   vmts.engine.hook(LPVOID(hooks::get_screen_aspect_ratio), 95);
 }
 
 void App::init_or_nothing() {
   if (static bool inited = false; !inited) {
-    config.init_or_nothing();
+    config::init_or_nothing();
 
     std::atexit([] {
-      App::get().config.save();
+      config::save();
     });
 
     window = FindWindowA("Valve001", nullptr);

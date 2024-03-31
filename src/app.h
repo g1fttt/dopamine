@@ -5,7 +5,7 @@
 #include "utils/ptr.h"
 #include "utils/vmt.h"
 
-#include "config.h"
+#include <functional>
 
 struct IDirect3DDevice9;
 struct _D3DPRESENT_PARAMETERS;
@@ -54,7 +54,8 @@ public:
     return self;
   }
 
-  template <typename T> static T with(const std::function<T(App &)> &cb) {
+  template <typename T>
+  constexpr static T with(const std::function<T(App &)> &cb) {
     return cb(App::get());
   }
 
@@ -75,8 +76,6 @@ public:
   bool must_unhook = false;
 
   internal::Entity *local_player;
-
-  Config config;
 
   Interfaces interfaces;
   VMTs vmts;
