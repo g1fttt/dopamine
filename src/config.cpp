@@ -5,16 +5,18 @@
 
 #include <filesystem>
 
+namespace fs = std::filesystem;
+
 constexpr auto PATH = "config.toml";
 constexpr auto DIR = "dopamine";
 
 static void create_hidden_dir() {
-  if (std::filesystem::create_directory(DIR)) {
+  if (fs::create_directory(DIR)) {
     SetFileAttributes(DIR, FILE_ATTRIBUTE_HIDDEN);
   }
 }
 
-static std::filesystem::path full_config_path() {
+static fs::path full_config_path() {
   return std::format("{}/{}", DIR, PATH);
 }
 
@@ -39,14 +41,16 @@ void config::save() {
 }
 
 void config::load() {
-  if (std::filesystem::exists(full_config_path())) {
-    auto value = toml::parse(full_config_path());
+  if (!fs::exists(full_config_path())) {
+    return;
+  }
 
-    const auto config = serde::deserialize<Config>(value);
-    {
-      Misc::get().config = *config.misc;
-      Visuals::get().config = *config.visuals;
-    }
+  auto value = toml::parse(full_config_path());
+
+  const auto config = serde::deserialize<Config>(value);
+  {
+    Misc::get().config = *config.misc;
+    Visuals::get().config = *config.visuals;
   }
 }
 
