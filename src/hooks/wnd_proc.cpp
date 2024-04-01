@@ -20,7 +20,7 @@ LRESULT WINAPI hooks::wnd_proc(HWND window, UINT message, WPARAM wparam,
   }
   return App::with<LRESULT>([&](App &app) {
     Input::with(message, wparam, lparam, [&](const Input &input) {
-      ui::Menu::get().handle_toggle();
+      ui::Menu::get().handle_toggle(input);
 
       if (input.key_is_up(VK_END)) {
         app.should_unhook = true;

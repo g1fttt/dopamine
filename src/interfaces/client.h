@@ -7,8 +7,7 @@ namespace internal {
 }
 
 namespace interfaces {
-  class Client {
-  public:
+  struct Client {
     VMETHOD(internal::ClientClass *, get_all_classes, 8, (), (this))
   };
 }

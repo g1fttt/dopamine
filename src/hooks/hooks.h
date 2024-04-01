@@ -6,7 +6,7 @@ struct IDirect3DDevice9;
 struct _D3DPRESENT_PARAMETERS;
 
 namespace internal {
-  class UserCommand;
+  struct UserCommand;
 
   struct ViewSetup;
 }

@@ -49,25 +49,27 @@ namespace ui {
     ImGui::PopStyleVar();
   }
 
-  void Menu::handle_toggle() {
-    if (utils::Input::get().key_is_up(VK_INSERT)) {
-      open = !open;
-      App::with<void>([&](App &app) {
-        if (!open) {
-          app.interfaces.input_system->reset_input_state();
-        }
-        app.interfaces.input_system->enable_input(!open);
-      });
-
-      if (toggle_animation_end > 0.0f && toggle_animation_end < 1.0f) {
-        toggle_animation_end = 1.0f - toggle_animation_end;
-      } else {
-        toggle_animation_end = 0.0f;
-      }
-
-      ImGui::GetIO().MouseDrawCursor = open;
-      ShowCursor(!open);
+  void Menu::handle_toggle(const utils::Input &input) {
+    if (!input.key_is_up(VK_INSERT)) {
+      return;
     }
+
+    open = !open;
+    App::with<void>([&](App &app) {
+      if (!open) {
+        app.interfaces.input_system->reset_input_state();
+      }
+      app.interfaces.input_system->enable_input(!open);
+    });
+
+    if (toggle_animation_end > 0.0f && toggle_animation_end < 1.0f) {
+      toggle_animation_end = 1.0f - toggle_animation_end;
+    } else {
+      toggle_animation_end = 0.0f;
+    }
+
+    ImGui::GetIO().MouseDrawCursor = open;
+    ShowCursor(!open);
   }
 
   void Menu::update_animation() {

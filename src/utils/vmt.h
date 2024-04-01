@@ -3,8 +3,7 @@
 #include <memory>
 
 namespace utils {
-  class VMT {
-  public:
+  struct VMT {
     void reset();
     void init(void *base);
     void hook(void *hook, size_t index);

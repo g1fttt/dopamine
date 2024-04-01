@@ -4,11 +4,11 @@
 
 #include <Psapi.h>
 
-#include <utils/logger.h>
+#include <format>
 
-#define LOG_FATAL_AND_EXIT(msg, ...)                                           \
-  Logger::get().log<Level::Fatal>(msg, __VA_ARGS__);                           \
-  std::exit(1)
+#define SHOW_MESSAGE_BOX_AND_EXIT(msg, ...)                                    \
+  MessageBoxA(nullptr, std::format(msg, __VA_ARGS__).data(), nullptr, MB_OK);  \
+  std::terminate()
 
 Ptr<void> utils::find_pattern(std::wstring_view module_name,
                               std::u8string_view pattern) {
@@ -18,7 +18,7 @@ Ptr<void> utils::find_pattern(std::wstring_view module_name,
   pattern_id += 1;
 
   if (!module) {
-    LOG_FATAL_AND_EXIT(
+    SHOW_MESSAGE_BOX_AND_EXIT(
         "Failed to find pattern (#{}): handle to `{}` is nullptr", pattern_id,
         WSV_TO_S(module_name));
   }
@@ -45,8 +45,8 @@ Ptr<void> utils::find_pattern(std::wstring_view module_name,
       return base + i;
     }
   }
-  LOG_FATAL_AND_EXIT(
+  SHOW_MESSAGE_BOX_AND_EXIT(
       "Failed to find pattern (#{}): invalid or outdated pattern", pattern_id);
 }
 
-#undef LOG_FATAL_AND_EXIT
+#undef SHOW_MESSAGE_BOX_AND_EXIT

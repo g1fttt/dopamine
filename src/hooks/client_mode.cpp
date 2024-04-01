@@ -10,6 +10,8 @@
 
 #include <app.h>
 
+using hacks::Misc, hacks::Visuals;
+
 // Everyone checking cmd pointer for nullness but, i think there is no
 // need for this because as i saw, there are no functions that push nullptr to
 // this particular function
@@ -24,7 +26,7 @@ bool STDCALL hooks::create_move(float input_sample_frame_time,
     const auto result = app.vmts.client_mode.call_original<bool, 21>(
         input_sample_frame_time, cmd);
 
-    const auto &misc = hacks::Misc::get();
+    const auto &misc = Misc::get();
     { misc.bunnyhop(cmd); }
 
     return result;
@@ -35,11 +37,8 @@ void STDCALL hooks::override_view(internal::ViewSetup *view) {
   App::with<void>([&](const App &app) {
     app.vmts.client_mode.call_original<void, 16>(view);
 
-    const auto &visuals = hacks::Visuals::get();
-    {
-      if (const auto &fov = visuals.config.fov; fov.enabled) {
-        view->fov = fov.value;
-      }
+    if (const auto &fov = Visuals::get().config.fov; fov.enabled) {
+      view->fov = fov.value;
     }
   });
 }

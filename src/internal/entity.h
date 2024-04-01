@@ -4,12 +4,11 @@
 #include <utils/netvars.h>
 
 namespace internal {
-  class Entity {
-  public:
+  struct Entity {
     enum Flag {
       OnGround = 1 << 0,
     };
-  public:
+
     constexpr bool is_on_ground() {
       return flags() & OnGround;
     }

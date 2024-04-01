@@ -7,15 +7,7 @@
 namespace utils {
   using KeyCode = WPARAM;
 
-  namespace {
-    struct Key {
-      KeyCode code;
-      LPARAM lparam;
-    };
-  }
-
-  class Input {
-  public:
+  struct Input {
     static Input &get() {
       static Input self{};
       return self;
@@ -29,6 +21,11 @@ namespace utils {
 
     bool key_is_up(KeyCode code) const;
   private:
+    struct Key {
+      KeyCode code;
+      LPARAM lparam;
+    };
+
     Key last_up;
   };
 }

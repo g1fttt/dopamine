@@ -3,7 +3,7 @@
 #include <config.h>
 
 namespace internal {
-  class UserCommand;
+  struct UserCommand;
 }
 
 namespace hacks {

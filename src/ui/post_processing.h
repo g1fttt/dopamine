@@ -19,10 +19,7 @@ struct IDirect3DSurface9;
 
 namespace ui {
   namespace {
-    class ShaderProgram {
-    public:
-      ~ShaderProgram() = default;
-
+    struct ShaderProgram {
       void use(float uniform);
       void init(const BYTE *pixel_shader_src);
 
@@ -38,8 +35,7 @@ namespace ui {
 }
 
 namespace ui {
-  class BlurEffect : public ImGuiContextual {
-  public:
+  struct BlurEffect : ImGuiContextual {
     constexpr BlurEffect(const BlurEffect &&) = delete;
     constexpr BlurEffect(const BlurEffect &) = delete;
 
@@ -69,7 +65,7 @@ namespace ui {
 
     void create_shaders();
     void create_textures();
-  private:
+
     IDirect3DDevice9 *device;
     // Yes, I LOVE smart pointers
     ComPtr<IDirect3DSurface9> rt_backup;

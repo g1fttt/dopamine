@@ -3,8 +3,7 @@
 #include <imgui.h>
 
 namespace ui {
-  class ImGuiContextual {
-  public:
+  struct ImGuiContextual {
     constexpr virtual ~ImGuiContextual() {
       ImGui::DestroyContext(imgui_ctx);
     }

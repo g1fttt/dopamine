@@ -6,13 +6,11 @@
 #include <interfaces/client.h>
 
 #include <utils/fnv_hash.h>
-#include <utils/logger.h>
 
 #include <app.h>
 
 #include <algorithm>
 #include <cctype>
-#include <string_view>
 
 namespace utils {
   std::optional<uintptr_t> Netvars::find_by_hash(uintptr_t hash) {

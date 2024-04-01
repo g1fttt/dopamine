@@ -5,12 +5,11 @@
 #include <cstdint>
 
 namespace internal {
-  class Entity;
+  struct Entity;
 }
 
 namespace interfaces {
-  class EntityList {
-  public:
+  struct EntityList {
     VMETHOD(internal::Entity *, get_entity_by_index, 3, (int32_t index),
             (this, index))
   };

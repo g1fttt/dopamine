@@ -11,20 +11,19 @@ struct IDirect3DDevice9;
 struct _D3DPRESENT_PARAMETERS;
 
 namespace interfaces {
-  class Client;
-  class EntityList;
-  class Engine;
-  class CVar;
-  class InputSystem;
-  class Surface;
+  struct Client;
+  struct EntityList;
+  struct Engine;
+  struct CVar;
+  struct InputSystem;
+  struct Surface;
 }
 
 namespace internal {
-  class Entity;
+  struct Entity;
 }
 
-class App {
-public:
+struct App {
   struct Interfaces {
     Ptr<interfaces::Client> client;
     Ptr<interfaces::EntityList> entity_list;
@@ -44,7 +43,7 @@ public:
                                       const RECT *, HWND, const RGNDATA *);
   using D3D9_Reset = HRESULT WINAPI(IDirect3DDevice9 *,
                                     _D3DPRESENT_PARAMETERS *);
-public:
+
   constexpr App(const App &&) = delete;
   constexpr App(const App &) = delete;
 
@@ -62,7 +61,7 @@ public:
   void reset();
 
   bool should_anti_screenshot() const;
-public:
+
   WNDPROC original_wnd_proc;
   HWND window;
 
@@ -87,7 +86,7 @@ private:
   void find_patterns();
   void init_vmts();
   void setup_hooks();
-private:
+
   void *client_mode;
 
   Ptr<void> d3d9_present_raw;

@@ -5,12 +5,11 @@
 #include <cstdint>
 
 namespace internal {
-  class UserCommand {
-  public:
+  struct UserCommand {
     enum Command {
       InJump = 1 << 1,
     };
-  public:
+
     PAD(36);
     int32_t buttons;
   };

@@ -1,9 +1,7 @@
 #pragma once
 
-#include <cstdint>
 #include <optional>
 #include <string_view>
-#include <utility>
 #include <vector>
 
 namespace internal {
@@ -11,8 +9,7 @@ namespace internal {
 }
 
 namespace utils {
-  class Netvars {
-  public:
+  struct Netvars {
     constexpr Netvars(const Netvars &&) = delete;
     constexpr Netvars(const Netvars &) = delete;
 
@@ -25,14 +22,14 @@ namespace utils {
     std::optional<uintptr_t> find_by_hash(uintptr_t hash);
   private:
     using HashOffset = std::pair<uintptr_t, uintptr_t>;
-  private:
+
     constexpr Netvars() = default;
 
     void init_or_nothing();
     void walk_table(std::string_view network_name,
                     const internal::RecvTable *recv_table,
                     uintptr_t offset = 0);
-  private:
+
     std::vector<HashOffset> hashed;
   };
 }

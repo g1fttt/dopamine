@@ -4,9 +4,12 @@
 
 #include <algorithm>
 
+namespace utils {
+  struct Input;
+}
+
 namespace ui {
-  class Menu : public ImGuiContextual {
-  public:
+  struct Menu : ImGuiContextual {
     constexpr Menu(const Menu &&) = delete;
     constexpr Menu(const Menu &) = delete;
 
@@ -16,7 +19,7 @@ namespace ui {
     }
 
     void draw();
-    void handle_toggle();
+    void handle_toggle(const utils::Input &input);
 
     void update_animation();
 
@@ -38,7 +41,7 @@ namespace ui {
       bool misc = false;
       bool visuals = false;
     };
-  private:
+
     constexpr Menu() = default;
 
     constexpr float animation_len() const {
@@ -49,7 +52,7 @@ namespace ui {
     void draw_menu_bar_item(const char *window_name, bool &should_draw_window);
     void draw_misc_window();
     void draw_visuals_window();
-  private:
+
     bool open = false;
     float toggle_animation_end = 1.0f;
     ShouldDrawWindow should_draw_window;

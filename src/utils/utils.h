@@ -12,7 +12,7 @@
 namespace utils {
   // Returns ALWAYS valid pointer to someplace in module
   // If provided pattern is not found in module, then MessageBox will show up
-  // and std::unreachable will be called
+  // and std::terminate will be called
   Ptr<void> find_pattern(std::wstring_view module_name,
                          std::u8string_view pattern);
 }

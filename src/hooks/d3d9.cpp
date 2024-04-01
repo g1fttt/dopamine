@@ -12,9 +12,11 @@
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 
+using ui::BlurEffect, ui::Menu, ui::ImGuiContextual;
+
 HRESULT WINAPI hooks::reset(IDirect3DDevice9 *device,
                             _D3DPRESENT_PARAMETERS *params) {
-  ui::BlurEffect::get().clear_textures();
+  BlurEffect::get().clear_textures();
 
   ImGui_ImplDX9_InvalidateDeviceObjects();
 
@@ -48,15 +50,15 @@ static ImGuiContext *create_imgui_context(IDirect3DDevice9 *device) {
 
 static bool init_imgui(IDirect3DDevice9 *device) {
   auto *menu_ctx = create_imgui_context(device);
-  ui::Menu::get().set_context(menu_ctx);
+  Menu::get().set_context(menu_ctx);
 
   auto *blur_ctx = create_imgui_context(device);
-  ui::BlurEffect::get().set_context(blur_ctx);
+  BlurEffect::get().set_context(blur_ctx);
 
   return true;
 }
 
-static void draw_frame(IDirect3DDevice9 *device, ui::ImGuiContextual &im_ctx,
+static void draw_frame(IDirect3DDevice9 *device, ImGuiContextual &im_ctx,
                        const std::function<void()> &cb) {
   im_ctx.make_current();
 
@@ -80,7 +82,7 @@ HRESULT WINAPI hooks::present(IDirect3DDevice9 *device, const RECT *src,
                               const RGNDATA *dirty_region) {
   static auto _ = init_imgui(device);
 
-  auto &menu = ui::Menu::get();
+  auto &menu = Menu::get();
   menu.update_animation();
 
   ComPtr<IDirect3DStateBlock9> state_block{};
@@ -95,7 +97,7 @@ HRESULT WINAPI hooks::present(IDirect3DDevice9 *device, const RECT *src,
   device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
 
   if (!menu.is_fully_closed()) {
-    auto &blur_effect = ui::BlurEffect::get();
+    auto &blur_effect = BlurEffect::get();
 
     draw_frame(device, blur_effect, [&] {
       blur_effect.set_device(device);

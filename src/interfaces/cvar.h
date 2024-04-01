@@ -3,12 +3,11 @@
 #include <utils/vmethod.h>
 
 namespace internal {
-  class ConVar;
+  struct ConVar;
 }
 
 namespace interfaces {
-  class CVar {
-  public:
+  struct CVar {
     VMETHOD(internal::ConVar *, find_var, 12, (const char *name), (this, name))
   };
 }
