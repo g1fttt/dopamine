@@ -9,6 +9,6 @@ void STDCALL hooks::frame_stage_notify(int32_t stage) {
   App::get().and_then<void>([=](App &app) {
     app.local_player = app.interfaces.entity_list->get_entity_by_index(
         app.interfaces.engine->local_player_index());
-    return app.vmts.client.call_original<void, 35>(stage);
+    return app.hooks.frame_stage_notify.call_original(stage);
   });
 }

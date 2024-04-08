@@ -12,8 +12,8 @@
 
 bool STDCALL hooks::create_move(float input_sample_frame_time,
                                 game::UserCommand *cmd) {
-  const auto result = App::get().vmts.client_mode.call_original<bool, 21>(
-      input_sample_frame_time, cmd);
+  const auto result =
+      App::get().hooks.create_move.call_original(input_sample_frame_time, cmd);
 
   const auto &misc = hacks::Misc::get();
   { misc.bunnyhop(cmd); }
@@ -22,7 +22,7 @@ bool STDCALL hooks::create_move(float input_sample_frame_time,
 }
 
 void STDCALL hooks::override_view(game::ViewSetup *view) {
-  App::get().vmts.client_mode.call_original<void, 16>(view);
+  App::get().hooks.override_view.call_original(view);
 
   if (const auto &fov = hacks::Visuals::get().config.fov; fov.enabled) {
     view->fov = fov.value;

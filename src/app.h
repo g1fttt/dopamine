@@ -24,6 +24,7 @@ namespace interfaces {
 namespace game {
   struct PlayerEntity;
   struct UserCommand;
+  struct ViewSetup;
 }
 
 namespace {
@@ -41,11 +42,13 @@ struct App {
     Ptr<Surface> surface;
   };
 
-  struct VMTs {
-    VMT client_mode;
-    VMT surface;
-    VMT engine;
-    VMT client;
+  struct Hooks {
+    VMTHook<bool, float, game::UserCommand *> create_move;
+    VMTHook<void, game::ViewSetup *> override_view;
+    VMTHook<void, int32_t> frame_stage_notify;
+    VMTHook<float> get_screen_aspect_ratio;
+    VMTHook<bool> is_cursor_visible;
+    VMTHook<void> lock_cursor;
   };
 
   using D3D9_Present = HRESULT WINAPI(IDirect3DDevice9 *, const RECT *,
@@ -101,7 +104,7 @@ struct App {
   game::PlayerEntity *local_player = nullptr;
 
   Interfaces interfaces;
-  VMTs vmts;
+  Hooks hooks;
 
   ui::ImGuiContext fore_imgui_ctx, back_imgui_ctx;
 private:
@@ -110,7 +113,6 @@ private:
   void init_or_nothing(HMODULE module);
   void find_interfaces();
   void find_patterns();
-  void init_vmts();
   void setup_hooks();
 
   void *client_mode = nullptr;

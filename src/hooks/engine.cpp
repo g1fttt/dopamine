@@ -9,6 +9,6 @@ float hooks::get_screen_aspect_ratio() {
     const auto &aspect_ratio = hacks::Visuals::get().config.aspect_ratio;
     return aspect_ratio.enabled && !app.should_anti_screenshot()
                ? aspect_ratio.value
-               : app.vmts.engine.call_original<float, 95>();
+               : app.hooks.get_screen_aspect_ratio.call_original();
   });
 }

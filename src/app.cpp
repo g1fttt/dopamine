@@ -19,10 +19,12 @@ void App::reset() {
 
   interfaces.input_system->enable_input(true);
 
-  vmts.client_mode.reset();
-  vmts.surface.reset();
-  vmts.engine.reset();
-  vmts.client.reset();
+  hooks.create_move.reset();
+  hooks.override_view.reset();
+  hooks.frame_stage_notify.reset();
+  hooks.get_screen_aspect_ratio.reset();
+  hooks.is_cursor_visible.reset();
+  hooks.lock_cursor.reset();
 
   **d3d9_present_raw.cast<decltype(hooks::present) **>() =
       d3d9_present_original;
@@ -73,7 +75,6 @@ void App::init_or_nothing(HMODULE module) {
     find_interfaces();
     find_patterns();
 
-    init_vmts();
     setup_hooks();
 
     // Hook WndProc at the end of App initialization to prevent multiple
@@ -118,23 +119,21 @@ void App::find_patterns() {
       **d3d9_reset_raw.cast<decltype(d3d9_reset_original) *>();
 }
 
-void App::init_vmts() {
-  vmts.client_mode.init(client_mode);
-  vmts.surface.init(interfaces.surface.get());
-  vmts.engine.init(interfaces.engine.get());
-  vmts.client.init(interfaces.client.get());
-}
-
 void App::setup_hooks() {
   **d3d9_present_raw.cast<decltype(hooks::present) **>() = hooks::present;
   **d3d9_reset_raw.cast<decltype(hooks::reset) **>() = hooks::reset;
 
-  vmts.client_mode.hook(LPVOID(hooks::override_view), 16);
-  vmts.client_mode.hook(LPVOID(hooks::create_move), 21);
+  hooks.override_view.init_and_hook<16>(client_mode, hooks::override_view);
+  hooks.create_move.init_and_hook<21>(client_mode, hooks::create_move);
 
-  vmts.surface.hook(LPVOID(hooks::is_cursor_visible), 53);
-  vmts.surface.hook(LPVOID(hooks::lock_cursor), 62);
+  const auto client = interfaces.client.get();
+  hooks.frame_stage_notify.init_and_hook<35>(client, hooks::frame_stage_notify);
 
-  vmts.engine.hook(LPVOID(hooks::get_screen_aspect_ratio), 95);
-  vmts.client.hook(LPVOID(hooks::frame_stage_notify), 35);
+  const auto engine = interfaces.engine.get();
+  hooks.get_screen_aspect_ratio.init_and_hook<95>(
+      engine, hooks::get_screen_aspect_ratio);
+
+  const auto surface = interfaces.surface.get();
+  hooks.is_cursor_visible.init_and_hook<53>(surface, hooks::is_cursor_visible);
+  hooks.lock_cursor.init_and_hook<62>(surface, hooks::lock_cursor);
 }
