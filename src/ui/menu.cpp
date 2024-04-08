@@ -11,9 +11,12 @@
 
 #include <imgui.h>
 
+using config::Feature;
+using hacks::Visuals, hacks::Misc;
+
 template <typename T>
 static void draw_feature(T &feat, const char *name, const char *id,
-                         const std::function<void(T &)> &f)
+                         const std::function<void(T &)> &cb)
   requires requires {
     feat.enabled;
     config::Serde<T>;
@@ -23,7 +26,7 @@ static void draw_feature(T &feat, const char *name, const char *id,
   if (feat.enabled) {
     ImGui::SameLine();
     ImGui::PushID(id);
-    { f(feat); }
+    { cb(feat); }
     ImGui::PopID();
   }
 }
@@ -32,6 +35,8 @@ namespace ui {
   constexpr auto WINDOW_FLAGS = ImGuiWindowFlags_NoResize |
                                 ImGuiWindowFlags_NoScrollbar |
                                 ImGuiWindowFlags_AlwaysAutoResize;
+  constexpr auto COLOR_EDIT_FLAGS =
+      ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoInputs;
 
   void Menu::draw() {
     if (open && toggle_animation_end < 1.0f) {
@@ -97,13 +102,11 @@ namespace ui {
       return;
     }
 
-    using Misc = hacks::Misc;
-
     auto &cfg = Misc::get().config;
 
     if (ImGui::Begin("Misc", &should_draw_window.misc, WINDOW_FLAGS)) {
       draw_feature<Misc::Bunnyhop>(
-          cfg.bunnyhop, "Bunnyhop", "bunnyhop_chance", [](auto &feat) {
+          cfg.bunnyhop, "Bunnyhop", "bunnyhop", [](auto &feat) {
             ImGui::SliderFloat("Chance", &feat.chance, 10.0f, 100.0f);
           });
     }
@@ -115,19 +118,27 @@ namespace ui {
       return;
     }
 
-    auto &cfg = hacks::Visuals::get().config;
+    auto &cfg = Visuals::get().config;
 
     if (ImGui::Begin("Visuals", &should_draw_window.visuals, WINDOW_FLAGS)) {
-      draw_feature<config::Feature<float>>(
+      draw_feature<Feature<float>>(
           cfg.aspect_ratio, "Aspect ratio", "aspect_ratio", [](auto &feat) {
             ImGui::SliderFloat("Value", &feat.value, 0.5f, 5.0f);
           });
 
+      draw_feature<Feature<float>>(cfg.fov, "FOV", "fov", [](auto &feat) {
+        ImGui::SliderFloat("Value", &feat.value, 50.0f, 150.0f);
+      });
+
       ImGui::Checkbox("Anti-screenshot", &cfg.anti_screenshot);
 
-      draw_feature<config::Feature<float>>(
-          cfg.fov, "FOV", "fov_value", [](auto &feat) {
-            ImGui::SliderFloat("Value", &feat.value, 50.0f, 150.0f);
+      draw_feature<Visuals::SniperRifleCrosshair>(
+          cfg.sniper_rifle_crosshair, "Sniper rifle crosshair",
+          "sniper_rifle_crosshair", [](auto &feat) {
+            ImGui::SameLine();
+            ImGui::ColorEdit4("##Color", feat.color.float4(), COLOR_EDIT_FLAGS);
+            ImGui::SliderFloat("Size", &feat.size, 1.0f, 30.0f);
+            ImGui::SliderFloat("Thickness", &feat.thickness, 1.0f, 5.0f);
           });
     }
     ImGui::End();

@@ -5,6 +5,8 @@
 #include "utils/ptr.h"
 #include "utils/vmt.h"
 
+#include "ui/shared.h"
+
 #include <functional>
 
 struct IDirect3DDevice9;
@@ -20,23 +22,30 @@ namespace interfaces {
 }
 
 namespace internal {
-  struct Entity;
+  struct PlayerEntity;
+  struct UserCommand;
+}
+
+namespace {
+  using namespace interfaces;
+  using namespace utils;
 }
 
 struct App {
   struct Interfaces {
-    Ptr<interfaces::Client> client;
-    Ptr<interfaces::EntityList> entity_list;
-    Ptr<interfaces::Engine> engine;
-    Ptr<interfaces::CVar> cvar;
-    Ptr<interfaces::InputSystem> input_system;
-    Ptr<interfaces::Surface> surface;
+    Ptr<Client> client;
+    Ptr<EntityList> entity_list;
+    Ptr<Engine> engine;
+    Ptr<CVar> cvar;
+    Ptr<InputSystem> input_system;
+    Ptr<Surface> surface;
   };
 
   struct VMTs {
-    utils::VMT client_mode;
-    utils::VMT surface;
-    utils::VMT engine;
+    VMT client_mode;
+    VMT surface;
+    VMT engine;
+    VMT client;
   };
 
   using D3D9_Present = HRESULT WINAPI(IDirect3DDevice9 *, const RECT *,
@@ -46,6 +55,11 @@ struct App {
 
   constexpr App(const App &&) = delete;
   constexpr App(const App &) = delete;
+
+  // Use it only if program flow changes needed (e.g. return, goto)
+  constexpr operator bool() const {
+    return true;
+  }
 
   static App &get() {
     static App self{};
@@ -61,23 +75,27 @@ struct App {
   void reset();
 
   bool should_anti_screenshot() const;
+  bool should_draw_visuals() const;
 
-  WNDPROC original_wnd_proc;
-  HWND window;
+  WNDPROC original_wnd_proc = nullptr;
+  HWND window = nullptr;
 
-  std::add_pointer_t<D3D9_Present> d3d9_present_original;
-  std::add_pointer_t<D3D9_Reset> d3d9_reset_original;
+  std::add_pointer_t<D3D9_Present> d3d9_present_original = nullptr;
+  std::add_pointer_t<D3D9_Reset> d3d9_reset_original = nullptr;
 
   // true if VK_END is pressed
   bool should_unhook = false;
 
-  // true if `should_unhook` && IDirect3DDevice9::Present finished resetting
+  // true if `should_unhook` && `IDirect3DDevice9::Present` finished resetting
   bool must_unhook = false;
 
-  internal::Entity *local_player;
+  // Received from `hooks::frame_stage_notify`
+  internal::PlayerEntity *local_player = nullptr;
 
   Interfaces interfaces;
   VMTs vmts;
+
+  ui::ImGuiContext fore_imgui_ctx, back_imgui_ctx;
 private:
   constexpr App() = default;
 
@@ -87,7 +105,7 @@ private:
   void init_vmts();
   void setup_hooks();
 
-  void *client_mode;
+  void *client_mode = nullptr;
 
   Ptr<void> d3d9_present_raw;
   Ptr<void> d3d9_reset_raw;

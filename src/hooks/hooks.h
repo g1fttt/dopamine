@@ -2,6 +2,8 @@
 
 #include <Windows.h>
 
+#include <cstdint>
+
 struct IDirect3DDevice9;
 struct _D3DPRESENT_PARAMETERS;
 
@@ -26,7 +28,10 @@ namespace hooks {
   bool STDCALL create_move(float input_sample_frame_time,
                            internal::UserCommand *cmd);
 
+  bool STDCALL is_cursor_visible();
   void STDCALL lock_cursor();
 
   void STDCALL override_view(internal::ViewSetup *view);
+
+  void STDCALL frame_stage_notify(int32_t stage);
 }

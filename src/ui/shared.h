@@ -3,19 +3,19 @@
 #include <imgui.h>
 
 namespace ui {
-  struct ImGuiContextual {
-    constexpr virtual ~ImGuiContextual() {
-      ImGui::DestroyContext(imgui_ctx);
+  struct ImGuiContext {
+    constexpr void destroy() const {
+      ImGui::DestroyContext(ctx);
     }
 
-    void set_context(ImGuiContext *ctx) {
-      imgui_ctx = ctx;
+    constexpr void set(::ImGuiContext *ctx) {
+      this->ctx = ctx;
     }
 
-    void make_current() const {
-      ImGui::SetCurrentContext(imgui_ctx);
+    constexpr void push() const {
+      ImGui::SetCurrentContext(ctx);
     }
   private:
-    ImGuiContext *imgui_ctx;
+    ::ImGuiContext *ctx = nullptr;
   };
 }

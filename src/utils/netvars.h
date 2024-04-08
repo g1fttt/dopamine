@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utils/fnv_hash.h>
+
 #include <optional>
 #include <string_view>
 #include <vector>

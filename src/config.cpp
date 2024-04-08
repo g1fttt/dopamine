@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include <Windows.h>
+
 #include "hacks/misc.h"
 #include "hacks/visuals.h"
 
@@ -29,13 +31,13 @@ struct Config {
     FIELD(visuals, "visuals"))
   // clang-format on
 
-  Misc::Config *misc;
-  Visuals::Config *visuals;
+  Misc::Config misc;
+  Visuals::Config visuals;
 };
 
 void config::save() {
   const auto value = serde::serialize<toml::value>(
-      Config{.misc = &Misc::get().config, .visuals = &Visuals::get().config});
+      Config{.misc = Misc::get().config, .visuals = Visuals::get().config});
   std::ofstream file_desc{full_config_path()};
   file_desc << value << std::endl;
 }
@@ -49,8 +51,8 @@ void config::load() {
 
   const auto config = serde::deserialize<Config>(value);
   {
-    Misc::get().config = *config.misc;
-    Visuals::get().config = *config.visuals;
+    Misc::get().config = config.misc;
+    Visuals::get().config = config.visuals;
   }
 }
 

@@ -8,16 +8,6 @@ namespace internal {
 
 namespace hacks {
   struct Misc {
-    constexpr Misc(const Misc &&) = delete;
-    constexpr Misc(const Misc &) = delete;
-
-    static Misc &get() {
-      static Misc self{};
-      return self;
-    }
-
-    void bunnyhop(internal::UserCommand *cmd) const;
-
     struct Bunnyhop {
       // clang-format off
       DERIVE_SERDE(Bunnyhop,
@@ -37,6 +27,16 @@ namespace hacks {
 
       Bunnyhop bunnyhop;
     };
+
+    constexpr Misc(const Misc &&) = delete;
+    constexpr Misc(const Misc &) = delete;
+
+    static Misc &get() {
+      static Misc self{};
+      return self;
+    }
+
+    void bunnyhop(internal::UserCommand *cmd) const;
 
     Config config;
   private:

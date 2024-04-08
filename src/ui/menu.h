@@ -1,7 +1,5 @@
 #pragma once
 
-#include "shared.h"
-
 #include <algorithm>
 
 namespace utils {
@@ -9,7 +7,7 @@ namespace utils {
 }
 
 namespace ui {
-  struct Menu : ImGuiContextual {
+  struct Menu {
     constexpr Menu(const Menu &&) = delete;
     constexpr Menu(const Menu &) = delete;
 

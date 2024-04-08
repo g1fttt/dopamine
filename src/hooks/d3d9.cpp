@@ -4,7 +4,11 @@
 
 #include <ui/menu.h>
 #include <ui/post_processing.h>
-#include <ui/shared.h>
+
+#include <interfaces/engine.h>
+#include <interfaces/surface.h>
+
+#include <hacks/visuals.h>
 
 #include <app.h>
 
@@ -12,7 +16,7 @@
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 
-using ui::BlurEffect, ui::Menu, ui::ImGuiContextual;
+using ui::BlurEffect;
 
 HRESULT WINAPI hooks::reset(IDirect3DDevice9 *device,
                             _D3DPRESENT_PARAMETERS *params) {
@@ -49,18 +53,16 @@ static ImGuiContext *create_imgui_context(IDirect3DDevice9 *device) {
 }
 
 static bool init_imgui(IDirect3DDevice9 *device) {
-  auto *menu_ctx = create_imgui_context(device);
-  Menu::get().set_context(menu_ctx);
-
-  auto *blur_ctx = create_imgui_context(device);
-  BlurEffect::get().set_context(blur_ctx);
-
+  App::with<void>([&](App &app) {
+    app.fore_imgui_ctx.set(create_imgui_context(device));
+    app.back_imgui_ctx.set(create_imgui_context(device));
+  });
   return true;
 }
 
-static void draw_frame(IDirect3DDevice9 *device, ImGuiContextual &im_ctx,
+static void draw_frame(IDirect3DDevice9 *device, const ui::ImGuiContext &ctx,
                        const std::function<void()> &cb) {
-  im_ctx.make_current();
+  ctx.push();
 
   ImGui_ImplDX9_NewFrame();
   ImGui_ImplWin32_NewFrame();
@@ -82,7 +84,7 @@ HRESULT WINAPI hooks::present(IDirect3DDevice9 *device, const RECT *src,
                               const RGNDATA *dirty_region) {
   static auto _ = init_imgui(device);
 
-  auto &menu = Menu::get();
+  auto &menu = ui::Menu::get();
   menu.update_animation();
 
   ComPtr<IDirect3DStateBlock9> state_block{};
@@ -96,22 +98,28 @@ HRESULT WINAPI hooks::present(IDirect3DDevice9 *device, const RECT *src,
   // Fix menu (and blur) not rendering without `net_graph` or `cl_showfps`
   device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
 
-  if (!menu.is_fully_closed()) {
-    auto &blur_effect = BlurEffect::get();
+  App::with<void>([&](const App &app) {
+    draw_frame(device, app.back_imgui_ctx, [&] {
+      auto *draw_list = ImGui::GetBackgroundDrawList();
 
-    draw_frame(device, blur_effect, [&] {
-      blur_effect.set_device(device);
-      blur_effect.draw(ImGui::GetBackgroundDrawList(), menu.get_transparency());
+      if (auto &blur_effect = BlurEffect::get(); !menu.is_fully_closed()) {
+        blur_effect.set_device(device);
+        blur_effect.draw(draw_list, menu.get_transparency());
+      }
+
+      if (const auto &visuals = hacks::Visuals::get();
+          app.should_draw_visuals()) {
+        visuals.draw_sniper_crosshair(draw_list);
+      }
     });
-  }
 
-  draw_frame(device, menu, [&] {
-    // Fix broken ImGui menu colors with Source engine gamma correction
-    device->SetRenderState(D3DRS_SRGBWRITEENABLE, false);
+    draw_frame(device, app.fore_imgui_ctx, [&] {
+      // Fix broken ImGui menu colors with Source engine gamma correction
+      device->SetRenderState(D3DRS_SRGBWRITEENABLE, false);
 
-    menu.draw();
+      menu.draw();
+    });
   });
-
   state_block->Apply();
 end:
   return App::with<HRESULT>([&](App &app) {

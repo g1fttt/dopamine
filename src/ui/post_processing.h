@@ -1,12 +1,8 @@
 #pragma once
 
-#include <Windows.h>
-
 #include <wrl/client.h>
 
 #include <cstdint>
-
-#include "shared.h"
 
 using namespace Microsoft::WRL;
 
@@ -35,7 +31,7 @@ namespace ui {
 }
 
 namespace ui {
-  struct BlurEffect : ImGuiContextual {
+  struct BlurEffect {
     constexpr BlurEffect(const BlurEffect &&) = delete;
     constexpr BlurEffect(const BlurEffect &) = delete;
 

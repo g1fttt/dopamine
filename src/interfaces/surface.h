@@ -4,6 +4,7 @@
 
 namespace interfaces {
   struct Surface {
+    VMETHOD(bool, is_cursor_visible, 53, (), (this))
     VMETHOD(void, unlock_cursor, 61, (), (this))
   };
 }

@@ -6,6 +6,7 @@
 
 #include "interfaces/engine.h"
 #include "interfaces/input_system.h"
+#include "interfaces/surface.h"
 
 #include "config.h"
 
@@ -21,6 +22,7 @@ void App::reset() {
   vmts.client_mode.reset();
   vmts.surface.reset();
   vmts.engine.reset();
+  vmts.client.reset();
 
   **d3d9_present_raw.cast<decltype(hooks::present) **>() =
       d3d9_present_original;
@@ -35,6 +37,11 @@ bool App::should_anti_screenshot() const {
   return anti_screenshot && interfaces.engine->is_taking_screenshot();
 }
 
+bool App::should_draw_visuals() const {
+  return interfaces.engine->is_in_game() &&
+         !interfaces.surface->is_cursor_visible();
+}
+
 template <typename T>
 static Ptr<T> interface_base(std::wstring_view module_name,
                              std::string_view interface_name) {
@@ -46,6 +53,31 @@ static Ptr<T> interface_base(std::wstring_view module_name,
 
   return reinterpret_cast<T *>(
       create_interface(interface_name.data(), nullptr));
+}
+
+void App::init_or_nothing() {
+  if (static bool inited = false; !inited) {
+    config::init_or_nothing();
+
+    std::atexit([] {
+      config::save();
+    });
+
+    window = FindWindowA("Valve001", nullptr);
+
+    find_interfaces();
+    find_patterns();
+
+    init_vmts();
+    setup_hooks();
+
+    // Hook WndProc at the end of App initialization to prevent multiple
+    // initialization
+    original_wnd_proc = WNDPROC(
+        SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(hooks::wnd_proc)));
+
+    inited = true;
+  }
 }
 
 void App::find_interfaces() {
@@ -85,39 +117,19 @@ void App::init_vmts() {
   vmts.client_mode.init(client_mode);
   vmts.surface.init(interfaces.surface.get());
   vmts.engine.init(interfaces.engine.get());
+  vmts.client.init(interfaces.client.get());
 }
 
 void App::setup_hooks() {
   **d3d9_present_raw.cast<decltype(hooks::present) **>() = hooks::present;
   **d3d9_reset_raw.cast<decltype(hooks::reset) **>() = hooks::reset;
 
-  vmts.client_mode.hook(LPVOID(hooks::create_move), 21);
   vmts.client_mode.hook(LPVOID(hooks::override_view), 16);
+  vmts.client_mode.hook(LPVOID(hooks::create_move), 21);
+
+  vmts.surface.hook(LPVOID(hooks::is_cursor_visible), 53);
   vmts.surface.hook(LPVOID(hooks::lock_cursor), 62);
+
   vmts.engine.hook(LPVOID(hooks::get_screen_aspect_ratio), 95);
-}
-
-void App::init_or_nothing() {
-  if (static bool inited = false; !inited) {
-    config::init_or_nothing();
-
-    std::atexit([] {
-      config::save();
-    });
-
-    window = FindWindowA("Valve001", nullptr);
-
-    find_interfaces();
-    find_patterns();
-
-    init_vmts();
-    setup_hooks();
-
-    // Hook WndProc at the end of App initialization to prevent multiple
-    // initialization
-    original_wnd_proc = WNDPROC(
-        SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(hooks::wnd_proc)));
-
-    inited = true;
-  }
+  vmts.client.hook(LPVOID(hooks::frame_stage_notify), 35);
 }

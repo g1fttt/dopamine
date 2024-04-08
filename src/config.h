@@ -1,10 +1,9 @@
 #pragma once
 
-#include <Windows.h>
-
 #include <serdepp/adaptor/toml11.hpp>
 #include <serdepp/serde.hpp>
 
+// FIXME: Refusing macros might be a good idea
 #define FIELD(field, key)                                                      \
   (&Self::field, key, default_<decltype(Self::field)>((Self{}).field))
 
