@@ -1,14 +1,16 @@
 #include "misc.h"
 
-#include <internal/entity.h>
-#include <internal/user_command.h>
+#include <game/entity.h>
+#include <game/user_command.h>
 
 #include <app.h>
 
 #include <random>
 
+using game::UserCommand;
+
 namespace hacks {
-  void Misc::bunnyhop(internal::UserCommand *cmd) const {
+  void Misc::bunnyhop(UserCommand *cmd) const {
     if (!config.bunnyhop.enabled) {
       return;
     }
@@ -24,7 +26,7 @@ namespace hacks {
 
       if (const auto should_bunnyhop = distr(gen);
           !app.local_player->is_on_ground() || !should_bunnyhop) {
-        cmd->buttons &= ~internal::UserCommand::InJump;
+        cmd->buttons &= ~UserCommand::InJump;
       }
     });
   }

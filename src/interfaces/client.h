@@ -2,12 +2,12 @@
 
 #include <utils/vmethod.h>
 
-namespace internal {
+namespace game {
   struct ClientClass;
 }
 
 namespace interfaces {
   struct Client {
-    VMETHOD(internal::ClientClass *, get_all_classes, 8, (), (this))
+    VMETHOD(game::ClientClass *, get_all_classes, 8, (), (this))
   };
 }

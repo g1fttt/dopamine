@@ -6,7 +6,7 @@
 #include <string_view>
 #include <vector>
 
-namespace internal {
+namespace game {
   struct RecvTable;
 }
 
@@ -29,8 +29,7 @@ namespace utils {
 
     void init_or_nothing();
     void walk_table(std::string_view network_name,
-                    const internal::RecvTable *recv_table,
-                    uintptr_t offset = 0);
+                    const game::RecvTable *recv_table, uintptr_t offset = 0);
 
     std::vector<HashOffset> hashed;
   };

@@ -1,6 +1,6 @@
 #include "visuals.h"
 
-#include <internal/entity.h>
+#include <game/entity.h>
 
 #include <app.h>
 

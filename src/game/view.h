@@ -2,7 +2,7 @@
 
 #include <utils/pad.h>
 
-namespace internal {
+namespace game {
   struct ViewSetup {
     PAD(53);
     float fov;

@@ -1,7 +1,7 @@
 #include "netvars.h"
 
-#include <internal/client_class.h>
-#include <internal/recv.h>
+#include <game/client_class.h>
+#include <game/recv.h>
 
 #include <interfaces/client.h>
 
@@ -36,7 +36,7 @@ namespace utils {
   }
 
   void Netvars::walk_table(std::string_view network_name,
-                           const internal::RecvTable *recv_table,
+                           const game::RecvTable *recv_table,
                            uintptr_t offset) {
     for (size_t i = 0; i < recv_table->prop_amount; i += 1) {
       const auto *prop = recv_table->props + i;
@@ -49,7 +49,7 @@ namespace utils {
         continue;
       }
 
-      if (prop->recv_type == internal::SendPropType::NumSendPropTypes &&
+      if (prop->recv_type == game::SendPropType::NumSendPropTypes &&
           prop->data_table && prop->data_table->name[0] == 'D') {
         walk_table(network_name, prop->data_table, prop->offset + offset);
       }

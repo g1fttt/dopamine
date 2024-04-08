@@ -2,12 +2,12 @@
 
 #include <utils/vmethod.h>
 
-namespace internal {
+namespace game {
   struct ConVar;
 }
 
 namespace interfaces {
   struct CVar {
-    VMETHOD(internal::ConVar *, find_var, 12, (const char *name), (this, name))
+    VMETHOD(game::ConVar *, find_var, 12, (const char *name), (this, name))
   };
 }

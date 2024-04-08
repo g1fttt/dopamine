@@ -4,13 +4,13 @@
 
 #include <cstdint>
 
-namespace internal {
+namespace game {
   struct PlayerEntity;
 }
 
 namespace interfaces {
   struct EntityList {
-    VMETHOD(internal::PlayerEntity *, get_entity_by_index, 3, (int32_t index),
+    VMETHOD(game::PlayerEntity *, get_entity_by_index, 3, (int32_t index),
             (this, index))
   };
 }

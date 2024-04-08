@@ -4,7 +4,7 @@
 
 #include <cstdint>
 
-namespace internal {
+namespace game {
   struct UserCommand {
     enum Command {
       InJump = 1 << 1,

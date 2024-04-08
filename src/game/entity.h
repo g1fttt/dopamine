@@ -3,7 +3,7 @@
 #include <utils/netvars.h>
 #include <utils/vmethod.h>
 
-namespace internal {
+namespace game {
   enum WeaponID {
     Scout = 3,
     SG550 = 13,

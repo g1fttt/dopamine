@@ -4,7 +4,7 @@
 
 #include <cstdint>
 
-namespace internal {
+namespace game {
   enum class SendPropType {
     NumSendPropTypes = 6,
   };

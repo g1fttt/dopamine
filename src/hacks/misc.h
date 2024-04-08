@@ -2,7 +2,7 @@
 
 #include <config.h>
 
-namespace internal {
+namespace game {
   struct UserCommand;
 }
 
@@ -36,7 +36,7 @@ namespace hacks {
       return self;
     }
 
-    void bunnyhop(internal::UserCommand *cmd) const;
+    void bunnyhop(game::UserCommand *cmd) const;
 
     Config config;
   private:

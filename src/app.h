@@ -21,7 +21,7 @@ namespace interfaces {
   struct Surface;
 }
 
-namespace internal {
+namespace game {
   struct PlayerEntity;
   struct UserCommand;
 }
@@ -90,7 +90,7 @@ struct App {
   bool must_unhook = false;
 
   // Received from `hooks::frame_stage_notify`
-  internal::PlayerEntity *local_player = nullptr;
+  game::PlayerEntity *local_player = nullptr;
 
   Interfaces interfaces;
   VMTs vmts;
