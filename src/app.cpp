@@ -30,6 +30,8 @@ void App::reset() {
 
   ImGui_ImplWin32_Shutdown();
   ImGui_ImplDX9_Shutdown();
+
+  FreeLibraryAndExitThread(module, 0);
 }
 
 bool App::should_anti_screenshot() const {
@@ -55,8 +57,11 @@ static Ptr<T> interface_base(std::wstring_view module_name,
       create_interface(interface_name.data(), nullptr));
 }
 
-void App::init_or_nothing() {
+void App::init_or_nothing(HMODULE module) {
   if (static bool inited = false; !inited) {
+    this->module = module;
+    DisableThreadLibraryCalls(module);
+
     config::init_or_nothing();
 
     std::atexit([] {

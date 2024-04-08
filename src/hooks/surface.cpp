@@ -13,7 +13,7 @@ bool STDCALL hooks::is_cursor_visible() {
 }
 
 void STDCALL hooks::lock_cursor() {
-  App::with<void>([](const App &app) {
+  App::get().and_then<void>([](const App &app) {
     return Menu::get().is_open() ? app.interfaces.surface->unlock_cursor()
                                  : app.vmts.surface.call_original<void, 62>();
   });

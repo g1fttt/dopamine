@@ -61,21 +61,29 @@ struct App {
     return true;
   }
 
-  static App &get() {
+  static App &get_or_init(HINSTANCE inst_dll) {
     static App self{};
-    { self.init_or_nothing(); }
+    if (inst_dll) {
+      self.init_or_nothing(inst_dll);
+    }
     return self;
   }
 
+  static App &get() {
+    return get_or_init(nullptr);
+  }
+
   template <typename T>
-  constexpr static T with(const std::function<T(App &)> &cb) {
-    return cb(App::get());
+  constexpr T and_then(const std::function<T(App &)> &cb) {
+    return cb(*this);
   }
 
   void reset();
 
   bool should_anti_screenshot() const;
   bool should_draw_visuals() const;
+
+  HMODULE module = nullptr;
 
   WNDPROC original_wnd_proc = nullptr;
   HWND window = nullptr;
@@ -99,7 +107,7 @@ struct App {
 private:
   constexpr App() = default;
 
-  void init_or_nothing();
+  void init_or_nothing(HMODULE module);
   void find_interfaces();
   void find_patterns();
   void init_vmts();

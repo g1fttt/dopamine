@@ -53,7 +53,7 @@ static ImGuiContext *create_imgui_context(IDirect3DDevice9 *device) {
 }
 
 static bool init_imgui(IDirect3DDevice9 *device) {
-  App::with<void>([&](App &app) {
+  App::get().and_then<void>([=](App &app) {
     app.fore_imgui_ctx.set(create_imgui_context(device));
     app.back_imgui_ctx.set(create_imgui_context(device));
   });
@@ -98,7 +98,7 @@ HRESULT WINAPI hooks::present(IDirect3DDevice9 *device, const RECT *src,
   // Fix menu (and blur) not rendering without `net_graph` or `cl_showfps`
   device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
 
-  App::with<void>([&](const App &app) {
+  App::get().and_then<void>([&](const App &app) {
     draw_frame(device, app.back_imgui_ctx, [&] {
       auto *draw_list = ImGui::GetBackgroundDrawList();
 
@@ -122,7 +122,7 @@ HRESULT WINAPI hooks::present(IDirect3DDevice9 *device, const RECT *src,
   });
   state_block->Apply();
 end:
-  return App::with<HRESULT>([&](App &app) {
+  return App::get().and_then<HRESULT>([=](App &app) {
     if (app.should_unhook) {
       ShowCursor(true);
       app.must_unhook = true;

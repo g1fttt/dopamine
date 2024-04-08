@@ -60,7 +60,7 @@ namespace ui {
     }
 
     open = !open;
-    App::with<void>([&](App &app) {
+    App::get().and_then<void>([this](App &app) {
       if (!open) {
         app.interfaces.input_system->reset_input_state();
       }

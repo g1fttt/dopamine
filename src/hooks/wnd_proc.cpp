@@ -18,7 +18,7 @@ LRESULT WINAPI hooks::wnd_proc(HWND window, UINT message, WPARAM wparam,
   if (ImGui_ImplWin32_WndProcHandler(window, message, wparam, lparam)) {
     return true;
   }
-  return App::with<LRESULT>([&](App &app) {
+  return App::get().and_then<LRESULT>([=](App &app) {
     Input::with(message, wparam, lparam, [&](const Input &input) {
       ui::Menu::get().handle_toggle(input);
 

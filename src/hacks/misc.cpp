@@ -19,7 +19,7 @@ namespace hacks {
     std::minstd_rand gen{rd()};
     std::bernoulli_distribution distr{config.bunnyhop.chance / 100.0f};
 
-    App::with<void>([&](const App &app) {
+    App::get().and_then<void>([&](const App &app) {
       if (!app.local_player) {
         return;
       }
