@@ -10,7 +10,7 @@ namespace hooks {
       const auto &aspect_ratio = hacks::Visuals::get().config.aspect_ratio;
       return aspect_ratio.enabled && !app.should_anti_screenshot()
                  ? aspect_ratio.value
-                 : app.hooks.get_screen_aspect_ratio.call_original();
+                 : app.hooks->get_screen_aspect_ratio.call_original();
     });
   }
 }

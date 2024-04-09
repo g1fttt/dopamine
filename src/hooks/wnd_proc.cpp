@@ -27,7 +27,7 @@ namespace hooks {
           app.should_unhook = true;
         }
       });
-      return CallWindowProcW(app.hooks.wnd_proc_original, window, message,
+      return CallWindowProcW(app.hooks->wnd_proc_original, window, message,
                              wparam, lparam);
     });
   }

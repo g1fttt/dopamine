@@ -25,7 +25,7 @@ namespace hooks {
 
     ImGui_ImplDX9_InvalidateDeviceObjects();
 
-    const auto result = App::get().hooks.d3d9_reset_original(device, params);
+    const auto result = App::get().hooks->d3d9_reset_original(device, params);
 
     ImGui_ImplDX9_CreateDeviceObjects();
 
@@ -130,8 +130,8 @@ namespace hooks {
         ShowCursor(true);
         app.must_unhook = true;
       }
-      return app.hooks.d3d9_present_original(device, src, dest, window_override,
-                                             dirty_region);
+      return app.hooks->d3d9_present_original(device, src, dest,
+                                              window_override, dirty_region);
     });
   }
 }

@@ -10,7 +10,7 @@ namespace hooks {
     App::get().and_then<void>([=](App &app) {
       app.local_player = app.interfaces.entity_list->get_entity_by_index(
           app.interfaces.engine->local_player_index());
-      return app.hooks.frame_stage_notify.call_original(stage);
+      return app.hooks->frame_stage_notify.call_original(stage);
     });
   }
 }

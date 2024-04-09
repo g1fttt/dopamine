@@ -1,6 +1,7 @@
 #include "app.h"
 
 #include "hacks/visuals.h"
+#include "hooks/hooks.h"
 #include "utils/utils.h"
 
 #include "interfaces/engine.h"
@@ -13,10 +14,12 @@
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 
+App::~App() = default;
+
 void App::reset() {
   interfaces.input_system->enable_input(true);
 
-  hooks.remove(*this);
+  hooks->remove(*this);
 
   ImGui_ImplWin32_Shutdown();
   ImGui_ImplDX9_Shutdown();
@@ -47,6 +50,10 @@ static Ptr<T> interface_base(std::wstring_view module_name,
       create_interface(interface_name.data(), nullptr));
 }
 
+App::App() {
+  hooks = std::make_unique<Hooks>();
+}
+
 void App::init_or_nothing(HMODULE module) {
   if (static bool inited = false; !inited) {
     this->module = module;
@@ -63,7 +70,7 @@ void App::init_or_nothing(HMODULE module) {
     find_interfaces();
     find_patterns();
 
-    hooks.setup(*this);
+    hooks->setup(*this);
 
     inited = true;
   }

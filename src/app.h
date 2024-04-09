@@ -2,11 +2,11 @@
 
 #include <Windows.h>
 
-#include "hooks/hooks.h"
 #include "ui/shared.h"
 #include "utils/ptr.h"
 
 #include <functional>
+#include <memory>
 
 namespace interfaces {
   struct Client;
@@ -23,6 +23,8 @@ namespace game {
   struct PlayerEntity;
 }
 
+struct Hooks;
+
 struct App {
   struct Interfaces {
     Ptr<Client> client;
@@ -36,6 +38,7 @@ struct App {
 
   constexpr App(const App &&) = delete;
   constexpr App(const App &) = delete;
+  ~App();
 
   // Use it only if program flow changes needed (e.g. return, goto)
   constexpr operator bool() const {
@@ -77,14 +80,14 @@ struct App {
   game::PlayerEntity *local_player = nullptr;
 
   Interfaces interfaces;
-  Hooks hooks;
+  std::unique_ptr<Hooks> hooks;
 
   ui::ImGuiContext fore_imgui_ctx, back_imgui_ctx;
 
   Ptr<void> d3d9_present_raw;
   Ptr<void> d3d9_reset_raw;
 private:
-  constexpr App() = default;
+  App();
 
   void init_or_nothing(HMODULE module);
   void find_interfaces();
