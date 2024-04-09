@@ -19,12 +19,12 @@ void App::reset() {
 
   interfaces.input_system->enable_input(true);
 
-  hooks.create_move.reset();
-  hooks.override_view.reset();
-  hooks.frame_stage_notify.reset();
-  hooks.get_screen_aspect_ratio.reset();
-  hooks.is_cursor_visible.reset();
-  hooks.lock_cursor.reset();
+  hooks.create_move.unhook();
+  hooks.override_view.unhook();
+  hooks.frame_stage_notify.unhook();
+  hooks.get_screen_aspect_ratio.unhook();
+  hooks.is_cursor_visible.unhook();
+  hooks.lock_cursor.unhook();
 
   **d3d9_present_raw.cast<decltype(hooks::present) **>() =
       d3d9_present_original;
