@@ -22,9 +22,12 @@ bool STDCALL hooks::create_move(float input_sample_frame_time,
 }
 
 void STDCALL hooks::override_view(game::ViewSetup *view) {
-  App::get().hooks.override_view.call_original(view);
+  App::get().and_then<void>([=](const App &app) {
+    app.hooks.override_view.call_original(view);
 
-  if (const auto &fov = hacks::Visuals::get().config.fov; fov.enabled) {
-    view->fov = fov.value;
-  }
+    if (const auto &fov = hacks::Visuals::get().config.fov;
+        fov.enabled && !app.should_anti_screenshot()) {
+      view->fov = fov.value;
+    }
+  });
 }
