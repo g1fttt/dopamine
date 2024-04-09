@@ -6,11 +6,18 @@
 #include <app.h>
 
 namespace hooks {
-  void STDCALL frame_stage_notify(int32_t stage) {
-    App::get().and_then<void>([=](App &app) {
+  void STDCALL level_init_post_entity() {
+    App::get().and_then<void>([](App &app) {
+      app.hooks->level_init_post_entity.call_original();
       app.local_player = app.interfaces.entity_list->get_entity_by_index(
           app.interfaces.engine->local_player_index());
-      return app.hooks->frame_stage_notify.call_original(stage);
+    });
+  }
+
+  void STDCALL level_shutdown() {
+    App::get().and_then<void>([](App &app) {
+      app.hooks->level_shutdown.call_original();
+      app.local_player = nullptr;
     });
   }
 }

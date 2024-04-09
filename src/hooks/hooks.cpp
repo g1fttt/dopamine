@@ -22,7 +22,8 @@ namespace hooks {
 
   void STDCALL override_view(game::ViewSetup *view);
 
-  void STDCALL frame_stage_notify(int32_t stage);
+  void STDCALL level_init_post_entity();
+  void STDCALL level_shutdown();
 }
 
 void Hooks::setup(App &app) {
@@ -31,7 +32,9 @@ void Hooks::setup(App &app) {
   create_move.init_and_hook<21>(client_mode, hooks::create_move);
 
   const auto client = app.interfaces.client.get();
-  frame_stage_notify.init_and_hook<35>(client, hooks::frame_stage_notify);
+  level_init_post_entity.init_and_hook<6>(client,
+                                          hooks::level_init_post_entity);
+  level_shutdown.init_and_hook<7>(client, hooks::level_shutdown);
 
   const auto engine = app.interfaces.engine.get();
   get_screen_aspect_ratio.init_and_hook<95>(engine,
@@ -62,7 +65,8 @@ void Hooks::remove(App &app) {
 
   create_move.unhook();
   override_view.unhook();
-  frame_stage_notify.unhook();
+  level_init_post_entity.unhook();
+  level_shutdown.unhook();
   get_screen_aspect_ratio.unhook();
   is_cursor_visible.unhook();
   lock_cursor.unhook();

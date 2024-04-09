@@ -25,7 +25,8 @@ struct Hooks {
 
   VMTHook<bool, float, game::UserCommand *> create_move;
   VMTHook<void, game::ViewSetup *> override_view;
-  VMTHook<void, int32_t> frame_stage_notify;
+  VMTHook<void> level_init_post_entity;
+  VMTHook<void> level_shutdown;
   VMTHook<float> get_screen_aspect_ratio;
   VMTHook<bool> is_cursor_visible;
   VMTHook<void> lock_cursor;

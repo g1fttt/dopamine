@@ -74,7 +74,7 @@ struct App {
   // true if `should_unhook` && `IDirect3DDevice9::Present` finished resetting
   bool must_unhook = false;
 
-  // Received from `hooks::frame_stage_notify`
+  // Obtained in `hooks::level_init_post_entity`
   game::PlayerEntity *local_player = nullptr;
 
   Interfaces interfaces;
