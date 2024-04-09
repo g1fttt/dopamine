@@ -8,6 +8,8 @@ namespace utils {
   using KeyCode = WPARAM;
 
   struct Input {
+    constexpr Input(const Input &) = delete;
+
     static Input &get() {
       static Input self{};
       return self;
@@ -21,6 +23,8 @@ namespace utils {
 
     bool key_is_up(KeyCode code) const;
   private:
+    constexpr Input() = default;
+
     struct Key {
       KeyCode code;
       LPARAM lparam;

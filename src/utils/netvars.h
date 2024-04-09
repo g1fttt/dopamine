@@ -12,7 +12,6 @@ namespace game {
 
 namespace utils {
   struct Netvars {
-    constexpr Netvars(const Netvars &&) = delete;
     constexpr Netvars(const Netvars &) = delete;
 
     static Netvars &get() {

@@ -32,7 +32,6 @@ namespace ui {
 
 namespace ui {
   struct BlurEffect {
-    constexpr BlurEffect(const BlurEffect &&) = delete;
     constexpr BlurEffect(const BlurEffect &) = delete;
 
     static BlurEffect &get() {

@@ -43,7 +43,6 @@ namespace hacks {
       SniperRifleCrosshair sniper_rifle_crosshair;
     };
 
-    constexpr Visuals(const Visuals &&) = delete;
     constexpr Visuals(const Visuals &) = delete;
 
     static Visuals &get() {

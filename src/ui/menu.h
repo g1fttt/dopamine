@@ -8,7 +8,6 @@ namespace utils {
 
 namespace ui {
   struct Menu {
-    constexpr Menu(const Menu &&) = delete;
     constexpr Menu(const Menu &) = delete;
 
     static Menu &get() {

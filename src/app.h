@@ -36,8 +36,6 @@ struct App {
     void *client_mode = nullptr;
   };
 
-  constexpr App(const App &&) = delete;
-  constexpr App(const App &) = delete;
   ~App();
 
   // Use it only if program flow changes needed (e.g. return, goto)

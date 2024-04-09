@@ -28,7 +28,6 @@ namespace hacks {
       Bunnyhop bunnyhop;
     };
 
-    constexpr Misc(const Misc &&) = delete;
     constexpr Misc(const Misc &) = delete;
 
     static Misc &get() {
