@@ -18,17 +18,19 @@
 
 using ui::BlurEffect;
 
-HRESULT WINAPI hooks::reset(IDirect3DDevice9 *device,
-                            _D3DPRESENT_PARAMETERS *params) {
-  BlurEffect::get().clear_textures();
+namespace hooks {
+  HRESULT WINAPI reset(IDirect3DDevice9 *device,
+                       _D3DPRESENT_PARAMETERS *params) {
+    BlurEffect::get().clear_textures();
 
-  ImGui_ImplDX9_InvalidateDeviceObjects();
+    ImGui_ImplDX9_InvalidateDeviceObjects();
 
-  const auto result = App::get().d3d9_reset_original(device, params);
+    const auto result = App::get().hooks.d3d9_reset_original(device, params);
 
-  ImGui_ImplDX9_CreateDeviceObjects();
+    ImGui_ImplDX9_CreateDeviceObjects();
 
-  return result;
+    return result;
+  }
 }
 
 static ImGuiContext *create_imgui_context(IDirect3DDevice9 *device) {
@@ -79,55 +81,57 @@ static void draw_frame(IDirect3DDevice9 *device, const ui::ImGuiContext &ctx,
   }
 }
 
-HRESULT WINAPI hooks::present(IDirect3DDevice9 *device, const RECT *src,
-                              const RECT *dest, HWND window_override,
-                              const RGNDATA *dirty_region) {
-  static auto _ = init_imgui(device);
+namespace hooks {
+  HRESULT WINAPI present(IDirect3DDevice9 *device, const RECT *src,
+                         const RECT *dest, HWND window_override,
+                         const RGNDATA *dirty_region) {
+    static auto _ = init_imgui(device);
 
-  auto &menu = ui::Menu::get();
-  menu.update_animation();
+    auto &menu = ui::Menu::get();
+    menu.update_animation();
 
-  ComPtr<IDirect3DStateBlock9> state_block{};
-  if (device->CreateStateBlock(D3DSBT_ALL, state_block.GetAddressOf()) !=
-      D3D_OK) {
-    goto end;
-  }
-
-  state_block->Capture();
-
-  // Fix menu (and blur) not rendering without `net_graph` or `cl_showfps`
-  device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
-
-  App::get().and_then<void>([&](const App &app) {
-    draw_frame(device, app.back_imgui_ctx, [&] {
-      auto *draw_list = ImGui::GetBackgroundDrawList();
-
-      if (auto &blur_effect = BlurEffect::get(); !menu.is_fully_closed()) {
-        blur_effect.set_device(device);
-        blur_effect.draw(draw_list, menu.get_transparency());
-      }
-
-      if (const auto &visuals = hacks::Visuals::get();
-          app.should_draw_visuals()) {
-        visuals.draw_sniper_crosshair(draw_list);
-      }
-    });
-
-    draw_frame(device, app.fore_imgui_ctx, [&] {
-      // Fix broken ImGui menu colors with Source engine gamma correction
-      device->SetRenderState(D3DRS_SRGBWRITEENABLE, false);
-
-      menu.draw();
-    });
-  });
-  state_block->Apply();
-end:
-  return App::get().and_then<HRESULT>([=](App &app) {
-    if (app.should_unhook) {
-      ShowCursor(true);
-      app.must_unhook = true;
+    ComPtr<IDirect3DStateBlock9> state_block{};
+    if (device->CreateStateBlock(D3DSBT_ALL, state_block.GetAddressOf()) !=
+        D3D_OK) {
+      goto end;
     }
-    return app.d3d9_present_original(device, src, dest, window_override,
-                                     dirty_region);
-  });
+
+    state_block->Capture();
+
+    // Fix menu (and blur) not rendering without `net_graph` or `cl_showfps`
+    device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
+
+    App::get().and_then<void>([&](const App &app) {
+      draw_frame(device, app.back_imgui_ctx, [&] {
+        auto *draw_list = ImGui::GetBackgroundDrawList();
+
+        if (auto &blur_effect = BlurEffect::get(); !menu.is_fully_closed()) {
+          blur_effect.set_device(device);
+          blur_effect.draw(draw_list, menu.get_transparency());
+        }
+
+        if (const auto &visuals = hacks::Visuals::get();
+            app.should_draw_visuals()) {
+          visuals.draw_sniper_crosshair(draw_list);
+        }
+      });
+
+      draw_frame(device, app.fore_imgui_ctx, [&] {
+        // Fix broken ImGui menu colors with Source engine gamma correction
+        device->SetRenderState(D3DRS_SRGBWRITEENABLE, false);
+
+        menu.draw();
+      });
+    });
+    state_block->Apply();
+  end:
+    return App::get().and_then<HRESULT>([=](App &app) {
+      if (app.should_unhook) {
+        ShowCursor(true);
+        app.must_unhook = true;
+      }
+      return app.hooks.d3d9_present_original(device, src, dest, window_override,
+                                             dirty_region);
+    });
+  }
 }

@@ -1,37 +1,37 @@
 #pragma once
 
-#include <Windows.h>
+#include <utils/vmt.h>
 
-#include <cstdint>
+PRIVATE_USE(utils::VMTHook)
+
+namespace game {
+  struct UserCommand;
+  struct ViewSetup;
+}
 
 struct IDirect3DDevice9;
 struct _D3DPRESENT_PARAMETERS;
 
-namespace game {
-  struct UserCommand;
+struct App;
 
-  struct ViewSetup;
-}
+struct Hooks {
+  using D3D9_Present = HRESULT WINAPI(IDirect3DDevice9 *, const RECT *,
+                                      const RECT *, HWND, const RGNDATA *);
+  using D3D9_Reset = HRESULT WINAPI(IDirect3DDevice9 *,
+                                    _D3DPRESENT_PARAMETERS *);
 
-namespace hooks {
-  LRESULT WINAPI wnd_proc(HWND window, UINT message, WPARAM wparam,
-                          LPARAM lparam);
+  void setup(App &app);
+  void remove(App &app);
 
-  HRESULT WINAPI reset(IDirect3DDevice9 *device,
-                       _D3DPRESENT_PARAMETERS *params);
-  HRESULT WINAPI present(IDirect3DDevice9 *device, const RECT *src,
-                         const RECT *dest, HWND window_override,
-                         const RGNDATA *dirty_region);
+  VMTHook<bool, float, game::UserCommand *> create_move;
+  VMTHook<void, game::ViewSetup *> override_view;
+  VMTHook<void, int32_t> frame_stage_notify;
+  VMTHook<float> get_screen_aspect_ratio;
+  VMTHook<bool> is_cursor_visible;
+  VMTHook<void> lock_cursor;
 
-  float STDCALL get_screen_aspect_ratio();
+  std::add_pointer_t<D3D9_Present> d3d9_present_original = nullptr;
+  std::add_pointer_t<D3D9_Reset> d3d9_reset_original = nullptr;
 
-  bool STDCALL create_move(float input_sample_frame_time,
-                           game::UserCommand *cmd);
-
-  bool STDCALL is_cursor_visible();
-  void STDCALL lock_cursor();
-
-  void STDCALL override_view(game::ViewSetup *view);
-
-  void STDCALL frame_stage_notify(int32_t stage);
-}
+  WNDPROC wnd_proc_original = nullptr;
+};

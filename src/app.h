@@ -2,15 +2,11 @@
 
 #include <Windows.h>
 
-#include "utils/ptr.h"
-#include "utils/vmt.h"
-
+#include "hooks/hooks.h"
 #include "ui/shared.h"
+#include "utils/ptr.h"
 
 #include <functional>
-
-struct IDirect3DDevice9;
-struct _D3DPRESENT_PARAMETERS;
 
 namespace interfaces {
   struct Client;
@@ -21,15 +17,10 @@ namespace interfaces {
   struct Surface;
 }
 
+PRIVATE_USE(namespace interfaces)
+
 namespace game {
   struct PlayerEntity;
-  struct UserCommand;
-  struct ViewSetup;
-}
-
-namespace {
-  using namespace interfaces;
-  using namespace utils;
 }
 
 struct App {
@@ -40,21 +31,8 @@ struct App {
     Ptr<CVar> cvar;
     Ptr<InputSystem> input_system;
     Ptr<Surface> surface;
+    void *client_mode = nullptr;
   };
-
-  struct Hooks {
-    VMTHook<bool, float, game::UserCommand *> create_move;
-    VMTHook<void, game::ViewSetup *> override_view;
-    VMTHook<void, int32_t> frame_stage_notify;
-    VMTHook<float> get_screen_aspect_ratio;
-    VMTHook<bool> is_cursor_visible;
-    VMTHook<void> lock_cursor;
-  };
-
-  using D3D9_Present = HRESULT WINAPI(IDirect3DDevice9 *, const RECT *,
-                                      const RECT *, HWND, const RGNDATA *);
-  using D3D9_Reset = HRESULT WINAPI(IDirect3DDevice9 *,
-                                    _D3DPRESENT_PARAMETERS *);
 
   constexpr App(const App &&) = delete;
   constexpr App(const App &) = delete;
@@ -87,12 +65,7 @@ struct App {
   bool should_draw_visuals() const;
 
   HMODULE module = nullptr;
-
-  WNDPROC original_wnd_proc = nullptr;
   HWND window = nullptr;
-
-  std::add_pointer_t<D3D9_Present> d3d9_present_original = nullptr;
-  std::add_pointer_t<D3D9_Reset> d3d9_reset_original = nullptr;
 
   // true if VK_END is pressed
   bool should_unhook = false;
@@ -107,16 +80,13 @@ struct App {
   Hooks hooks;
 
   ui::ImGuiContext fore_imgui_ctx, back_imgui_ctx;
+
+  Ptr<void> d3d9_present_raw;
+  Ptr<void> d3d9_reset_raw;
 private:
   constexpr App() = default;
 
   void init_or_nothing(HMODULE module);
   void find_interfaces();
   void find_patterns();
-  void setup_hooks();
-
-  void *client_mode = nullptr;
-
-  Ptr<void> d3d9_present_raw;
-  Ptr<void> d3d9_reset_raw;
 };
