@@ -2,8 +2,6 @@
 
 #include <utils/vmt.h>
 
-PRIVATE_USE(utils::VMTHook)
-
 namespace game {
   struct UserCommand;
   struct ViewSetup;
@@ -23,13 +21,14 @@ struct Hooks {
   void setup(App &app);
   void remove(App &app);
 
-  VMTHook<bool, float, game::UserCommand *> create_move;
-  VMTHook<void, game::ViewSetup *> override_view;
-  VMTHook<void> level_init_post_entity;
-  VMTHook<void> level_shutdown;
-  VMTHook<float> get_screen_aspect_ratio;
-  VMTHook<bool> is_cursor_visible;
-  VMTHook<void> lock_cursor;
+  utils::VMTHook<bool, float, game::UserCommand *> create_move;
+  utils::VMTHook<void, game::ViewSetup *> override_view;
+  utils::VMTHook<bool, const game::ViewSetup *> do_post_screen_space_effects;
+  utils::VMTHook<void> level_init_post_entity;
+  utils::VMTHook<void> level_shutdown;
+  utils::VMTHook<float> get_screen_aspect_ratio;
+  utils::VMTHook<bool> is_cursor_visible;
+  utils::VMTHook<void> lock_cursor;
 
   std::add_pointer_t<D3D9_Present> d3d9_present_original = nullptr;
   std::add_pointer_t<D3D9_Reset> d3d9_reset_original = nullptr;

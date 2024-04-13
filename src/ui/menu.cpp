@@ -3,6 +3,8 @@
 #include <interfaces/input_system.h>
 #include <utils/input.h>
 
+#include <hacks/glow/hack.h>
+
 #include <hacks/misc.h>
 #include <hacks/visuals.h>
 
@@ -11,8 +13,8 @@
 
 #include <imgui.h>
 
-using config::Feature;
-using hacks::Visuals, hacks::Misc;
+PRIVATE_USE(hacks::Visuals)
+PRIVATE_USE(hacks::Misc)
 
 template <typename T>
 static void draw_feature(T &feat, const char *name, const char *id,
@@ -50,6 +52,7 @@ namespace ui {
       draw_menu_bar();
       draw_misc_window();
       draw_visuals_window();
+      draw_glow_window();
     }
     ImGui::PopStyleVar();
   }
@@ -85,6 +88,7 @@ namespace ui {
     if (ImGui::BeginMainMenuBar()) {
       draw_menu_bar_item("Misc", should_draw_window.misc);
       draw_menu_bar_item("Visuals", should_draw_window.visuals);
+      draw_menu_bar_item("Glow", should_draw_window.glow);
       ImGui::EndMainMenuBar();
     }
   }
@@ -118,17 +122,18 @@ namespace ui {
       return;
     }
 
-    auto &cfg = Visuals::get().config;
+    auto &cfg = hacks::Visuals::get().config;
 
     if (ImGui::Begin("Visuals", &should_draw_window.visuals, WINDOW_FLAGS)) {
-      draw_feature<Feature<float>>(
+      draw_feature<config::Feature<float>>(
           cfg.aspect_ratio, "Aspect ratio", "aspect_ratio", [](auto &feat) {
             ImGui::SliderFloat("Value", &feat.value, 0.5f, 5.0f);
           });
 
-      draw_feature<Feature<float>>(cfg.fov, "FOV", "fov", [](auto &feat) {
-        ImGui::SliderFloat("Value", &feat.value, 50.0f, 150.0f);
-      });
+      draw_feature<config::Feature<float>>(
+          cfg.fov, "FOV", "fov", [](auto &feat) {
+            ImGui::SliderFloat("Value", &feat.value, 50.0f, 150.0f);
+          });
 
       ImGui::Checkbox("Anti-screenshot", &cfg.anti_screenshot);
 
@@ -136,9 +141,35 @@ namespace ui {
           cfg.sniper_rifle_crosshair, "Sniper rifle crosshair",
           "sniper_rifle_crosshair", [](auto &feat) {
             ImGui::SameLine();
-            ImGui::ColorEdit4("##Color", feat.color.float4(), COLOR_EDIT_FLAGS);
+            ImGui::ColorEdit4("##Color", feat.color.float_array(),
+                              COLOR_EDIT_FLAGS);
             ImGui::SliderFloat("Size", &feat.size, 1.0f, 30.0f);
             ImGui::SliderFloat("Thickness", &feat.thickness, 1.0f, 5.0f);
+          });
+    }
+    ImGui::End();
+  }
+
+  void Menu::draw_glow_window() {
+    if (!should_draw_window.glow) {
+      return;
+    }
+
+    auto &cfg = glow::Hack::get().config;
+
+    if (ImGui::Begin("Glow", &should_draw_window.glow, WINDOW_FLAGS)) {
+      draw_feature<glow::Hack::Glow>(
+          cfg.enemies, "Enemies", "enemies", [](auto &feat) {
+            ImGui::SameLine();
+            ImGui::ColorEdit4("##Color", feat.color.float_array(),
+                              COLOR_EDIT_FLAGS);
+          });
+
+      draw_feature<glow::Hack::Glow>(
+          cfg.allies, "Allies", "allies", [](auto &feat) {
+            ImGui::SameLine();
+            ImGui::ColorEdit4("##Color", feat.color.float_array(),
+                              COLOR_EDIT_FLAGS);
           });
     }
     ImGui::End();

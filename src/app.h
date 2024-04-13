@@ -15,6 +15,9 @@ namespace interfaces {
   struct CVar;
   struct InputSystem;
   struct Surface;
+  struct RenderView;
+  struct MaterialSystem;
+  struct ModelRender;
 }
 
 PRIVATE_USE(namespace interfaces)
@@ -33,6 +36,9 @@ struct App {
     Ptr<CVar> cvar;
     Ptr<InputSystem> input_system;
     Ptr<Surface> surface;
+    Ptr<RenderView> render_view;
+    Ptr<MaterialSystem> material_system;
+    Ptr<ModelRender> model_render;
     void *client_mode = nullptr;
   };
 

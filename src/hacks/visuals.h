@@ -6,11 +6,6 @@
 
 struct ImDrawList;
 
-namespace {
-  using config::Feature;
-  using utils::Color;
-}
-
 namespace hacks {
   struct Visuals {
     struct SniperRifleCrosshair {
@@ -25,7 +20,7 @@ namespace hacks {
       bool enabled = false;
       float size = 10.0f;
       float thickness = 1.0f;
-      Color color = Color::WHITE;
+      utils::Color color;
     };
 
     struct Config {
@@ -37,8 +32,8 @@ namespace hacks {
         FIELD(sniper_rifle_crosshair, "sniper-rifle-crosshair"))
       // clang-format on
 
-      Feature<float> aspect_ratio = {.value = 1.0f};
-      Feature<float> fov = {.value = 70.0f};
+      config::Feature<float> aspect_ratio = {.value = 1.0f};
+      config::Feature<float> fov = {.value = 70.0f};
       bool anti_screenshot = false;
       SniperRifleCrosshair sniper_rifle_crosshair;
     };

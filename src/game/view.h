@@ -2,9 +2,15 @@
 
 #include <utils/pad.h>
 
+#include <cstdint>
+
 namespace game {
   struct ViewSetup {
-    PAD(53);
+    PAD(16);
+    int32_t width;
+    PAD(4);
+    int32_t height;
+    PAD(25);
     float fov;
   };
 }

@@ -1,9 +1,13 @@
 #include "hooks.h"
 
+#include <game/entity.h>
 #include <game/view.h>
 
 #include <interfaces/engine.h>
 #include <interfaces/entity_list.h>
+
+#include <hacks/glow/hack.h>
+#include <hacks/glow/object_manager.h>
 
 #include <hacks/misc.h>
 #include <hacks/visuals.h>
@@ -30,6 +34,18 @@ namespace hooks {
           fov.enabled && !app.should_anti_screenshot()) {
         view->fov = fov.value;
       }
+    });
+  }
+
+  bool STDCALL do_post_screen_space_effects(const game::ViewSetup *view) {
+    return App::get().and_then<bool>([=](App &app) {
+      if (app.interfaces.engine->is_in_game()) {
+        auto &glow_object_manager = glow::ObjectManager::get_or_init(
+            app.interfaces.material_system.get());
+        { glow::Hack::get().manage_entities(glow_object_manager, app); }
+        glow_object_manager.draw_glow_effects(view, app);
+      }
+      return app.hooks->do_post_screen_space_effects.call_original(view);
     });
   }
 }

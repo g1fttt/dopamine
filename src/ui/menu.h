@@ -37,6 +37,7 @@ namespace ui {
     struct ShouldDrawWindow {
       bool misc = false;
       bool visuals = false;
+      bool glow = false;
     };
 
     constexpr Menu() = default;
@@ -49,6 +50,7 @@ namespace ui {
     void draw_menu_bar_item(const char *window_name, bool &should_draw_window);
     void draw_misc_window();
     void draw_visuals_window();
+    void draw_glow_window();
 
     bool open = false;
     float toggle_animation_end = 1.0f;

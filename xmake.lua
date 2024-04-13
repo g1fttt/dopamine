@@ -27,8 +27,10 @@ target('dopamine')
     'src/*.cpp',
     'src/hooks/*.cpp',
     'src/utils/*.cpp',
+    'src/game/*.cpp',
     'src/ui/*.cpp',
-    'src/hacks/*.cpp')
+    'src/hacks/*.cpp',
+    'src/hacks/glow/*.cpp')
   add_packages('imgui', 'toml11', 'serdepp')
   add_links('d3d9')
   add_includedirs('src/')

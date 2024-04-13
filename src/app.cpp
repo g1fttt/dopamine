@@ -77,18 +77,21 @@ void App::init_or_nothing(HMODULE module) {
 }
 
 void App::find_interfaces() {
-  interfaces.client =
-      interface_base<interfaces::Client>(L"client.dll", "VClient017");
-  interfaces.entity_list = interface_base<interfaces::EntityList>(
-      L"client.dll", "VClientEntityList003");
-  interfaces.engine =
-      interface_base<interfaces::Engine>(L"engine.dll", "VEngineClient013");
-  interfaces.cvar =
-      interface_base<interfaces::CVar>(L"vstdlib.dll", "VEngineCvar004");
-  interfaces.input_system = interface_base<interfaces::InputSystem>(
-      L"inputsystem.dll", "InputSystemVersion001");
-  interfaces.surface = interface_base<interfaces::Surface>(
-      L"vguimatsurface.dll", "VGUI_Surface030");
+  interfaces.client = interface_base<Client>(L"client.dll", "VClient017");
+  interfaces.entity_list =
+      interface_base<EntityList>(L"client.dll", "VClientEntityList003");
+  interfaces.engine = interface_base<Engine>(L"engine.dll", "VEngineClient013");
+  interfaces.cvar = interface_base<CVar>(L"vstdlib.dll", "VEngineCvar004");
+  interfaces.input_system =
+      interface_base<InputSystem>(L"inputsystem.dll", "InputSystemVersion001");
+  interfaces.surface =
+      interface_base<Surface>(L"vguimatsurface.dll", "VGUI_Surface030");
+  interfaces.render_view =
+      interface_base<RenderView>(L"engine.dll", "VEngineRenderView014");
+  interfaces.material_system = interface_base<MaterialSystem>(
+      L"MaterialSystem.dll", "VMaterialSystem080");
+  interfaces.model_render =
+      interface_base<ModelRender>(L"engine.dll", "VEngineModel016");
 
   const Ptr<void *> client_vmt = *interfaces.client.cast<void **>();
   interfaces.client_mode =
