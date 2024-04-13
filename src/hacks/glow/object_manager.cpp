@@ -60,7 +60,7 @@ namespace glow {
     }
   }
 
-  void ObjectManager::unregister_object_by_entity(Entity *entity) {
+  void ObjectManager::unregister_object_by_entity(game::Entity *entity) {
     objects.remove_if([=, this](const Object &obj) {
       return has_glow_effect(entity);
     });
@@ -74,7 +74,7 @@ namespace glow {
     render_ctx->end_pix_event();
   }
 
-  bool ObjectManager::has_glow_effect(Entity *entity) const {
+  bool ObjectManager::has_glow_effect(game::Entity *entity) const {
     return std::any_of(objects.begin(), objects.end(), [=](const Object &obj) {
       return entity == obj.entity;
     });

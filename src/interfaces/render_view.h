@@ -3,12 +3,10 @@
 #include <utils/color.h>
 #include <utils/vmethod.h>
 
-PRIVATE_USE(utils::Color)
-
 namespace interfaces {
   struct RenderView {
-    constexpr Color get_color_modulation() {
-      Color color{};
+    constexpr utils::Color get_color_modulation() {
+      utils::Color color{};
       {
         get_color_modulation(color.float_array());
         color.a = get_blend();

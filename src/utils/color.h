@@ -19,7 +19,6 @@ namespace utils {
         : r(div_col_chan(r)), g(div_col_chan(g)), b(div_col_chan(b)),
           a(div_col_chan(a)) {}
 
-    // FIXME: Give me name without bindings to amount of elements
     inline float *float_array() {
       return reinterpret_cast<float *>(this);
     }
