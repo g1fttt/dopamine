@@ -26,7 +26,7 @@ namespace glow {
     void draw_model() const;
 
     game::Entity *entity = nullptr;
-    const utils::Color &color;
+    utils::Color color;
   };
 
   struct ObjectManager {
@@ -44,8 +44,14 @@ namespace glow {
       return get_or_init(nullptr);
     }
 
-    void register_object(const Object &object);
+    void register_entity(game::Entity *entity);
+    // TODO: Unregister player's entity when the so leaves the server
     void unregister_object_by_entity(game::Entity *entity);
+    void update_glow_color_for(game::Entity *entity, const utils::Color &color);
+
+    constexpr void clear_objects() {
+      objects.clear();
+    }
 
     void draw_glow_effects(const game::ViewSetup *view, const App &app) const;
     bool has_glow_effect(game::Entity *entity) const;

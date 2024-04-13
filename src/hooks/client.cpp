@@ -5,6 +5,8 @@
 #include <interfaces/engine.h>
 #include <interfaces/entity_list.h>
 
+#include <hacks/glow/object_manager.h>
+
 #include <app.h>
 
 namespace hooks {
@@ -22,6 +24,8 @@ namespace hooks {
     App::get().and_then<void>([](App &app) {
       app.hooks->level_shutdown.call_original();
       app.local_player = nullptr;
+
+      glow::ObjectManager::get().clear_objects();
     });
   }
 }

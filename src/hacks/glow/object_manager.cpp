@@ -52,18 +52,27 @@ namespace glow {
 }
 
 namespace glow {
-  void ObjectManager::register_object(const Object &object) {
-    // FIXME: Sometimes it can produce incorrect colors when players are
-    // changing team
-    if (!has_glow_effect(object.entity)) {
-      objects.push_front(object);
+  void ObjectManager::register_entity(game::Entity *entity) {
+    if (!has_glow_effect(entity)) {
+      objects.push_front({entity});
     }
   }
 
   void ObjectManager::unregister_object_by_entity(game::Entity *entity) {
     objects.remove_if([=, this](const Object &obj) {
-      return has_glow_effect(entity);
+      return entity == obj.entity;
     });
+  }
+
+  void ObjectManager::update_glow_color_for(game::Entity *entity,
+                                            const utils::Color &color) {
+    auto it = std::find_if(objects.begin(), objects.end(),
+                           [=, this](const Object &obj) {
+                             return entity == obj.entity;
+                           });
+    if (it != objects.end()) {
+      it->color = color;
+    }
   }
 
   void ObjectManager::draw_glow_effects(const game::ViewSetup *view,
