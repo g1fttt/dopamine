@@ -12,18 +12,18 @@ namespace hooks {
                          const RECT *dest, HWND window_override,
                          const RGNDATA *dirty_region);
 
-  float STDCALL get_screen_aspect_ratio();
-
   bool STDCALL create_move(float input_sample_frame_time,
                            game::UserCommand *cmd);
   void STDCALL override_view(game::ViewSetup *view);
   bool STDCALL do_post_screen_space_effects(const game::ViewSetup *view);
 
-  bool STDCALL is_cursor_visible();
-  void STDCALL lock_cursor();
-
   void STDCALL level_init_post_entity();
   void STDCALL level_shutdown();
+
+  float STDCALL get_screen_aspect_ratio();
+
+  void STDCALL lock_cursor();
+  bool STDCALL is_cursor_visible();
 }
 
 void Hooks::setup(App &app) {
@@ -67,9 +67,13 @@ void Hooks::remove(App &app) {
 
   create_move.unhook();
   override_view.unhook();
+  do_post_screen_space_effects.unhook();
+
   level_init_post_entity.unhook();
   level_shutdown.unhook();
+
   get_screen_aspect_ratio.unhook();
+
   is_cursor_visible.unhook();
   lock_cursor.unhook();
 }
