@@ -39,8 +39,8 @@ bool App::should_draw_visuals() const {
 }
 
 template <typename T>
-static utils::Ptr<T> interface_base(std::wstring_view module_name,
-                                    std::string_view interface_name) {
+static T *interface_base(std::wstring_view module_name,
+                         std::string_view interface_name) {
   const auto module = GetModuleHandleW(module_name.data());
 
   using CreateInterface = void *(*)(const char *, int32_t *);

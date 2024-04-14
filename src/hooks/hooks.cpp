@@ -38,11 +38,11 @@ void Hooks::setup(App &app) {
                                           hooks::level_init_post_entity);
   level_shutdown.init_and_hook<7>(client, hooks::level_shutdown);
 
-  const auto engine = app.interfaces.engine.get();
+  const auto engine = app.interfaces.engine;
   get_screen_aspect_ratio.init_and_hook<95>(engine,
                                             hooks::get_screen_aspect_ratio);
 
-  const auto surface = app.interfaces.surface.get();
+  const auto surface = app.interfaces.surface;
   is_cursor_visible.init_and_hook<53>(surface, hooks::is_cursor_visible);
   lock_cursor.init_and_hook<62>(surface, hooks::lock_cursor);
 

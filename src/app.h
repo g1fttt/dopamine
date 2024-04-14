@@ -11,7 +11,6 @@
 
 namespace game {
   struct PlayerEntity;
-
   struct Client;
   struct EntityList;
   struct Engine;
@@ -30,23 +29,18 @@ struct App : utils::Singleton<App> {
 
   struct Interfaces {
     utils::Ptr<game::Client> client;
-    utils::Ptr<game::EntityList> entity_list;
-    utils::Ptr<game::Engine> engine;
-    utils::Ptr<game::CVar> cvar;
-    utils::Ptr<game::InputSystem> input_system;
-    utils::Ptr<game::Surface> surface;
-    utils::Ptr<game::RenderView> render_view;
-    utils::Ptr<game::MaterialSystem> material_system;
-    utils::Ptr<game::ModelRender> model_render;
+    game::EntityList *entity_list = nullptr;
+    game::Engine *engine = nullptr;
+    game::CVar *cvar = nullptr;
+    game::InputSystem *input_system = nullptr;
+    game::Surface *surface = nullptr;
+    game::RenderView *render_view;
+    game::MaterialSystem *material_system;
+    game::ModelRender *model_render;
     void *client_mode = nullptr;
   };
 
   ~App();
-
-  // Use it only if program flow changes needed (e.g. return, goto)
-  constexpr operator bool() const {
-    return true;
-  }
 
   static Singleton<App>::InitFunc init_func(HMODULE module) {
     return [=](App &app) {

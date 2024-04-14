@@ -8,6 +8,8 @@ namespace game {
   struct UserCommand;
 }
 
+struct App;
+
 namespace hacks {
   struct Misc : utils::Singleton<Misc> {
     struct Bunnyhop {
@@ -30,7 +32,7 @@ namespace hacks {
       Bunnyhop bunnyhop;
     };
 
-    void bunnyhop(game::UserCommand *cmd) const;
+    void bunnyhop(game::UserCommand *cmd, const App &app) const;
 
     Config config;
   };

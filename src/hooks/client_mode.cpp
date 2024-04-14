@@ -16,13 +16,15 @@
 namespace hooks {
   bool STDCALL create_move(float input_sample_frame_time,
                            game::UserCommand *cmd) {
-    const auto result = App::get().hooks->create_move.call_original(
-        input_sample_frame_time, cmd);
+    return App::get().and_then<bool>([=](const App &app) {
+      const auto result =
+          app.hooks->create_move.call_original(input_sample_frame_time, cmd);
 
-    const auto &misc = hacks::Misc::get();
-    { misc.bunnyhop(cmd); }
+      const auto &misc = hacks::Misc::get();
+      { misc.bunnyhop(cmd, app); }
 
-    return result;
+      return result;
+    });
   }
 
   void STDCALL override_view(game::ViewSetup *view) {
@@ -39,9 +41,8 @@ namespace hooks {
   bool STDCALL do_post_screen_space_effects(const game::ViewSetup *view) {
     return App::get().and_then<bool>([=](App &app) {
       if (app.interfaces.engine->is_in_game()) {
-        auto &glow_object_manager =
-            glow::ObjectManager::get_or_init(glow::ObjectManager::init_func(
-                app.interfaces.material_system.get()));
+        auto &glow_object_manager = glow::ObjectManager::get_or_init(
+            glow::ObjectManager::init_func(app.interfaces.material_system));
         { glow::Hack::get().manage_entities(glow_object_manager, app); }
         glow_object_manager.draw_glow_effects(view, app);
         glow_object_manager.force_disable();

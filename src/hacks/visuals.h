@@ -7,6 +7,8 @@
 
 struct ImDrawList;
 
+struct App;
+
 namespace hacks {
   struct Visuals : utils::Singleton<Visuals> {
     struct SniperRifleCrosshair {
@@ -39,7 +41,7 @@ namespace hacks {
       SniperRifleCrosshair sniper_rifle_crosshair;
     };
 
-    void draw_sniper_crosshair(ImDrawList *draw_list) const;
+    void draw_sniper_crosshair(ImDrawList *draw_list, const App &app) const;
 
     Config config;
   };

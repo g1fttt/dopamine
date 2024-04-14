@@ -7,10 +7,8 @@
 
 #include <random>
 
-using game::UserCommand;
-
 namespace hacks {
-  void Misc::bunnyhop(UserCommand *cmd) const {
+  void Misc::bunnyhop(game::UserCommand *cmd, const App &app) const {
     if (!config.bunnyhop.enabled) {
       return;
     }
@@ -19,15 +17,13 @@ namespace hacks {
     std::minstd_rand gen{rd()};
     std::bernoulli_distribution distr{config.bunnyhop.chance / 100.0f};
 
-    App::get().and_then<void>([&](const App &app) {
-      if (!app.local_player) {
-        return;
-      }
+    if (!app.local_player) {
+      return;
+    }
 
-      if (const auto should_bunnyhop = distr(gen);
-          !app.local_player->is_on_ground() || !should_bunnyhop) {
-        cmd->buttons &= ~UserCommand::InJump;
-      }
-    });
+    if (const auto should_bunnyhop = distr(gen);
+        !app.local_player->is_on_ground() || !should_bunnyhop) {
+      cmd->buttons &= ~game::UserCommand::InJump;
+    }
   }
 }

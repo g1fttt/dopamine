@@ -16,12 +16,10 @@
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 
-using ui::BlurEffect;
-
 namespace hooks {
   HRESULT WINAPI reset(IDirect3DDevice9 *device,
                        _D3DPRESENT_PARAMETERS *params) {
-    BlurEffect::get().clear_textures();
+    ui::BlurEffect::get().clear_textures();
 
     ImGui_ImplDX9_InvalidateDeviceObjects();
 
@@ -85,34 +83,35 @@ namespace hooks {
   HRESULT WINAPI present(IDirect3DDevice9 *device, const RECT *src,
                          const RECT *dest, HWND window_override,
                          const RGNDATA *dirty_region) {
-    static auto _ = init_imgui(device);
+    return App::get().and_then<HRESULT>([=](App &app) {
+      static auto _ = init_imgui(device);
 
-    auto &menu = ui::Menu::get();
-    menu.update_animation();
+      auto &menu = ui::Menu::get();
+      menu.update_animation();
 
-    ComPtr<IDirect3DStateBlock9> state_block{};
-    if (device->CreateStateBlock(D3DSBT_ALL, state_block.GetAddressOf()) !=
-        D3D_OK) {
-      goto end;
-    }
+      ComPtr<IDirect3DStateBlock9> state_block{};
+      if (device->CreateStateBlock(D3DSBT_ALL, state_block.GetAddressOf()) !=
+          D3D_OK) {
+        goto end;
+      }
 
-    state_block->Capture();
+      state_block->Capture();
 
-    // Fix menu (and blur) not rendering without `net_graph` or `cl_showfps`
-    device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
+      // Fix menu (and blur) not rendering without `net_graph` or `cl_showfps`
+      device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
 
-    App::get().and_then<void>([&](const App &app) {
       draw_frame(device, app.back_imgui_ctx, [&] {
         auto *draw_list = ImGui::GetBackgroundDrawList();
 
-        if (auto &blur_effect = BlurEffect::get(); !menu.is_fully_closed()) {
+        if (auto &blur_effect = ui::BlurEffect::get();
+            !menu.is_fully_closed()) {
           blur_effect.set_device(device);
           blur_effect.draw(draw_list, menu.get_transparency());
         }
 
         if (const auto &visuals = hacks::Visuals::get();
             app.should_draw_visuals()) {
-          visuals.draw_sniper_crosshair(draw_list);
+          visuals.draw_sniper_crosshair(draw_list, app);
         }
       });
 
@@ -122,10 +121,9 @@ namespace hooks {
 
         menu.draw();
       });
-    });
-    state_block->Apply();
-  end:
-    return App::get().and_then<HRESULT>([=](App &app) {
+
+      state_block->Apply();
+    end:
       if (app.should_unhook) {
         ShowCursor(true);
         app.must_unhook = true;

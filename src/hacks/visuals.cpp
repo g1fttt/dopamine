@@ -7,22 +7,16 @@
 #include <imgui.h>
 
 namespace hacks {
-  void Visuals::draw_sniper_crosshair(ImDrawList *draw_list) const {
+  void Visuals::draw_sniper_crosshair(ImDrawList *draw_list,
+                                      const App &app) const {
     const auto &cfg = config.sniper_rifle_crosshair;
-
-    if (!cfg.enabled) {
+    if (!cfg.enabled || !app.local_player) {
       return;
     }
 
-    if (const App &app = App::get()) {
-      if (!app.local_player) {
-        return;
-      }
-
-      if (auto *weapon = app.local_player->active_weapon();
-          !weapon || !weapon->is_sniper_rifle()) {
-        return;
-      }
+    if (auto *weapon = app.local_player->active_weapon();
+        !weapon || !weapon->is_sniper_rifle()) {
+      return;
     }
 
     const auto [display_width, display_height] = ImGui::GetIO().DisplaySize;
