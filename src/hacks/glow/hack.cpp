@@ -1,9 +1,8 @@
 #include "hack.h"
 
+#include <game/engine.h>
 #include <game/entity.h>
-
-#include <interfaces/engine.h>
-#include <interfaces/entity_list.h>
+#include <game/entity_list.h>
 
 #include <app.h>
 

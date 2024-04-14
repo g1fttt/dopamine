@@ -1,10 +1,9 @@
 #include "hooks.h"
 
+#include <game/engine.h>
 #include <game/entity.h>
+#include <game/entity_list.h>
 #include <game/view.h>
-
-#include <interfaces/engine.h>
-#include <interfaces/entity_list.h>
 
 #include <hacks/glow/hack.h>
 #include <hacks/glow/object_manager.h>

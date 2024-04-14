@@ -1,6 +1,6 @@
 #include "entity.h"
 
-#include <interfaces/entity_list.h>
+#include <game/entity_list.h>
 
 #include <app.h>
 

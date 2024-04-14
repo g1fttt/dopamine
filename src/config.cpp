@@ -11,9 +11,6 @@
 
 namespace fs = std::filesystem;
 
-PRIVATE_USE(hacks::Misc)
-PRIVATE_USE(hacks::Visuals)
-
 constexpr auto PATH = "config.toml";
 constexpr auto DIR = "dopamine";
 
@@ -35,15 +32,15 @@ struct Config {
     FIELD(glow, "glow"))
   // clang-format on
 
-  Misc::Config misc;
-  Visuals::Config visuals;
+  hacks::Misc::Config misc;
+  hacks::Visuals::Config visuals;
   glow::Hack::Config glow;
 };
 
 void config::save() {
   const auto value = serde::serialize<toml::value>(Config{
-      .misc = Misc::get().config,
-      .visuals = Visuals::get().config,
+      .misc = hacks::Misc::get().config,
+      .visuals = hacks::Visuals::get().config,
       .glow = glow::Hack::get().config,
   });
   std::ofstream file_desc{full_config_path()};
@@ -59,8 +56,8 @@ void config::load() {
 
   const auto config = serde::deserialize<Config>(value);
   {
-    Misc::get().config = config.misc;
-    Visuals::get().config = config.visuals;
+    hacks::Misc::get().config = config.misc;
+    hacks::Visuals::get().config = config.visuals;
     glow::Hack::get().config = config.glow;
   }
 }

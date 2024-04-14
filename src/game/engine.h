@@ -4,7 +4,7 @@
 
 #include <cstdint>
 
-namespace interfaces {
+namespace game {
   struct Engine {
     VMETHOD(int32_t, local_player_index, 12, (), (this))
     VMETHOD(int32_t, max_clients, 21, (), (this))

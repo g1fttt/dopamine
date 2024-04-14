@@ -5,9 +5,7 @@ set_languages('c99', 'c++23')
 
 add_defines(
   'STDCALL=__stdcall',
-  'THISCALL=__thiscall',
-  'PRIVATE_USE(path_to_obj)=namespace { using path_to_obj;}'
-)
+  'THISCALL=__thiscall')
 add_cxflags('-xc++', { force = true }) -- Fix for clangd treating .h files as C files
 
 add_requires('vcpkg::toml11 3.7.1', { alias = 'toml11' })

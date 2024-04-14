@@ -11,13 +11,8 @@ namespace game {
   struct RenderContext;
   struct Material;
   struct Texture;
-}
-
-namespace interfaces {
   struct MaterialSystem;
 }
-
-PRIVATE_USE(interfaces::MaterialSystem)
 
 struct App;
 
@@ -33,7 +28,7 @@ namespace glow {
 
   struct ObjectManager : utils::Singleton<ObjectManager> {
     static Singleton<ObjectManager>::InitFunc
-    init_func(MaterialSystem *mat_system) {
+    init_func(game::MaterialSystem *mat_system) {
       return [=](ObjectManager &obj_manager) {
         obj_manager.init_or_nothing(mat_system);
       };
@@ -64,7 +59,7 @@ namespace glow {
     void apply_entity_glow_effects(const game::ViewSetup *view,
                                    game::RenderContext *render_ctx,
                                    const App &app) const;
-    void init_or_nothing(MaterialSystem *mat_system);
+    void init_or_nothing(game::MaterialSystem *mat_system);
 
     game::Texture *rt_full_frame, *rt_quarter_size_1 = nullptr;
     game::Material *glow_material, *halo_add_to_screen_material = nullptr;

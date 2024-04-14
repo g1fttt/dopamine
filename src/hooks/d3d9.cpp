@@ -5,8 +5,8 @@
 #include <ui/menu.h>
 #include <ui/post_processing.h>
 
-#include <interfaces/engine.h>
-#include <interfaces/surface.h>
+#include <game/engine.h>
+#include <game/surface.h>
 
 #include <hacks/visuals.h>
 

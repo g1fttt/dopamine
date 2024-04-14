@@ -2,8 +2,8 @@
 
 #include <game/entity.h>
 
-#include <interfaces/engine.h>
-#include <interfaces/entity_list.h>
+#include <game/engine.h>
+#include <game/entity_list.h>
 
 #include <hacks/glow/object_manager.h>
 

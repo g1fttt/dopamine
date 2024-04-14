@@ -9,7 +9,9 @@
 
 #include <memory>
 
-namespace interfaces {
+namespace game {
+  struct PlayerEntity;
+
   struct Client;
   struct EntityList;
   struct Engine;
@@ -21,27 +23,21 @@ namespace interfaces {
   struct ModelRender;
 }
 
-PRIVATE_USE(namespace interfaces)
-
-namespace game {
-  struct PlayerEntity;
-}
-
 struct Hooks;
 
 struct App : utils::Singleton<App> {
   friend struct Singleton<App>;
 
   struct Interfaces {
-    utils::Ptr<Client> client;
-    utils::Ptr<EntityList> entity_list;
-    utils::Ptr<Engine> engine;
-    utils::Ptr<CVar> cvar;
-    utils::Ptr<InputSystem> input_system;
-    utils::Ptr<Surface> surface;
-    utils::Ptr<RenderView> render_view;
-    utils::Ptr<MaterialSystem> material_system;
-    utils::Ptr<ModelRender> model_render;
+    utils::Ptr<game::Client> client;
+    utils::Ptr<game::EntityList> entity_list;
+    utils::Ptr<game::Engine> engine;
+    utils::Ptr<game::CVar> cvar;
+    utils::Ptr<game::InputSystem> input_system;
+    utils::Ptr<game::Surface> surface;
+    utils::Ptr<game::RenderView> render_view;
+    utils::Ptr<game::MaterialSystem> material_system;
+    utils::Ptr<game::ModelRender> model_render;
     void *client_mode = nullptr;
   };
 

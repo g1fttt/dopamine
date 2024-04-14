@@ -1,15 +1,14 @@
 #include "object_manager.h"
 
 #include <game/entity.h>
+#include <game/entity_list.h>
 #include <game/material.h>
+#include <game/material_system.h>
+#include <game/model_render.h>
 #include <game/render_context.h>
+#include <game/render_view.h>
 #include <game/texture.h>
 #include <game/view.h>
-
-#include <interfaces/entity_list.h>
-#include <interfaces/material_system.h>
-#include <interfaces/model_render.h>
-#include <interfaces/render_view.h>
 
 #include <app.h>
 
@@ -201,7 +200,7 @@ namespace glow {
     stencil_state_disable.set(render_ctx);
   }
 
-  void ObjectManager::init_or_nothing(MaterialSystem *mat_system) {
+  void ObjectManager::init_or_nothing(game::MaterialSystem *mat_system) {
     rt_full_frame =
         mat_system->find_texture("_rt_FullFrameFB", "RenderTargets");
     rt_full_frame->inc_ref_counter();

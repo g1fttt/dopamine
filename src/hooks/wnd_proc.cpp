@@ -2,7 +2,7 @@
 
 #include <app.h>
 
-#include <interfaces/input_system.h>
+#include <game/input_system.h>
 #include <ui/menu.h>
 #include <utils/input.h>
 

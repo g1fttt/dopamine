@@ -1,6 +1,6 @@
 #include "menu.h"
 
-#include <interfaces/input_system.h>
+#include <game/input_system.h>
 #include <utils/input.h>
 
 #include <hacks/glow/hack.h>
@@ -12,9 +12,6 @@
 #include <config.h>
 
 #include <imgui.h>
-
-PRIVATE_USE(hacks::Visuals)
-PRIVATE_USE(hacks::Misc)
 
 template <typename T>
 static void draw_feature(T &feat, const char *name, const char *id,
@@ -106,10 +103,10 @@ namespace ui {
       return;
     }
 
-    auto &cfg = Misc::get().config;
+    auto &cfg = hacks::Misc::get().config;
 
     if (ImGui::Begin("Misc", &should_draw_window.misc, WINDOW_FLAGS)) {
-      draw_feature<Misc::Bunnyhop>(
+      draw_feature<hacks::Misc::Bunnyhop>(
           cfg.bunnyhop, "Bunnyhop", "bunnyhop", [](auto &feat) {
             ImGui::SliderFloat("Chance", &feat.chance, 10.0f, 100.0f);
           });
@@ -137,7 +134,7 @@ namespace ui {
 
       ImGui::Checkbox("Anti-screenshot", &cfg.anti_screenshot);
 
-      draw_feature<Visuals::SniperRifleCrosshair>(
+      draw_feature<hacks::Visuals::SniperRifleCrosshair>(
           cfg.sniper_rifle_crosshair, "Sniper rifle crosshair",
           "sniper_rifle_crosshair", [](auto &feat) {
             ImGui::SameLine();

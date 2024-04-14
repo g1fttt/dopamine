@@ -3,7 +3,7 @@
 #include <game/client_class.h>
 #include <game/recv.h>
 
-#include <interfaces/client.h>
+#include <game/client.h>
 
 #include <utils/fnv_hash.h>
 

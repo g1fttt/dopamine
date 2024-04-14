@@ -4,10 +4,8 @@
 
 namespace game {
   struct ClientClass;
-}
 
-namespace interfaces {
   struct Client {
-    VMETHOD(game::ClientClass *, get_all_classes, 8, (), (this))
+    VMETHOD(ClientClass *, get_all_classes, 8, (), (this))
   };
 }

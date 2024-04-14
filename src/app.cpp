@@ -5,9 +5,9 @@
 #include "utils/netvars.h"
 #include "utils/utils.h"
 
-#include "interfaces/engine.h"
-#include "interfaces/input_system.h"
-#include "interfaces/surface.h"
+#include "game/engine.h"
+#include "game/input_system.h"
+#include "game/surface.h"
 
 #include "config.h"
 
@@ -76,21 +76,23 @@ void App::init_or_nothing(HMODULE module) {
 }
 
 void App::find_interfaces() {
-  interfaces.client = interface_base<Client>(L"client.dll", "VClient017");
+  interfaces.client = interface_base<game::Client>(L"client.dll", "VClient017");
   interfaces.entity_list =
-      interface_base<EntityList>(L"client.dll", "VClientEntityList003");
-  interfaces.engine = interface_base<Engine>(L"engine.dll", "VEngineClient013");
-  interfaces.cvar = interface_base<CVar>(L"vstdlib.dll", "VEngineCvar004");
-  interfaces.input_system =
-      interface_base<InputSystem>(L"inputsystem.dll", "InputSystemVersion001");
+      interface_base<game::EntityList>(L"client.dll", "VClientEntityList003");
+  interfaces.engine =
+      interface_base<game::Engine>(L"engine.dll", "VEngineClient013");
+  interfaces.cvar =
+      interface_base<game::CVar>(L"vstdlib.dll", "VEngineCvar004");
+  interfaces.input_system = interface_base<game::InputSystem>(
+      L"inputsystem.dll", "InputSystemVersion001");
   interfaces.surface =
-      interface_base<Surface>(L"vguimatsurface.dll", "VGUI_Surface030");
+      interface_base<game::Surface>(L"vguimatsurface.dll", "VGUI_Surface030");
   interfaces.render_view =
-      interface_base<RenderView>(L"engine.dll", "VEngineRenderView014");
-  interfaces.material_system = interface_base<MaterialSystem>(
+      interface_base<game::RenderView>(L"engine.dll", "VEngineRenderView014");
+  interfaces.material_system = interface_base<game::MaterialSystem>(
       L"MaterialSystem.dll", "VMaterialSystem080");
   interfaces.model_render =
-      interface_base<ModelRender>(L"engine.dll", "VEngineModel016");
+      interface_base<game::ModelRender>(L"engine.dll", "VEngineModel016");
 
   const utils::Ptr<void *> client_vmt = *interfaces.client.cast<void **>();
   interfaces.client_mode =

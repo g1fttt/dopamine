@@ -1,6 +1,6 @@
 #include "hooks.h"
 
-#include <interfaces/surface.h>
+#include <game/surface.h>
 #include <ui/menu.h>
 
 #include <app.h>
