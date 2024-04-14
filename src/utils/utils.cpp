@@ -10,8 +10,8 @@
   MessageBoxA(nullptr, std::format(msg, __VA_ARGS__).data(), nullptr, MB_OK);  \
   std::terminate()
 
-Ptr<void> utils::find_pattern(fs::path module_name,
-                              std::u8string_view pattern) {
+utils::Ptr<void> utils::find_pattern(fs::path module_name,
+                                     std::u8string_view pattern) {
   const auto module = GetModuleHandleW(module_name.c_str());
 
   static size_t pattern_id = 0;

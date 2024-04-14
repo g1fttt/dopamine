@@ -1,13 +1,14 @@
 #pragma once
 
 #include <utils/color.h>
+#include <utils/singleton.h>
 
 #include <config.h>
 
 struct ImDrawList;
 
 namespace hacks {
-  struct Visuals {
+  struct Visuals : utils::Singleton<Visuals> {
     struct SniperRifleCrosshair {
       // clang-format off
       DERIVE_SERDE(SniperRifleCrosshair,
@@ -38,17 +39,8 @@ namespace hacks {
       SniperRifleCrosshair sniper_rifle_crosshair;
     };
 
-    constexpr Visuals(const Visuals &) = delete;
-
-    static Visuals &get() {
-      static Visuals self{};
-      return self;
-    }
-
     void draw_sniper_crosshair(ImDrawList *draw_list) const;
 
     Config config;
-  private:
-    constexpr Visuals() = default;
   };
 }

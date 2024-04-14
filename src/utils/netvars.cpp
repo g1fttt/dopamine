@@ -23,16 +23,12 @@ namespace utils {
     return std::nullopt;
   }
 
-  void Netvars::init_or_nothing() {
-    if (static bool inited = false; !inited) {
-      for (auto *client_class = App::get().interfaces.client->get_all_classes();
-           client_class; client_class = client_class->next) {
-        walk_table(client_class->network_name, client_class->recv_table);
-      }
-      std::ranges::sort(hashed, {}, &HashOffset::first);
-
-      inited = true;
+  void Netvars::init_or_nothing(const App &app) {
+    for (auto *client_class = app.interfaces.client->get_all_classes();
+         client_class; client_class = client_class->next) {
+      walk_table(client_class->network_name, client_class->recv_table);
     }
+    std::ranges::sort(hashed, {}, &HashOffset::first);
   }
 
   void Netvars::walk_table(std::string_view network_name,

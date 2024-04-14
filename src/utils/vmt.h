@@ -8,7 +8,6 @@
 
 namespace utils {
   template <typename T, typename... Args> struct VMTHook {
-    constexpr VMTHook(const VMTHook &&) = delete;
     constexpr VMTHook(const VMTHook &) = delete;
     constexpr VMTHook() = default;
 

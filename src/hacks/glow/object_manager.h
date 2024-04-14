@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utils/color.h>
+#include <utils/singleton.h>
 
 #include <forward_list>
 
@@ -25,29 +26,30 @@ namespace glow {
     bool should_draw() const;
     void draw_model() const;
 
+    bool enabled = false;
     game::Entity *entity = nullptr;
     utils::Color color;
   };
 
-  struct ObjectManager {
-    constexpr ObjectManager(const ObjectManager &) = delete;
-
-    static ObjectManager &get_or_init(MaterialSystem *mat_system) {
-      static ObjectManager self{};
-      if (mat_system) {
-        self.init_or_nothing(mat_system);
-      }
-      return self;
-    }
-
-    static ObjectManager &get() {
-      return get_or_init(nullptr);
+  struct ObjectManager : utils::Singleton<ObjectManager> {
+    static Singleton<ObjectManager>::InitFunc
+    init_func(MaterialSystem *mat_system) {
+      return [=](ObjectManager &obj_manager) {
+        obj_manager.init_or_nothing(mat_system);
+      };
     }
 
     void register_entity(game::Entity *entity);
     // TODO: Unregister player's entity when the so leaves the server
     void unregister_object_by_entity(game::Entity *entity);
-    void update_glow_color_for(game::Entity *entity, const utils::Color &color);
+    void update_object_by_entity(game::Entity *entity,
+                                 const utils::Color &color);
+
+    void force_disable() {
+      for (auto &obj : objects) {
+        obj.enabled = false;
+      }
+    }
 
     constexpr void clear_objects() {
       objects.clear();
@@ -56,8 +58,6 @@ namespace glow {
     void draw_glow_effects(const game::ViewSetup *view, const App &app) const;
     bool has_glow_effect(game::Entity *entity) const;
   private:
-    ObjectManager() = default;
-
     void draw_glow_models(const game::ViewSetup *view,
                           game::RenderContext *render_ctx,
                           const App &app) const;

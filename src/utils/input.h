@@ -2,19 +2,12 @@
 
 #include <Windows.h>
 
-#include <functional>
+#include "singleton.h"
 
 namespace utils {
   using KeyCode = WPARAM;
 
-  struct Input {
-    constexpr Input(const Input &) = delete;
-
-    static Input &get() {
-      static Input self{};
-      return self;
-    }
-
+  struct Input : Singleton<Input> {
     static void with(UINT message, WPARAM wparam, LPARAM lparam,
                      const std::function<void(const Input &)> &cb);
 
@@ -23,8 +16,6 @@ namespace utils {
 
     bool key_is_up(KeyCode code) const;
   private:
-    constexpr Input() = default;
-
     struct Key {
       KeyCode code;
       LPARAM lparam;

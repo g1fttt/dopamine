@@ -1,32 +1,27 @@
 #pragma once
 
 #include <utils/fnv_hash.h>
-
-#include <optional>
-#include <string_view>
-#include <vector>
+#include <utils/singleton.h>
 
 namespace game {
   struct RecvTable;
 }
 
-namespace utils {
-  struct Netvars {
-    constexpr Netvars(const Netvars &) = delete;
+struct App;
 
-    static Netvars &get() {
-      static Netvars self{};
-      { self.init_or_nothing(); }
-      return self;
+namespace utils {
+  struct Netvars : Singleton<Netvars> {
+    static Singleton<Netvars>::InitFunc init_func(const App &app) {
+      return [&](Netvars &netvars) {
+        netvars.init_or_nothing(app);
+      };
     }
 
     std::optional<uintptr_t> find_by_hash(uintptr_t hash);
   private:
     using HashOffset = std::pair<uintptr_t, uintptr_t>;
 
-    constexpr Netvars() = default;
-
-    void init_or_nothing();
+    void init_or_nothing(const App &app);
     void walk_table(std::string_view network_name,
                     const game::RecvTable *recv_table, uintptr_t offset = 0);
 

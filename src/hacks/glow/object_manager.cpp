@@ -34,8 +34,9 @@ struct StencilState {
 
 namespace glow {
   bool Object::should_draw() const {
-    return entity && entity->renderable()->should_draw() &&
-           !entity->networkable()->is_dormant();
+    return enabled && entity && entity->renderable()->should_draw() &&
+           !entity->networkable()->is_dormant() &&
+           !App::get().should_anti_screenshot();
   }
 
   void Object::draw_model() const {
@@ -54,7 +55,7 @@ namespace glow {
 namespace glow {
   void ObjectManager::register_entity(game::Entity *entity) {
     if (!has_glow_effect(entity)) {
-      objects.push_front({entity});
+      objects.push_front({.entity = entity});
     }
   }
 
@@ -64,13 +65,14 @@ namespace glow {
     });
   }
 
-  void ObjectManager::update_glow_color_for(game::Entity *entity,
-                                            const utils::Color &color) {
+  void ObjectManager::update_object_by_entity(game::Entity *entity,
+                                              const utils::Color &color) {
     auto it = std::find_if(objects.begin(), objects.end(),
                            [=, this](const Object &obj) {
                              return entity == obj.entity;
                            });
     if (it != objects.end()) {
+      it->enabled = true;
       it->color = color;
     }
   }

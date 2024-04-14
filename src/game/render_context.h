@@ -27,9 +27,6 @@ namespace game {
     VMETHOD(void, set_viewport, 38,
             (int32_t x, int32_t y, int32_t width, int32_t height),
             (this, x, y, width, height))
-    VMETHOD(void, get_viewport, 39,
-            (int32_t & x, int32_t &y, int32_t &width, int32_t &height),
-            (this, x, y, width, height))
     VMETHOD(void, clear_color_3ub, 72,
             (std::uint8_t r, std::uint8_t g, std::uint8_t b), (this, r, g, b))
     VMETHOD(void, override_depth_enable, 74, (bool enable, bool depth_enable),

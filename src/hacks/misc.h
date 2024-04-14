@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utils/singleton.h>
+
 #include <config.h>
 
 namespace game {
@@ -7,7 +9,7 @@ namespace game {
 }
 
 namespace hacks {
-  struct Misc {
+  struct Misc : utils::Singleton<Misc> {
     struct Bunnyhop {
       // clang-format off
       DERIVE_SERDE(Bunnyhop,
@@ -28,17 +30,8 @@ namespace hacks {
       Bunnyhop bunnyhop;
     };
 
-    constexpr Misc(const Misc &) = delete;
-
-    static Misc &get() {
-      static Misc self{};
-      return self;
-    }
-
     void bunnyhop(game::UserCommand *cmd) const;
 
     Config config;
-  private:
-    constexpr Misc() = default;
   };
 }

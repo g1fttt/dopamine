@@ -2,6 +2,7 @@
 
 #include "hacks/visuals.h"
 #include "hooks/hooks.h"
+#include "utils/netvars.h"
 #include "utils/utils.h"
 
 #include "interfaces/engine.h"
@@ -38,8 +39,8 @@ bool App::should_draw_visuals() const {
 }
 
 template <typename T>
-static Ptr<T> interface_base(std::wstring_view module_name,
-                             std::string_view interface_name) {
+static utils::Ptr<T> interface_base(std::wstring_view module_name,
+                                    std::string_view interface_name) {
   const auto module = GetModuleHandleW(module_name.data());
 
   using CreateInterface = void *(*)(const char *, int32_t *);
@@ -55,25 +56,23 @@ App::App() {
 }
 
 void App::init_or_nothing(HMODULE module) {
-  if (static bool inited = false; !inited) {
-    this->module = module;
-    DisableThreadLibraryCalls(module);
+  this->module = module;
+  DisableThreadLibraryCalls(module);
 
-    config::init_or_nothing();
+  config::init_or_nothing();
 
-    std::atexit([] {
-      config::save();
-    });
+  std::atexit([] {
+    config::save();
+  });
 
-    window = FindWindowA("Valve001", nullptr);
+  window = FindWindowA("Valve001", nullptr);
 
-    find_interfaces();
-    find_patterns();
+  find_interfaces();
+  find_patterns();
 
-    hooks->setup(*this);
+  hooks->setup(*this);
 
-    inited = true;
-  }
+  utils::Netvars::get_or_init(utils::Netvars::init_func(*this));
 }
 
 void App::find_interfaces() {
@@ -93,9 +92,9 @@ void App::find_interfaces() {
   interfaces.model_render =
       interface_base<ModelRender>(L"engine.dll", "VEngineModel016");
 
-  const Ptr<void *> client_vmt = *interfaces.client.cast<void **>();
+  const utils::Ptr<void *> client_vmt = *interfaces.client.cast<void **>();
   interfaces.client_mode =
-      **Ptr<void>{*client_vmt.add(10)}.byte_add(5).cast<void **>();
+      **utils::Ptr<void>{*client_vmt.add(10)}.byte_add(5).cast<void **>();
 }
 
 void App::find_patterns() {

@@ -23,9 +23,9 @@ namespace glow {
       obj_manager.register_entity(entity);
 
       if (config.enemies.enabled && is_enemy) {
-        obj_manager.update_glow_color_for(player, config.enemies.color);
+        obj_manager.update_object_by_entity(player, config.enemies.color);
       } else if (config.allies.enabled && !is_enemy) {
-        obj_manager.update_glow_color_for(player, config.allies.color);
+        obj_manager.update_object_by_entity(player, config.allies.color);
       }
     }
   }

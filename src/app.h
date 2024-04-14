@@ -3,9 +3,10 @@
 #include <Windows.h>
 
 #include "ui/shared.h"
-#include "utils/ptr.h"
 
-#include <functional>
+#include "utils/ptr.h"
+#include "utils/singleton.h"
+
 #include <memory>
 
 namespace interfaces {
@@ -28,17 +29,19 @@ namespace game {
 
 struct Hooks;
 
-struct App {
+struct App : utils::Singleton<App> {
+  friend struct Singleton<App>;
+
   struct Interfaces {
-    Ptr<Client> client;
-    Ptr<EntityList> entity_list;
-    Ptr<Engine> engine;
-    Ptr<CVar> cvar;
-    Ptr<InputSystem> input_system;
-    Ptr<Surface> surface;
-    Ptr<RenderView> render_view;
-    Ptr<MaterialSystem> material_system;
-    Ptr<ModelRender> model_render;
+    utils::Ptr<Client> client;
+    utils::Ptr<EntityList> entity_list;
+    utils::Ptr<Engine> engine;
+    utils::Ptr<CVar> cvar;
+    utils::Ptr<InputSystem> input_system;
+    utils::Ptr<Surface> surface;
+    utils::Ptr<RenderView> render_view;
+    utils::Ptr<MaterialSystem> material_system;
+    utils::Ptr<ModelRender> model_render;
     void *client_mode = nullptr;
   };
 
@@ -49,16 +52,10 @@ struct App {
     return true;
   }
 
-  static App &get_or_init(HINSTANCE inst_dll) {
-    static App self{};
-    if (inst_dll) {
-      self.init_or_nothing(inst_dll);
-    }
-    return self;
-  }
-
-  static App &get() {
-    return get_or_init(nullptr);
+  static Singleton<App>::InitFunc init_func(HMODULE module) {
+    return [=](App &app) {
+      app.init_or_nothing(module);
+    };
   }
 
   template <typename T>
@@ -88,8 +85,8 @@ struct App {
 
   ui::ImGuiContext fore_imgui_ctx, back_imgui_ctx;
 
-  Ptr<void> d3d9_present_raw;
-  Ptr<void> d3d9_reset_raw;
+  utils::Ptr<void> d3d9_present_raw;
+  utils::Ptr<void> d3d9_reset_raw;
 private:
   App();
 
