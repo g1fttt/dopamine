@@ -10,8 +10,8 @@ namespace utils {
     constexpr Singleton(const Singleton &) = delete;
     constexpr Singleton &operator=(const Singleton &) = delete;
 
-    static T &get(const std::optional<InitFunc> &f = std::nullopt) {
-      return get_or_init(f);
+    static T &get() {
+      return get_or_init(std::nullopt);
     }
 
     static T &get_or_init(const std::optional<InitFunc> &f) {
