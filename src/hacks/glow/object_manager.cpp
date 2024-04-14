@@ -202,24 +202,20 @@ namespace glow {
   }
 
   void ObjectManager::init_or_nothing(MaterialSystem *mat_system) {
-    if (static bool inited = false; !inited) {
-      rt_full_frame =
-          mat_system->find_texture("_rt_FullFrameFB", "RenderTargets");
-      rt_full_frame->inc_ref_counter();
+    rt_full_frame =
+        mat_system->find_texture("_rt_FullFrameFB", "RenderTargets");
+    rt_full_frame->inc_ref_counter();
 
-      rt_quarter_size_1 =
-          mat_system->find_texture("_rt_SmallFB1", "RenderTargets");
-      rt_quarter_size_1->inc_ref_counter();
+    rt_quarter_size_1 =
+        mat_system->find_texture("_rt_SmallFB1", "RenderTargets");
+    rt_quarter_size_1->inc_ref_counter();
 
-      glow_material =
-          mat_system->find_material("dev/glow_color", "Other Textures");
-      glow_material->inc_ref_counter();
+    glow_material =
+        mat_system->find_material("dev/glow_color", "Other Textures");
+    glow_material->inc_ref_counter();
 
-      halo_add_to_screen_material =
-          mat_system->find_material("dev/halo_add_to_screen", "Other Textures");
-      halo_add_to_screen_material->inc_ref_counter();
-
-      inited = true;
-    }
+    halo_add_to_screen_material =
+        mat_system->find_material("dev/halo_add_to_screen", "Other Textures");
+    halo_add_to_screen_material->inc_ref_counter();
   }
 }
