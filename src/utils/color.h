@@ -27,22 +27,12 @@ namespace utils {
       return reinterpret_cast<const float *>(this);
     }
 
-    constexpr int32_t im_u32() const {
-      return (int32_t(mul_col_chan(r)) << 24) |
-             (int32_t(mul_col_chan(g)) << 16) |
-             (int32_t(mul_col_chan(b)) << 8) | int32_t(mul_col_chan(a));
-    }
-
-    static Color WHITE;
+    int32_t im_u32() const;
 
     float r, g, b, a;
   private:
     constexpr static float div_col_chan(float x) {
       return x * (1.0f / 255.0f);
-    }
-
-    constexpr static float mul_col_chan(float x) {
-      return x * 255.0f;
     }
   };
 }
