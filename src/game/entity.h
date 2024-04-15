@@ -72,7 +72,6 @@ namespace game {
       }
     }
 
-    // TODO: Also check for zoom-in and zoom-out animation ending
     constexpr bool is_in_scope() {
       return is_rifle_with_scope() && mode() == WeaponMode::Secondary;
     }
