@@ -128,8 +128,8 @@ namespace ui {
           });
 
       draw_feature<config::Feature<float>>(
-          cfg.fov, "FOV", "fov", [](auto &feat) {
-            ImGui::SliderFloat("Value", &feat.value, 50.0f, 150.0f);
+          cfg.add_fov, "Add FOV", "add_fov", [](auto &feat) {
+            ImGui::SliderFloat("Value", &feat.value, -50.0f, 50.0f);
           });
 
       ImGui::Checkbox("Anti-screenshot", &cfg.anti_screenshot);

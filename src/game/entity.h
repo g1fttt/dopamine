@@ -34,9 +34,11 @@ namespace game {
 
   enum struct WeaponID {
     Scout = 3,
+    AUG = 8,
     SG550 = 13,
     AWP = 17,
     G3SG1 = 23,
+    SG552 = 26,
   };
 
   enum struct WeaponMode {
@@ -56,9 +58,23 @@ namespace game {
       }
     }
 
-    // TODO: Add AUG and SG552
+    constexpr bool is_rifle_with_scope() {
+      if (!is_sniper_rifle()) {
+        switch (id()) {
+        case WeaponID::AUG:
+        case WeaponID::SG552:
+          return true;
+        default:
+          return false;
+        }
+      } else {
+        return true;
+      }
+    }
+
+    // TODO: Also check for zoom-in and zoom-out animation ending
     constexpr bool is_in_scope() {
-      return is_sniper_rifle() && mode() == WeaponMode::Secondary;
+      return is_rifle_with_scope() && mode() == WeaponMode::Secondary;
     }
 
     VMETHOD(WeaponID, id, 365, (), (this))

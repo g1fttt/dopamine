@@ -1,6 +1,7 @@
 #include "visuals.h"
 
 #include <game/entity.h>
+#include <game/view.h>
 
 #include <app.h>
 
@@ -33,5 +34,14 @@ namespace hacks {
         {display_center.x - cfg.size, display_center.y - cfg.thickness},
         {display_center.x + cfg.size, display_center.y + cfg.thickness},
         cfg.color.im_u32());
+  }
+
+  void Visuals::override_fov(game::ViewSetup *view, const App &app) const {
+    const auto &cfg = config.add_fov;
+    if (!cfg.enabled || app.should_anti_screenshot()) {
+      return;
+    }
+
+    view->fov += cfg.value;
   }
 }

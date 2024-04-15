@@ -9,17 +9,14 @@
 
 namespace hacks {
   void Misc::bunnyhop(game::UserCommand *cmd, const App &app) const {
-    if (!config.bunnyhop.enabled) {
+    const auto &cfg = config.bunnyhop;
+    if (!cfg.enabled || !app.local_player) {
       return;
     }
 
     std::random_device rd{};
     std::minstd_rand gen{rd()};
     std::bernoulli_distribution distr{config.bunnyhop.chance / 100.0f};
-
-    if (!app.local_player) {
-      return;
-    }
 
     if (const auto should_bunnyhop = distr(gen);
         !app.local_player->is_on_ground() || !should_bunnyhop) {

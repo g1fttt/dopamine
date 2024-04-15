@@ -31,15 +31,16 @@ namespace hooks {
     App::get().and_then<void>([=](const App &app) {
       app.hooks->override_view.call_original(view);
 
-      if (const auto &fov = hacks::Visuals::get().config.fov;
-          fov.enabled && !app.should_anti_screenshot()) {
-        view->fov = fov.value;
-      }
+      const auto &visuals = hacks::Visuals::get();
+      { visuals.override_fov(view, app); }
     });
   }
 
   bool STDCALL do_post_screen_space_effects(const game::ViewSetup *view) {
     return App::get().and_then<bool>([=](App &app) {
+      const auto result =
+          app.hooks->do_post_screen_space_effects.call_original(view);
+
       if (app.interfaces.engine->is_in_game()) {
         auto &glow_object_manager = glow::ObjectManager::get_or_init(
             glow::ObjectManager::init_func(app.interfaces.material_system));
@@ -47,7 +48,7 @@ namespace hooks {
         glow_object_manager.draw_glow_effects(view, app);
         glow_object_manager.force_disable();
       }
-      return app.hooks->do_post_screen_space_effects.call_original(view);
+      return result;
     });
   }
 }

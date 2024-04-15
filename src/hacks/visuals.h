@@ -7,6 +7,10 @@
 
 struct ImDrawList;
 
+namespace game {
+  struct ViewSetup;
+}
+
 struct App;
 
 namespace hacks {
@@ -30,18 +34,19 @@ namespace hacks {
       // clang-format off
       DERIVE_SERDE(Config,
         FIELD(aspect_ratio, "aspect-ratio")
-        FIELD(fov, "fov")
+        FIELD(add_fov, "add-fov")
         FIELD(anti_screenshot, "anti-screenshot")
         FIELD(sniper_rifle_crosshair, "sniper-rifle-crosshair"))
       // clang-format on
 
       config::Feature<float> aspect_ratio = {.value = 1.0f};
-      config::Feature<float> fov = {.value = 70.0f};
+      config::Feature<float> add_fov = {.value = 10.0f};
       bool anti_screenshot = false;
       SniperRifleCrosshair sniper_rifle_crosshair;
     };
 
     void draw_sniper_crosshair(ImDrawList *draw_list, const App &app) const;
+    void override_fov(game::ViewSetup *view, const App &app) const;
 
     Config config;
   };
