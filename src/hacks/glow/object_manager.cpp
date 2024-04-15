@@ -13,6 +13,21 @@
 #include <app.h>
 
 struct StencilState {
+  constexpr static void create_and_set(const StencilState &self,
+                                       game::RenderContext *render_ctx) {
+    self.set(render_ctx);
+  }
+
+  constexpr static void default_and_set(game::RenderContext *render_ctx) {
+    StencilState{}.set(render_ctx);
+  }
+
+  bool enable = false;
+  game::StencilOp fail_op, z_fail_op, pass_op = game::StencilOp::Keep;
+  game::StencilCmpFunc cmp_func = game::StencilCmpFunc::Always;
+  int32_t ref_value = 0;
+  uint32_t test_mask, write_mask = 0xFFFFFFFF;
+private:
   constexpr void set(game::RenderContext *render_ctx) const {
     render_ctx->set_stencil_enable(enable);
     render_ctx->set_stencil_fail_operation(fail_op);
@@ -23,12 +38,6 @@ struct StencilState {
     render_ctx->set_stencil_test_mask(test_mask);
     render_ctx->set_stencil_write_mask(write_mask);
   }
-
-  bool enable = false;
-  game::StencilOp fail_op, z_fail_op, pass_op = game::StencilOp::Keep;
-  game::StencilCmpFunc cmp_func = game::StencilCmpFunc::Always;
-  int32_t ref_value = 0;
-  uint32_t test_mask, write_mask = 0xFFFFFFFF;
 };
 
 namespace glow {
@@ -103,8 +112,7 @@ namespace glow {
 
     app.interfaces.model_render->forced_material_override(glow_material);
 
-    const StencilState stencil_state = {.test_mask = 0xFF};
-    stencil_state.set(render_ctx);
+    StencilState::create_and_set({.test_mask = 0xFF}, render_ctx);
 
     for (const auto &obj : objects) {
       if (!obj.should_draw(app)) {
@@ -121,8 +129,7 @@ namespace glow {
     app.interfaces.render_view->set_color_modulation(orig_color.float_array());
     app.interfaces.render_view->set_blend(orig_color.a);
 
-    const StencilState stencil_state_disable{};
-    stencil_state_disable.set(render_ctx);
+    StencilState::default_and_set(render_ctx);
 
     render_ctx->pop_render_target_and_viewport();
   }
@@ -136,10 +143,7 @@ namespace glow {
 
     render_ctx->override_depth_enable(true, false);
 
-    {
-      const StencilState stencil_state{};
-      stencil_state.set(render_ctx);
-    }
+    StencilState::default_and_set(render_ctx);
 
     const auto saved_blend = app.interfaces.render_view->get_blend();
     app.interfaces.render_view->set_blend(0.0f);
@@ -151,13 +155,11 @@ namespace glow {
         continue;
       }
 
-      const StencilState stencil_state = {
-          .enable = true,
-          .z_fail_op = game::StencilOp::Replace,
-          .pass_op = game::StencilOp::Replace,
-          .ref_value = 1,
-      };
-      stencil_state.set(render_ctx);
+      StencilState::create_and_set({.enable = true,
+                                    .z_fail_op = game::StencilOp::Replace,
+                                    .pass_op = game::StencilOp::Replace,
+                                    .ref_value = 1},
+                                   render_ctx);
 
       obj.draw_model();
 
@@ -166,8 +168,7 @@ namespace glow {
 
     render_ctx->override_depth_enable(false, false);
 
-    const StencilState stencil_state_disable{};
-    stencil_state_disable.set(render_ctx);
+    StencilState::default_and_set(render_ctx);
 
     app.interfaces.render_view->set_blend(saved_blend);
     app.interfaces.model_render->forced_material_override(nullptr);
@@ -184,20 +185,21 @@ namespace glow {
     const auto dim_var = halo_add_to_screen_material->find_var("$C0_X");
     dim_var->set_value(1.0f);
 
-    const StencilState stencil_state = {
-        .enable = true,
-        .cmp_func = game::StencilCmpFunc::Equal,
-        .test_mask = 0xFF,
-        .write_mask = 0x0,
-    };
-    stencil_state.set(render_ctx);
+    StencilState::create_and_set({.enable = true,
+                                  .cmp_func = game::StencilCmpFunc::Equal,
+                                  .test_mask = 0xFF,
+                                  .write_mask = 0x0},
+                                 render_ctx);
+
+    constexpr auto GLOW_DOWNSAMPLE = 4.0f;
 
     render_ctx->draw_screen_space_rect(
         halo_add_to_screen_material, 0, 0, view->width, view->height, 0.0f,
-        -0.5f, view->width / 4.0f - 1.0f, view->height / 4.0f - 1.0f,
+        -0.5f, view->width / GLOW_DOWNSAMPLE - 1.0f,
+        view->height / GLOW_DOWNSAMPLE - 1.0f,
         rt_quarter_size_1->actual_width(), rt_quarter_size_1->actual_height());
 
-    stencil_state_disable.set(render_ctx);
+    StencilState::default_and_set(render_ctx);
   }
 
   void ObjectManager::init_or_nothing(game::MaterialSystem *mat_system) {
