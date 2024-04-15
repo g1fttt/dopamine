@@ -18,7 +18,7 @@ struct App;
 
 namespace glow {
   struct Object {
-    bool should_draw() const;
+    bool should_draw(const App &app) const;
     void draw_model() const;
 
     bool enabled = false;
@@ -40,7 +40,7 @@ namespace glow {
     void update_object_by_entity(game::Entity *entity,
                                  const utils::Color &color);
 
-    void force_disable() {
+    inline void force_disable() {
       for (auto &obj : objects) {
         obj.enabled = false;
       }

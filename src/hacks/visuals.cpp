@@ -14,8 +14,8 @@ namespace hacks {
       return;
     }
 
-    if (auto *weapon = app.local_player->active_weapon();
-        !weapon || !weapon->is_sniper_rifle()) {
+    if (const auto weapon = app.local_player->active_weapon();
+        !weapon || !weapon->is_sniper_rifle() || weapon->is_in_scope()) {
       return;
     }
 

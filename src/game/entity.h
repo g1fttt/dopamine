@@ -32,11 +32,15 @@ namespace game {
     VMETHOD(bool, is_player, 131, (), (this))
   };
 
-  enum WeaponID {
+  enum class WeaponID {
     Scout = 3,
     SG550 = 13,
     AWP = 17,
     G3SG1 = 23,
+  };
+
+  enum class WeaponMode {
+    Secondary = 1,
   };
 
   struct WeaponEntity : Entity {
@@ -52,7 +56,14 @@ namespace game {
       }
     }
 
+    // TODO: Add AUG and SG552
+    constexpr bool is_in_scope() {
+      return is_sniper_rifle() && mode() == WeaponMode::Secondary;
+    }
+
     VMETHOD(WeaponID, id, 365, (), (this))
+
+    NETVAR(WeaponMode, mode, "CWeaponCSBase", "m_weaponMode")
   };
 
   struct PlayerEntity : Entity {

@@ -32,10 +32,10 @@ struct StencilState {
 };
 
 namespace glow {
-  bool Object::should_draw() const {
+  bool Object::should_draw(const App &app) const {
     return enabled && entity && entity->renderable()->should_draw() &&
            !entity->networkable()->is_dormant() &&
-           !App::get().should_anti_screenshot();
+           !app.should_anti_screenshot();
   }
 
   void Object::draw_model() const {
@@ -107,7 +107,7 @@ namespace glow {
     stencil_state.set(render_ctx);
 
     for (const auto &obj : objects) {
-      if (!obj.should_draw()) {
+      if (!obj.should_draw(app)) {
         continue;
       }
 
@@ -147,7 +147,7 @@ namespace glow {
     bool drew_anything = false;
 
     for (const auto &obj : objects) {
-      if (!obj.should_draw()) {
+      if (!obj.should_draw(app)) {
         continue;
       }
 
