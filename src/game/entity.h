@@ -9,7 +9,7 @@ namespace game {
     VMETHOD(bool, is_dormant, 8, (), (this))
   };
 
-  enum class DrawModelFlag {
+  enum struct DrawModelFlag {
     StudioRender = 1,
   };
 
@@ -32,14 +32,14 @@ namespace game {
     VMETHOD(bool, is_player, 131, (), (this))
   };
 
-  enum class WeaponID {
+  enum struct WeaponID {
     Scout = 3,
     SG550 = 13,
     AWP = 17,
     G3SG1 = 23,
   };
 
-  enum class WeaponMode {
+  enum struct WeaponMode {
     Secondary = 1,
   };
 

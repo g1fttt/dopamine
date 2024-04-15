@@ -5,7 +5,7 @@
 #include <cstdint>
 
 namespace game {
-  enum class SendPropType {
+  enum struct SendPropType {
     NumSendPropTypes = 6,
   };
 
@@ -17,7 +17,7 @@ namespace game {
     PAD(29);
     RecvTable *data_table;
     int32_t offset;
-    PAD(12); // Valve checks the structure size
+    PAD(12);
   };
 
   struct RecvTable {
