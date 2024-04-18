@@ -35,9 +35,6 @@ namespace client_mode {
 
     if (app->interfaces.engine->is_in_game()) {
       glow::hack.manage_entities();
-      if (!glow::object_manager.has_value()) {
-        glow::object_manager.emplace(app->interfaces.material_system);
-      }
       glow::object_manager->draw_glow_effects(view);
       glow::object_manager->force_disable();
     }

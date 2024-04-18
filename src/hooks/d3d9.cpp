@@ -100,9 +100,6 @@ namespace d3d9 {
       auto *draw_list = ImGui::GetBackgroundDrawList();
 
       if (!ui::menu.is_fully_closed()) {
-        if (!ui::blur_effect.has_value()) {
-          ui::blur_effect = std::make_optional<ui::BlurEffect>();
-        }
         ui::blur_effect->set_device(device);
         ui::blur_effect->draw(draw_list, ui::menu.get_transparency());
       }

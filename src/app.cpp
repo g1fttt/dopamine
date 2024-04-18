@@ -1,5 +1,10 @@
 #include "app.h"
 
+#include <d3d9.h>
+
+#include "hacks/glow/object_manager.h"
+#include "ui/post_processing.h"
+
 #include "hacks/visuals.h"
 #include "hooks/hooks.h"
 
@@ -33,6 +38,9 @@ App::App(HMODULE module) {
   find_interfaces();
 
   utils::patterns = std::make_optional<utils::Patterns>();
+
+  glow::object_manager.emplace(interfaces.material_system);
+  ui::blur_effect = std::make_optional<ui::BlurEffect>();
 
   hooks->setup(this);
 
