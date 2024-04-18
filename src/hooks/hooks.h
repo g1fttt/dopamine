@@ -12,16 +12,16 @@ namespace game {
 struct IDirect3DDevice9;
 struct _D3DPRESENT_PARAMETERS;
 
-struct App;
-
 struct Hooks {
   using D3D9_Present = HRESULT WINAPI(IDirect3DDevice9 *, const RECT *,
                                       const RECT *, HWND, const RGNDATA *);
   using D3D9_Reset = HRESULT WINAPI(IDirect3DDevice9 *,
                                     _D3DPRESENT_PARAMETERS *);
 
-  void setup(App *app);
-  void remove(App *app);
+  void setup(HWND window);
+  void remove();
+
+  HWND window = nullptr;
 
   utils::VMTHook<bool, float, game::UserCommand *> create_move;
   utils::VMTHook<void, game::ViewSetup *> override_view;

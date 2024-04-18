@@ -9,11 +9,9 @@ namespace game {
   struct RecvTable;
 }
 
-struct App;
-
 namespace utils {
   struct Netvars {
-    Netvars(const App *app);
+    Netvars();
 
     std::optional<uintptr_t> find_by_hash(uintptr_t hash);
   private:

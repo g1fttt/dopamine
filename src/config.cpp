@@ -37,36 +37,38 @@ struct Config {
   glow::Hack::Config glow;
 };
 
-void config::save() {
-  const auto value = serde::serialize<toml::value>(Config{
-      .misc = hacks::misc.config,
-      .visuals = hacks::visuals.config,
-      .glow = glow::hack.config,
-  });
-  std::ofstream file_desc{full_config_path()};
-  file_desc << value << std::endl;
-}
-
-void config::load() {
-  if (!fs::exists(full_config_path())) {
-    return;
+namespace core::config {
+  void save() {
+    const auto value = serde::serialize<toml::value>(Config{
+        .misc = hacks::misc.config,
+        .visuals = hacks::visuals.config,
+        .glow = glow::hack.config,
+    });
+    std::ofstream file_desc{full_config_path()};
+    file_desc << value << std::endl;
   }
 
-  auto value = toml::parse(full_config_path());
+  void load() {
+    if (!fs::exists(full_config_path())) {
+      return;
+    }
 
-  const auto config = serde::deserialize<Config>(value);
-  {
-    hacks::misc.config = config.misc;
-    hacks::visuals.config = config.visuals;
-    glow::hack.config = config.glow;
+    auto value = toml::parse(full_config_path());
+
+    const auto config = serde::deserialize<Config>(value);
+    {
+      hacks::misc.config = config.misc;
+      hacks::visuals.config = config.visuals;
+      glow::hack.config = config.glow;
+    }
   }
-}
 
-void config::init_or_nothing() {
-  if (static bool inited = false; !inited) {
-    create_hidden_dir();
-    load();
+  void init_or_nothing() {
+    if (static bool inited = false; !inited) {
+      create_hidden_dir();
+      load();
 
-    inited = true;
+      inited = true;
+    }
   }
 }

@@ -3,7 +3,7 @@
 #include <game/surface.h>
 #include <ui/menu.h>
 
-#include <app.h>
+#include <interfaces.h>
 
 namespace surface {
   bool STDCALL is_cursor_visible() {
@@ -11,7 +11,7 @@ namespace surface {
   }
 
   void STDCALL lock_cursor() {
-    return ui::menu.is_open() ? app->interfaces.surface->unlock_cursor()
+    return ui::menu.is_open() ? core::interfaces->surface->unlock_cursor()
                               : hooks->lock_cursor.call_original();
   }
 }

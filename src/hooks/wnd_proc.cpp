@@ -21,7 +21,7 @@ namespace winapi {
       ui::menu.handle_toggle(input);
 
       if (input.key_is_up(VK_END)) {
-        app->should_unload = true;
+        core::app->should_unload = true;
       }
     });
     return CallWindowProcW(hooks->wnd_proc_original, window, message, wparam,

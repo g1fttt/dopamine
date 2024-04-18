@@ -36,8 +36,8 @@ namespace hacks {
         FIELD(sniper_rifle_crosshair, "sniper-rifle-crosshair"))
       // clang-format on
 
-      config::Feature<float> aspect_ratio = {.value = 1.0f};
-      config::Feature<float> add_fov = {.value = 10.0f};
+      core::config::Feature<float> aspect_ratio = {.value = 1.0f};
+      core::config::Feature<float> add_fov = {.value = 10.0f};
       bool anti_screenshot = false;
       SniperRifleCrosshair sniper_rifle_crosshair;
     };

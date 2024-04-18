@@ -11,7 +11,7 @@
 #include <hacks/misc.h>
 #include <hacks/visuals.h>
 
-#include <app.h>
+#include <interfaces.h>
 
 namespace client_mode {
   bool STDCALL create_move(float input_sample_frame_time,
@@ -33,7 +33,7 @@ namespace client_mode {
   bool STDCALL do_post_screen_space_effects(const game::ViewSetup *view) {
     const auto result = hooks->do_post_screen_space_effects.call_original(view);
 
-    if (app->interfaces.engine->is_in_game()) {
+    if (core::interfaces->engine->is_in_game()) {
       glow::hack.manage_entities();
       glow::object_manager->draw_glow_effects(view);
       glow::object_manager->force_disable();

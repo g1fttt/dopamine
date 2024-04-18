@@ -7,14 +7,14 @@
 
 #include <utils/fnv_hash.h>
 
-#include <app.h>
+#include <interfaces.h>
 
 #include <algorithm>
 #include <cctype>
 
 namespace utils {
-  Netvars::Netvars(const App *app) {
-    for (auto *client_class = app->interfaces.client->get_all_classes();
+  Netvars::Netvars() {
+    for (auto *client_class = core::interfaces->client->get_all_classes();
          client_class; client_class = client_class->next) {
       walk_table(client_class->network_name, client_class->recv_table);
     }

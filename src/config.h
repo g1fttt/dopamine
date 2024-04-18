@@ -7,7 +7,7 @@
 #define FIELD(field, key)                                                      \
   (&Self::field, key, default_<decltype(Self::field)>((Self{}).field))
 
-namespace config {
+namespace core::config {
   template <typename T>
   concept Fundamental = std::is_fundamental_v<T>;
 

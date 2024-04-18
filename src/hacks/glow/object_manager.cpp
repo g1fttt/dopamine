@@ -13,6 +13,7 @@
 #include <game/view.h>
 
 #include <app.h>
+#include <interfaces.h>
 
 struct StencilState {
   constexpr static void create_and_set(const StencilState &self,
@@ -46,7 +47,7 @@ namespace glow {
   bool Object::should_draw() const {
     return enabled && entity && entity->renderable()->should_draw() &&
            !entity->networkable()->is_dormant() &&
-           !app->should_anti_screenshot();
+           !core::app->should_anti_screenshot();
   }
 
   void Object::draw_model() const {
@@ -82,7 +83,7 @@ namespace glow {
   }
 
   void ObjectManager::draw_glow_effects(const game::ViewSetup *view) const {
-    const auto render_ctx = app->interfaces.material_system->render_context();
+    const auto render_ctx = core::interfaces->material_system->render_context();
     {
       render_ctx->begin_pix_event("apply_entity_glow_effects");
       { apply_entity_glow_effects(view, render_ctx); }
@@ -135,12 +136,13 @@ namespace glow {
     render_ctx->push_render_target_and_viewport(rt_full_frame);
     render_ctx->set_viewport(0, 0, view->width, view->height);
 
-    const auto orig_color = app->interfaces.render_view->get_color_modulation();
+    const auto orig_color =
+        core::interfaces->render_view->get_color_modulation();
 
     render_ctx->clear_color_3ub(0, 0, 0);
     render_ctx->clear_buffers(true, false);
 
-    app->interfaces.model_render->forced_material_override(glow_material);
+    core::interfaces->model_render->forced_material_override(glow_material);
 
     StencilState::create_and_set({.test_mask = 0xFF}, render_ctx);
 
@@ -149,16 +151,17 @@ namespace glow {
         continue;
       }
 
-      app->interfaces.render_view->set_blend(obj.color.a);
-      app->interfaces.render_view->set_color_modulation(
+      core::interfaces->render_view->set_blend(obj.color.a);
+      core::interfaces->render_view->set_color_modulation(
           obj.color.float_array());
 
       obj.draw_model();
     }
 
-    app->interfaces.model_render->forced_material_override(nullptr);
-    app->interfaces.render_view->set_color_modulation(orig_color.float_array());
-    app->interfaces.render_view->set_blend(orig_color.a);
+    core::interfaces->model_render->forced_material_override(nullptr);
+    core::interfaces->render_view->set_color_modulation(
+        orig_color.float_array());
+    core::interfaces->render_view->set_blend(orig_color.a);
 
     StencilState::default_and_set(render_ctx);
 
@@ -167,16 +170,16 @@ namespace glow {
 
   void ObjectManager::apply_entity_glow_effects(
       const game::ViewSetup *view, game::RenderContext *render_ctx) const {
-    const auto glow_material = app->interfaces.material_system->find_material(
+    const auto glow_material = core::interfaces->material_system->find_material(
         "dev/glow_color", "Other Textures");
-    app->interfaces.model_render->forced_material_override(glow_material);
+    core::interfaces->model_render->forced_material_override(glow_material);
 
     render_ctx->override_depth_enable(true, false);
 
     StencilState::default_and_set(render_ctx);
 
-    const auto saved_blend = app->interfaces.render_view->get_blend();
-    app->interfaces.render_view->set_blend(0.0f);
+    const auto saved_blend = core::interfaces->render_view->get_blend();
+    core::interfaces->render_view->set_blend(0.0f);
 
     bool drew_anything = false;
 
@@ -200,8 +203,8 @@ namespace glow {
 
     StencilState::default_and_set(render_ctx);
 
-    app->interfaces.render_view->set_blend(saved_blend);
-    app->interfaces.model_render->forced_material_override(nullptr);
+    core::interfaces->render_view->set_blend(saved_blend);
+    core::interfaces->model_render->forced_material_override(nullptr);
 
     // https://github.com/ValveSoftware/source-sdk-2013/blob/0d8dceea4310fde5706b3ce1c70609d72a38efdf/sp/src/game/client/glow_outline_effect.cpp#L256-L260
     if (!drew_anything) {

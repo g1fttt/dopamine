@@ -8,8 +8,8 @@
 #include <hacks/misc.h>
 #include <hacks/visuals.h>
 
-#include <app.h>
 #include <config.h>
+#include <interfaces.h>
 
 #include <imgui.h>
 
@@ -18,7 +18,7 @@ static void draw_feature(T &feat, const char *name, const char *id,
                          const std::function<void(T &)> &cb)
   requires requires {
     feat.enabled;
-    config::Serde<T>;
+    core::config::Serde<T>;
   }
 {
   ImGui::Checkbox(name, &feat.enabled);
@@ -61,9 +61,9 @@ namespace ui {
 
     open = !open;
     if (!open) {
-      app->interfaces.input_system->reset_input_state();
+      core::interfaces->input_system->reset_input_state();
     }
-    app->interfaces.input_system->enable_input(!open);
+    core::interfaces->input_system->enable_input(!open);
 
     if (toggle_animation_end > 0.0f && toggle_animation_end < 1.0f) {
       toggle_animation_end = 1.0f - toggle_animation_end;
@@ -120,12 +120,12 @@ namespace ui {
     auto &cfg = hacks::visuals.config;
 
     if (ImGui::Begin("Visuals", &should_draw_window.visuals, WINDOW_FLAGS)) {
-      draw_feature<config::Feature<float>>(
+      draw_feature<core::config::Feature<float>>(
           cfg.aspect_ratio, "Aspect ratio", "aspect_ratio", [](auto &feat) {
             ImGui::SliderFloat("Value", &feat.value, 0.5f, 5.0f);
           });
 
-      draw_feature<config::Feature<float>>(
+      draw_feature<core::config::Feature<float>>(
           cfg.add_fov, "Add FOV", "add_fov", [](auto &feat) {
             ImGui::SliderFloat("Value", &feat.value, -50.0f, 50.0f);
           });

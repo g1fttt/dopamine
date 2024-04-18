@@ -5,19 +5,21 @@
 #include <game/entity_list.h>
 
 #include <app.h>
+#include <interfaces.h>
 
 #include "object_manager.h"
 
 namespace glow {
   void Hack::manage_entities() const {
-    for (int32_t i = 1; i < app->interfaces.engine->max_clients(); i += 1) {
-      const auto entity = app->interfaces.entity_list->get_entity_by_index(i);
-      if (!entity || !entity->is_player() || entity == app->local_player) {
+    for (int32_t i = 1; i < core::interfaces->engine->max_clients(); i += 1) {
+      const auto entity = core::interfaces->entity_list->get_entity_by_index(i);
+      if (!entity || !entity->is_player() ||
+          entity == core::app->local_player) {
         continue;
       }
 
       const auto player = entity->as<game::PlayerEntity>();
-      const auto is_enemy = player->team() != app->local_player->team();
+      const auto is_enemy = player->team() != core::app->local_player->team();
 
       if (!object_manager->has_glow_effect(entity)) {
         object_manager->register_entity(entity);
