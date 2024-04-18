@@ -1,5 +1,7 @@
 #include "hooks.h"
 
+#include <utils/patterns.h>
+
 #include <app.h>
 
 namespace hooks {
@@ -26,44 +28,47 @@ namespace hooks {
   bool STDCALL is_cursor_visible();
 }
 
-void Hooks::setup(App &app) {
-  const auto client_mode = app.interfaces.client_mode;
+void Hooks::setup(App *app) {
+  const auto client_mode = app->interfaces.client_mode;
   override_view.init_and_hook<16>(client_mode, hooks::override_view);
   create_move.init_and_hook<21>(client_mode, hooks::create_move);
   do_post_screen_space_effects.init_and_hook<39>(
       client_mode, hooks::do_post_screen_space_effects);
 
-  const auto client = app.interfaces.client.get();
+  const auto client = app->interfaces.client.get();
   level_init_post_entity.init_and_hook<6>(client,
                                           hooks::level_init_post_entity);
   level_shutdown.init_and_hook<7>(client, hooks::level_shutdown);
 
-  const auto engine = app.interfaces.engine;
+  const auto engine = app->interfaces.engine;
   get_screen_aspect_ratio.init_and_hook<95>(engine,
                                             hooks::get_screen_aspect_ratio);
 
-  const auto surface = app.interfaces.surface;
+  const auto surface = app->interfaces.surface;
   is_cursor_visible.init_and_hook<53>(surface, hooks::is_cursor_visible);
   lock_cursor.init_and_hook<62>(surface, hooks::lock_cursor);
 
   wnd_proc_original = WNDPROC(
-      SetWindowLongPtrW(app.window, GWLP_WNDPROC, LONG_PTR(hooks::wnd_proc)));
+      SetWindowLongPtrW(app->window, GWLP_WNDPROC, LONG_PTR(hooks::wnd_proc)));
 
   d3d9_present_original =
-      **app.d3d9_present_raw.cast<decltype(d3d9_present_original) *>();
+      **utils::patterns->d3d9_present.cast<decltype(d3d9_present_original) *>();
   d3d9_reset_original =
-      **app.d3d9_reset_raw.cast<decltype(d3d9_reset_original) *>();
+      **utils::patterns->d3d9_reset.cast<decltype(d3d9_reset_original)>();
 
-  **app.d3d9_present_raw.cast<decltype(hooks::present) **>() = hooks::present;
-  **app.d3d9_reset_raw.cast<decltype(hooks::reset) **>() = hooks::reset;
+  **utils::patterns->d3d9_present.cast<decltype(hooks::present) **>() =
+      hooks::present;
+  **utils::patterns->d3d9_reset.cast<decltype(hooks::reset) **>() =
+      hooks::reset;
 }
 
-void Hooks::remove(App &app) {
-  **app.d3d9_present_raw.cast<decltype(hooks::present) **>() =
+void Hooks::remove(App *app) {
+  **utils::patterns->d3d9_present.cast<decltype(hooks::present) **>() =
       d3d9_present_original;
-  **app.d3d9_reset_raw.cast<decltype(hooks::reset) **>() = d3d9_reset_original;
+  **utils::patterns->d3d9_reset.cast<decltype(hooks::reset) **>() =
+      d3d9_reset_original;
 
-  SetWindowLongPtrW(app.window, GWLP_WNDPROC, LONG_PTR(wnd_proc_original));
+  SetWindowLongPtrW(app->window, GWLP_WNDPROC, LONG_PTR(wnd_proc_original));
 
   create_move.unhook();
   override_view.unhook();

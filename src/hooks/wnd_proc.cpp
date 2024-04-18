@@ -17,17 +17,14 @@ namespace hooks {
     if (ImGui_ImplWin32_WndProcHandler(window, message, wparam, lparam)) {
       return true;
     }
-    return App::get().and_then<LRESULT>([=](App &app) {
-      utils::Input::with(message, wparam, lparam,
-                         [&](const utils::Input &input) {
-                           ui::Menu::get().handle_toggle(input);
+    utils::input->with(message, wparam, lparam, [&](const utils::Input &input) {
+      ui::menu.handle_toggle(input);
 
-                           if (input.key_is_up(VK_END)) {
-                             app.should_unhook = true;
-                           }
-                         });
-      return CallWindowProcW(app.hooks->wnd_proc_original, window, message,
-                             wparam, lparam);
+      if (input.key_is_up(VK_END)) {
+        app->should_unload = true;
+      }
     });
+    return CallWindowProcW(app->hooks->wnd_proc_original, window, message,
+                           wparam, lparam);
   }
 }

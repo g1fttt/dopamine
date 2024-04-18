@@ -2,14 +2,15 @@
 
 #include <Windows.h>
 
-#include "singleton.h"
+#include <functional>
+#include <optional>
 
 namespace utils {
   using KeyCode = WPARAM;
 
-  struct Input : Singleton<Input> {
-    static void with(UINT message, WPARAM wparam, LPARAM lparam,
-                     const std::function<void(const Input &)> &cb);
+  struct Input {
+    void with(UINT message, WPARAM wparam, LPARAM lparam,
+              const std::function<void(const Input &)> &cb);
 
     void update_state(UINT message, WPARAM wparam, LPARAM lparam);
     void reset_state();
@@ -23,4 +24,6 @@ namespace utils {
 
     Key last_up;
   };
+
+  constinit inline std::optional<Input> input{};
 }

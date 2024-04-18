@@ -58,20 +58,20 @@ create_texture(IDirect3DDevice9 *device, uint32_t width, uint32_t height) {
 namespace ui {
   constexpr auto BLUR_DOWNSAMPLE = 4.0f;
 
-  static void begin(const ImDrawList *, const ImDrawCmd *) {
-    BlurEffect::get().begin();
+  inline void begin(const ImDrawList *, const ImDrawCmd *) {
+    blur_effect->begin();
   }
 
-  static void first_pass(const ImDrawList *, const ImDrawCmd *) {
-    BlurEffect::get().first_pass();
+  inline void first_pass(const ImDrawList *, const ImDrawCmd *) {
+    blur_effect->first_pass();
   }
 
-  static void second_pass(const ImDrawList *, const ImDrawCmd *) {
-    BlurEffect::get().second_pass();
+  inline void second_pass(const ImDrawList *, const ImDrawCmd *) {
+    blur_effect->second_pass();
   }
 
-  static void end(const ImDrawList *, const ImDrawCmd *) {
-    BlurEffect::get().end();
+  inline void end(const ImDrawList *, const ImDrawCmd *) {
+    blur_effect->end();
   }
 
   void BlurEffect::draw(ImDrawList *draw_list, float alpha) {

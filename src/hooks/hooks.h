@@ -18,8 +18,8 @@ struct Hooks {
   using D3D9_Reset = HRESULT WINAPI(IDirect3DDevice9 *,
                                     _D3DPRESENT_PARAMETERS *);
 
-  void setup(App &app);
-  void remove(App &app);
+  void setup(App *app);
+  void remove(App *app);
 
   utils::VMTHook<bool, float, game::UserCommand *> create_move;
   utils::VMTHook<void, game::ViewSetup *> override_view;

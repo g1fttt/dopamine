@@ -1,9 +1,9 @@
 #pragma once
 
 #include <utils/color.h>
-#include <utils/singleton.h>
 
 #include <forward_list>
+#include <optional>
 
 namespace game {
   struct Entity;
@@ -14,11 +14,9 @@ namespace game {
   struct MaterialSystem;
 }
 
-struct App;
-
 namespace glow {
   struct Object {
-    bool should_draw(const App &app) const;
+    bool should_draw() const;
     void draw_model() const;
 
     bool enabled = false;
@@ -26,15 +24,13 @@ namespace glow {
     utils::Color color;
   };
 
-  struct ObjectManager : utils::Singleton<ObjectManager> {
-    static Singleton<ObjectManager>::InitFunc
-    init_func(game::MaterialSystem *mat_system) {
-      return [=](ObjectManager &obj_manager) {
-        obj_manager.init_or_nothing(mat_system);
-      };
+  struct ObjectManager {
+    ObjectManager(game::MaterialSystem *mat_system);
+
+    inline void register_entity(game::Entity *entity) {
+      objects.push_front({.entity = entity});
     }
 
-    void register_entity(game::Entity *entity);
     // TODO: Unregister player's entity when the so leaves the server
     void unregister_object_by_entity(game::Entity *entity);
     void update_object_by_entity(game::Entity *entity,
@@ -50,19 +46,18 @@ namespace glow {
       objects.clear();
     }
 
-    void draw_glow_effects(const game::ViewSetup *view, const App &app) const;
+    void draw_glow_effects(const game::ViewSetup *view) const;
     bool has_glow_effect(game::Entity *entity) const;
   private:
     void draw_glow_models(const game::ViewSetup *view,
-                          game::RenderContext *render_ctx,
-                          const App &app) const;
+                          game::RenderContext *render_ctx) const;
     void apply_entity_glow_effects(const game::ViewSetup *view,
-                                   game::RenderContext *render_ctx,
-                                   const App &app) const;
-    void init_or_nothing(game::MaterialSystem *mat_system);
+                                   game::RenderContext *render_ctx) const;
 
     game::Texture *rt_full_frame, *rt_quarter_size_1 = nullptr;
     game::Material *glow_material, *halo_add_to_screen_material = nullptr;
     std::forward_list<Object> objects;
   };
+
+  constinit inline std::optional<ObjectManager> object_manager{};
 }

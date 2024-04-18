@@ -3,9 +3,7 @@
 #include <utils/vmethod.h>
 
 namespace game {
-  struct MaterialVar {
-    VMETHOD(void, set_value, 3, (float value), (this, value))
-  };
+  struct MaterialVar;
 
   struct Material {
     VMETHOD(MaterialVar *, find_var, 11,

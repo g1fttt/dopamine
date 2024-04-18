@@ -2,7 +2,7 @@
 
 #include <wrl/client.h>
 
-#include <cstdint>
+#include <optional>
 
 using namespace Microsoft::WRL;
 
@@ -19,7 +19,7 @@ namespace ui {
       void use(float uniform);
       void init(const BYTE *pixel_shader_src);
 
-      void set_device(IDirect3DDevice9 *device) {
+      constexpr void set_device(IDirect3DDevice9 *device) {
         this->device = device;
       }
     private:
@@ -32,13 +32,6 @@ namespace ui {
 
 namespace ui {
   struct BlurEffect {
-    constexpr BlurEffect(const BlurEffect &) = delete;
-
-    static BlurEffect &get() {
-      static BlurEffect self{};
-      return self;
-    }
-
     void draw(ImDrawList *draw_list, float alpha);
 
     void begin();
@@ -46,7 +39,7 @@ namespace ui {
     void second_pass();
     void end();
 
-    void set_device(IDirect3DDevice9 *device) {
+    constexpr void set_device(IDirect3DDevice9 *device) {
       this->device = device;
       blur_shader_x.set_device(device);
       blur_shader_y.set_device(device);
@@ -54,8 +47,6 @@ namespace ui {
 
     void clear_textures();
   private:
-    BlurEffect() = default;
-
     void new_frame();
 
     void create_shaders();
@@ -68,4 +59,6 @@ namespace ui {
     ShaderProgram blur_shader_x, blur_shader_y;
     uint32_t backbuf_width, backbuf_height;
   };
+
+  constinit inline std::optional<BlurEffect> blur_effect{};
 }

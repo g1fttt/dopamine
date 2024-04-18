@@ -1,16 +1,11 @@
 #pragma once
 
 #include <utils/color.h>
-#include <utils/singleton.h>
 
 #include <config.h>
 
-struct App;
-
 namespace glow {
-  struct ObjectManager;
-
-  struct Hack : utils::Singleton<Hack> {
+  struct Hack {
     struct Glow {
       // clang-format off
       DERIVE_SERDE(Glow,
@@ -33,8 +28,10 @@ namespace glow {
       Glow allies;
     };
 
-    void manage_entities(ObjectManager &obj_manager, const App &app) const;
+    void manage_entities() const;
 
     Config config;
   };
+
+  constinit inline Hack hack{};
 }

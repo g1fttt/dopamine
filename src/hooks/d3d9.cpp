@@ -19,11 +19,11 @@
 namespace hooks {
   HRESULT WINAPI reset(IDirect3DDevice9 *device,
                        _D3DPRESENT_PARAMETERS *params) {
-    ui::BlurEffect::get().clear_textures();
+    ui::blur_effect->clear_textures();
 
     ImGui_ImplDX9_InvalidateDeviceObjects();
 
-    const auto result = App::get().hooks->d3d9_reset_original(device, params);
+    const auto result = app->hooks->d3d9_reset_original(device, params);
 
     ImGui_ImplDX9_CreateDeviceObjects();
 
@@ -36,7 +36,7 @@ static ImGuiContext *create_imgui_context(IDirect3DDevice9 *device) {
   ImGui::SetCurrentContext(ctx);
 
   ImGui_ImplDX9_Init(device);
-  ImGui_ImplWin32_Init(App::get().window);
+  ImGui_ImplWin32_Init(app->window);
 
   ImGui::StyleColorsDark();
 
@@ -53,10 +53,8 @@ static ImGuiContext *create_imgui_context(IDirect3DDevice9 *device) {
 }
 
 static bool init_imgui(IDirect3DDevice9 *device) {
-  App::get().and_then<void>([=](App &app) {
-    app.fore_imgui_ctx.set(create_imgui_context(device));
-    app.back_imgui_ctx.set(create_imgui_context(device));
-  });
+  app->fore_imgui_ctx.set(create_imgui_context(device));
+  app->back_imgui_ctx.set(create_imgui_context(device));
   return true;
 }
 
@@ -83,53 +81,51 @@ namespace hooks {
   HRESULT WINAPI present(IDirect3DDevice9 *device, const RECT *src,
                          const RECT *dest, HWND window_override,
                          const RGNDATA *dirty_region) {
-    return App::get().and_then<HRESULT>([=](App &app) {
-      static auto _ = init_imgui(device);
+    static auto _ = init_imgui(device);
 
-      auto &menu = ui::Menu::get();
-      menu.update_animation();
+    ui::menu.update_animation();
 
-      ComPtr<IDirect3DStateBlock9> state_block{};
-      if (device->CreateStateBlock(D3DSBT_ALL, state_block.GetAddressOf()) !=
-          D3D_OK) {
-        goto end;
+    ComPtr<IDirect3DStateBlock9> state_block{};
+    if (device->CreateStateBlock(D3DSBT_ALL, state_block.GetAddressOf()) !=
+        D3D_OK) {
+      goto end;
+    }
+
+    state_block->Capture();
+
+    // Fix menu (and blur) not rendering without `net_graph` or `cl_showfps`
+    device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
+
+    draw_frame(device, app->back_imgui_ctx, [&] {
+      auto *draw_list = ImGui::GetBackgroundDrawList();
+
+      if (!ui::menu.is_fully_closed()) {
+        if (!ui::blur_effect.has_value()) {
+          ui::blur_effect = std::make_optional<ui::BlurEffect>();
+        }
+        ui::blur_effect->set_device(device);
+        ui::blur_effect->draw(draw_list, ui::menu.get_transparency());
       }
 
-      state_block->Capture();
-
-      // Fix menu (and blur) not rendering without `net_graph` or `cl_showfps`
-      device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
-
-      draw_frame(device, app.back_imgui_ctx, [&] {
-        auto *draw_list = ImGui::GetBackgroundDrawList();
-
-        if (auto &blur_effect = ui::BlurEffect::get();
-            !menu.is_fully_closed()) {
-          blur_effect.set_device(device);
-          blur_effect.draw(draw_list, menu.get_transparency());
-        }
-
-        if (const auto &visuals = hacks::Visuals::get();
-            app.should_draw_visuals()) {
-          visuals.draw_sniper_crosshair(draw_list, app);
-        }
-      });
-
-      draw_frame(device, app.fore_imgui_ctx, [&] {
-        // Fix broken ImGui menu colors with Source engine gamma correction
-        device->SetRenderState(D3DRS_SRGBWRITEENABLE, false);
-
-        menu.draw();
-      });
-
-      state_block->Apply();
-    end:
-      if (app.should_unhook) {
-        ShowCursor(true);
-        app.must_unhook = true;
+      if (app->should_draw_visuals()) {
+        hacks::visuals.draw_sniper_crosshair(draw_list);
       }
-      return app.hooks->d3d9_present_original(device, src, dest,
-                                              window_override, dirty_region);
     });
+
+    draw_frame(device, app->fore_imgui_ctx, [&] {
+      // Fix broken ImGui menu colors with Source engine gamma correction
+      device->SetRenderState(D3DRS_SRGBWRITEENABLE, false);
+
+      ui::menu.draw();
+    });
+
+    state_block->Apply();
+  end:
+    if (app->should_unload) {
+      ShowCursor(true);
+      app->must_unload = true;
+    }
+    return app->hooks->d3d9_present_original(device, src, dest, window_override,
+                                             dirty_region);
   }
 }

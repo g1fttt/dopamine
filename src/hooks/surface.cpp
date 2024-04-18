@@ -7,14 +7,11 @@
 
 namespace hooks {
   bool STDCALL is_cursor_visible() {
-    return App::get().hooks->is_cursor_visible.call_original() ||
-           ui::Menu::get().is_open();
+    return app->hooks->is_cursor_visible.call_original() || ui::menu.is_open();
   }
 
   void STDCALL lock_cursor() {
-    App::get().and_then<void>([](const App &app) {
-      return ui::Menu::get().is_open() ? app.interfaces.surface->unlock_cursor()
-                                       : app.hooks->lock_cursor.call_original();
-    });
+    return ui::menu.is_open() ? app->interfaces.surface->unlock_cursor()
+                              : app->hooks->lock_cursor.call_original();
   }
 }

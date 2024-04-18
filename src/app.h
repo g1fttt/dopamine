@@ -5,9 +5,9 @@
 #include "ui/shared.h"
 
 #include "utils/ptr.h"
-#include "utils/singleton.h"
 
 #include <memory>
+#include <optional>
 
 namespace game {
   struct PlayerEntity;
@@ -24,9 +24,7 @@ namespace game {
 
 struct Hooks;
 
-struct App : utils::Singleton<App> {
-  friend struct Singleton<App>;
-
+struct App {
   struct Interfaces {
     utils::Ptr<game::Client> client;
     game::EntityList *entity_list = nullptr;
@@ -40,18 +38,8 @@ struct App : utils::Singleton<App> {
     void *client_mode = nullptr;
   };
 
+  App(HMODULE module);
   ~App();
-
-  static Singleton<App>::InitFunc init_func(HMODULE module) {
-    return [=](App &app) {
-      app.init_or_nothing(module);
-    };
-  }
-
-  template <typename T>
-  constexpr T and_then(const std::function<T(App &)> &cb) {
-    return cb(*this);
-  }
 
   void reset();
 
@@ -62,25 +50,21 @@ struct App : utils::Singleton<App> {
   HWND window = nullptr;
 
   // true if VK_END is pressed
-  bool should_unhook = false;
+  bool should_unload = false;
 
-  // true if `should_unhook` && `IDirect3DDevice9::Present` finished resetting
-  bool must_unhook = false;
+  // true if `should_unload` && `IDirect3DDevice9::Present` finished resetting
+  bool must_unload = false;
 
   // Obtained in `hooks::level_init_post_entity`
   game::PlayerEntity *local_player = nullptr;
 
+  // FIXME: Make them separate global variables
   Interfaces interfaces;
   std::unique_ptr<Hooks> hooks;
 
   ui::ImGuiContext fore_imgui_ctx, back_imgui_ctx;
-
-  utils::Ptr<void> d3d9_present_raw;
-  utils::Ptr<void> d3d9_reset_raw;
 private:
-  App();
-
-  void init_or_nothing(HMODULE module);
   void find_interfaces();
-  void find_patterns();
 };
+
+constinit inline std::optional<App> app{};

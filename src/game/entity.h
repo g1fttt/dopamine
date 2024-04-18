@@ -86,7 +86,7 @@ namespace game {
       OnGround = 1 << 0,
     };
 
-    constexpr bool is_on_ground() {
+    constexpr bool is_on_ground() const {
       return flags() & OnGround;
     }
 

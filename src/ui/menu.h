@@ -8,13 +8,6 @@ namespace utils {
 
 namespace ui {
   struct Menu {
-    constexpr Menu(const Menu &) = delete;
-
-    static Menu &get() {
-      static Menu self{};
-      return self;
-    }
-
     void draw();
     void handle_toggle(const utils::Input &input);
 
@@ -40,8 +33,6 @@ namespace ui {
       bool glow = false;
     };
 
-    constexpr Menu() = default;
-
     constexpr float animation_len() const {
       return 0.35f;
     }
@@ -56,4 +47,6 @@ namespace ui {
     float toggle_animation_end = 1.0f;
     ShouldDrawWindow should_draw_window;
   };
+
+  constinit inline Menu menu{};
 }

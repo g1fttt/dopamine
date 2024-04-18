@@ -60,12 +60,10 @@ namespace ui {
     }
 
     open = !open;
-    App::get().and_then<void>([this](App &app) {
-      if (!open) {
-        app.interfaces.input_system->reset_input_state();
-      }
-      app.interfaces.input_system->enable_input(!open);
-    });
+    if (!open) {
+      app->interfaces.input_system->reset_input_state();
+    }
+    app->interfaces.input_system->enable_input(!open);
 
     if (toggle_animation_end > 0.0f && toggle_animation_end < 1.0f) {
       toggle_animation_end = 1.0f - toggle_animation_end;
@@ -103,7 +101,7 @@ namespace ui {
       return;
     }
 
-    auto &cfg = hacks::Misc::get().config;
+    auto &cfg = hacks::misc.config;
 
     if (ImGui::Begin("Misc", &should_draw_window.misc, WINDOW_FLAGS)) {
       draw_feature<hacks::Misc::Bunnyhop>(
@@ -119,7 +117,7 @@ namespace ui {
       return;
     }
 
-    auto &cfg = hacks::Visuals::get().config;
+    auto &cfg = hacks::visuals.config;
 
     if (ImGui::Begin("Visuals", &should_draw_window.visuals, WINDOW_FLAGS)) {
       draw_feature<config::Feature<float>>(
@@ -152,7 +150,7 @@ namespace ui {
       return;
     }
 
-    auto &cfg = glow::Hack::get().config;
+    auto &cfg = glow::hack.config;
 
     if (ImGui::Begin("Glow", &should_draw_window.glow, WINDOW_FLAGS)) {
       draw_feature<glow::Hack::Glow>(

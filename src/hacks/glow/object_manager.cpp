@@ -2,8 +2,10 @@
 
 #include <game/entity.h>
 #include <game/entity_list.h>
+#include <game/key_values.h>
 #include <game/material.h>
 #include <game/material_system.h>
+#include <game/material_var.h>
 #include <game/model_render.h>
 #include <game/render_context.h>
 #include <game/render_view.h>
@@ -19,7 +21,7 @@ struct StencilState {
   }
 
   constexpr static void default_and_set(game::RenderContext *render_ctx) {
-    StencilState{}.set(render_ctx);
+    create_and_set({}, render_ctx);
   }
 
   bool enable = false;
@@ -41,10 +43,10 @@ private:
 };
 
 namespace glow {
-  bool Object::should_draw(const App &app) const {
+  bool Object::should_draw() const {
     return enabled && entity && entity->renderable()->should_draw() &&
            !entity->networkable()->is_dormant() &&
-           !app.should_anti_screenshot();
+           !app->should_anti_screenshot();
   }
 
   void Object::draw_model() const {
@@ -61,12 +63,6 @@ namespace glow {
 }
 
 namespace glow {
-  void ObjectManager::register_entity(game::Entity *entity) {
-    if (!has_glow_effect(entity)) {
-      objects.push_front({.entity = entity});
-    }
-  }
-
   void ObjectManager::unregister_object_by_entity(game::Entity *entity) {
     objects.remove_if([=, this](const Object &obj) {
       return entity == obj.entity;
@@ -85,12 +81,13 @@ namespace glow {
     }
   }
 
-  void ObjectManager::draw_glow_effects(const game::ViewSetup *view,
-                                        const App &app) const {
-    const auto render_ctx = app.interfaces.material_system->render_context();
-    render_ctx->begin_pix_event("apply_entity_glow_effects");
-    { apply_entity_glow_effects(view, render_ctx, app); }
-    render_ctx->end_pix_event();
+  void ObjectManager::draw_glow_effects(const game::ViewSetup *view) const {
+    const auto render_ctx = app->interfaces.material_system->render_context();
+    {
+      render_ctx->begin_pix_event("apply_entity_glow_effects");
+      { apply_entity_glow_effects(view, render_ctx); }
+      render_ctx->end_pix_event();
+    }
   }
 
   bool ObjectManager::has_glow_effect(game::Entity *entity) const {
@@ -99,59 +96,92 @@ namespace glow {
     });
   }
 
+  ObjectManager::ObjectManager(game::MaterialSystem *mat_system) {
+    rt_full_frame =
+        mat_system->find_texture("_rt_FullFrameFB", "RenderTargets");
+    rt_full_frame->inc_ref_counter();
+
+    rt_quarter_size_1 =
+        mat_system->find_texture("_rt_SmallFB1", "RenderTargets");
+    rt_quarter_size_1->inc_ref_counter();
+
+    // TODO: Featureful "Material Creator" with std::initializer_list support
+
+    // FIXME: Cleanup on hack unload
+    auto glow_kv = new game::KeyValues{"UnlitGeneric"};
+    {
+      glow_kv->set_string("$BaseTexture", "white");
+      glow_kv->set_int("$IgnoreZ", 1);
+      glow_kv->set_int("$Model", 1);
+      glow_kv->set_int("$LinearWrite", 1);
+    }
+    glow_material = mat_system->create_material("glow_color", glow_kv);
+
+    auto halo_kv = new game::KeyValues{"screenspace_general"};
+    {
+      halo_kv->set_string("$PixShader", "haloaddoutline_ps20");
+      halo_kv->set_int("$Alpha_Blend_Color_Overlay", 1);
+      halo_kv->set_string("$BaseTexture", "_rt_FullFrameFB");
+      halo_kv->set_int("$IgnoreZ", 1);
+      halo_kv->set_int("$LinearRead_BaseTexture", 1);
+      halo_kv->set_int("$LinearWrite", 1);
+    }
+    halo_add_to_screen_material =
+        mat_system->create_material("halo_add_to_screen", halo_kv);
+  }
+
   void ObjectManager::draw_glow_models(const game::ViewSetup *view,
-                                       game::RenderContext *render_ctx,
-                                       const App &app) const {
+                                       game::RenderContext *render_ctx) const {
     render_ctx->push_render_target_and_viewport(rt_full_frame);
     render_ctx->set_viewport(0, 0, view->width, view->height);
 
-    const auto orig_color = app.interfaces.render_view->get_color_modulation();
+    const auto orig_color = app->interfaces.render_view->get_color_modulation();
 
     render_ctx->clear_color_3ub(0, 0, 0);
     render_ctx->clear_buffers(true, false);
 
-    app.interfaces.model_render->forced_material_override(glow_material);
+    app->interfaces.model_render->forced_material_override(glow_material);
 
     StencilState::create_and_set({.test_mask = 0xFF}, render_ctx);
 
     for (const auto &obj : objects) {
-      if (!obj.should_draw(app)) {
+      if (!obj.should_draw()) {
         continue;
       }
 
-      app.interfaces.render_view->set_blend(obj.color.a);
-      app.interfaces.render_view->set_color_modulation(obj.color.float_array());
+      app->interfaces.render_view->set_blend(obj.color.a);
+      app->interfaces.render_view->set_color_modulation(
+          obj.color.float_array());
 
       obj.draw_model();
     }
 
-    app.interfaces.model_render->forced_material_override(nullptr);
-    app.interfaces.render_view->set_color_modulation(orig_color.float_array());
-    app.interfaces.render_view->set_blend(orig_color.a);
+    app->interfaces.model_render->forced_material_override(nullptr);
+    app->interfaces.render_view->set_color_modulation(orig_color.float_array());
+    app->interfaces.render_view->set_blend(orig_color.a);
 
     StencilState::default_and_set(render_ctx);
 
     render_ctx->pop_render_target_and_viewport();
   }
 
-  void ObjectManager::apply_entity_glow_effects(const game::ViewSetup *view,
-                                                game::RenderContext *render_ctx,
-                                                const App &app) const {
-    const auto glow_material = app.interfaces.material_system->find_material(
+  void ObjectManager::apply_entity_glow_effects(
+      const game::ViewSetup *view, game::RenderContext *render_ctx) const {
+    const auto glow_material = app->interfaces.material_system->find_material(
         "dev/glow_color", "Other Textures");
-    app.interfaces.model_render->forced_material_override(glow_material);
+    app->interfaces.model_render->forced_material_override(glow_material);
 
     render_ctx->override_depth_enable(true, false);
 
     StencilState::default_and_set(render_ctx);
 
-    const auto saved_blend = app.interfaces.render_view->get_blend();
-    app.interfaces.render_view->set_blend(0.0f);
+    const auto saved_blend = app->interfaces.render_view->get_blend();
+    app->interfaces.render_view->set_blend(0.0f);
 
     bool drew_anything = false;
 
     for (const auto &obj : objects) {
-      if (!obj.should_draw(app)) {
+      if (!obj.should_draw()) {
         continue;
       }
 
@@ -170,8 +200,8 @@ namespace glow {
 
     StencilState::default_and_set(render_ctx);
 
-    app.interfaces.render_view->set_blend(saved_blend);
-    app.interfaces.model_render->forced_material_override(nullptr);
+    app->interfaces.render_view->set_blend(saved_blend);
+    app->interfaces.model_render->forced_material_override(nullptr);
 
     // https://github.com/ValveSoftware/source-sdk-2013/blob/0d8dceea4310fde5706b3ce1c70609d72a38efdf/sp/src/game/client/glow_outline_effect.cpp#L256-L260
     if (!drew_anything) {
@@ -179,7 +209,7 @@ namespace glow {
     }
 
     render_ctx->begin_pix_event("draw_glow_models");
-    { draw_glow_models(view, render_ctx, app); }
+    { draw_glow_models(view, render_ctx); }
     render_ctx->end_pix_event();
 
     const auto dim_var = halo_add_to_screen_material->find_var("$C0_X");
@@ -200,23 +230,5 @@ namespace glow {
         rt_quarter_size_1->actual_width(), rt_quarter_size_1->actual_height());
 
     StencilState::default_and_set(render_ctx);
-  }
-
-  void ObjectManager::init_or_nothing(game::MaterialSystem *mat_system) {
-    rt_full_frame =
-        mat_system->find_texture("_rt_FullFrameFB", "RenderTargets");
-    rt_full_frame->inc_ref_counter();
-
-    rt_quarter_size_1 =
-        mat_system->find_texture("_rt_SmallFB1", "RenderTargets");
-    rt_quarter_size_1->inc_ref_counter();
-
-    glow_material =
-        mat_system->find_material("dev/glow_color", "Other Textures");
-    glow_material->inc_ref_counter();
-
-    halo_add_to_screen_material =
-        mat_system->find_material("dev/halo_add_to_screen", "Other Textures");
-    halo_add_to_screen_material->inc_ref_counter();
   }
 }

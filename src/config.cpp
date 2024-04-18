@@ -39,9 +39,9 @@ struct Config {
 
 void config::save() {
   const auto value = serde::serialize<toml::value>(Config{
-      .misc = hacks::Misc::get().config,
-      .visuals = hacks::Visuals::get().config,
-      .glow = glow::Hack::get().config,
+      .misc = hacks::misc.config,
+      .visuals = hacks::visuals.config,
+      .glow = glow::hack.config,
   });
   std::ofstream file_desc{full_config_path()};
   file_desc << value << std::endl;
@@ -56,9 +56,9 @@ void config::load() {
 
   const auto config = serde::deserialize<Config>(value);
   {
-    hacks::Misc::get().config = config.misc;
-    hacks::Visuals::get().config = config.visuals;
-    glow::Hack::get().config = config.glow;
+    hacks::misc.config = config.misc;
+    hacks::visuals.config = config.visuals;
+    glow::hack.config = config.glow;
   }
 }
 

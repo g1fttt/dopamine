@@ -1,7 +1,6 @@
 #pragma once
 
 #include <utils/color.h>
-#include <utils/singleton.h>
 
 #include <config.h>
 
@@ -11,10 +10,8 @@ namespace game {
   struct ViewSetup;
 }
 
-struct App;
-
 namespace hacks {
-  struct Visuals : utils::Singleton<Visuals> {
+  struct Visuals {
     struct SniperRifleCrosshair {
       // clang-format off
       DERIVE_SERDE(SniperRifleCrosshair,
@@ -45,9 +42,11 @@ namespace hacks {
       SniperRifleCrosshair sniper_rifle_crosshair;
     };
 
-    void draw_sniper_crosshair(ImDrawList *draw_list, const App &app) const;
-    void override_fov(game::ViewSetup *view, const App &app) const;
+    void draw_sniper_crosshair(ImDrawList *draw_list) const;
+    void override_fov(game::ViewSetup *view) const;
 
     Config config;
   };
+
+  constinit inline hacks::Visuals visuals{};
 }

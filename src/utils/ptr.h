@@ -40,6 +40,10 @@ namespace utils {
       return reinterpret_cast<U *>(value);
     }
 
+    template <typename U> constexpr U transmute() const {
+      return reinterpret_cast<U>(value);
+    }
+
     constexpr Ptr<T> add(size_t offset) const {
       return value + offset;
     }

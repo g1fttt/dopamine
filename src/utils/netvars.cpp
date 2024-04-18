@@ -13,6 +13,14 @@
 #include <cctype>
 
 namespace utils {
+  Netvars::Netvars(const App *app) {
+    for (auto *client_class = app->interfaces.client->get_all_classes();
+         client_class; client_class = client_class->next) {
+      walk_table(client_class->network_name, client_class->recv_table);
+    }
+    std::ranges::sort(hashed, {}, &HashOffset::first);
+  }
+
   std::optional<uintptr_t> Netvars::find_by_hash(uintptr_t hash) {
     const auto it =
         std::ranges::lower_bound(hashed, hash, {}, &HashOffset::first);
@@ -21,14 +29,6 @@ namespace utils {
       return it->second;
     }
     return std::nullopt;
-  }
-
-  void Netvars::init_or_nothing(const App &app) {
-    for (auto *client_class = app.interfaces.client->get_all_classes();
-         client_class; client_class = client_class->next) {
-      walk_table(client_class->network_name, client_class->recv_table);
-    }
-    std::ranges::sort(hashed, {}, &HashOffset::first);
   }
 
   void Netvars::walk_table(std::string_view network_name,
