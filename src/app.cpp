@@ -39,8 +39,6 @@ App::App(HMODULE module) {
   utils::netvars.emplace(this);
 }
 
-App::~App() = default;
-
 void App::reset() {
   interfaces.input_system->enable_input(true);
 

@@ -2,6 +2,8 @@
 
 #include <utils/vmt.h>
 
+#include <memory>
+
 namespace game {
   struct UserCommand;
   struct ViewSetup;
@@ -35,3 +37,5 @@ struct Hooks {
 
   WNDPROC wnd_proc_original = nullptr;
 };
+
+constinit inline std::unique_ptr<Hooks> hooks{};

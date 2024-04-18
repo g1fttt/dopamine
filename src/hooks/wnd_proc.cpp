@@ -11,7 +11,7 @@
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM,
                                                              LPARAM);
 
-namespace hooks {
+namespace winapi {
   LRESULT WINAPI wnd_proc(HWND window, UINT message, WPARAM wparam,
                           LPARAM lparam) {
     if (ImGui_ImplWin32_WndProcHandler(window, message, wparam, lparam)) {
@@ -24,7 +24,7 @@ namespace hooks {
         app->should_unload = true;
       }
     });
-    return CallWindowProcW(app->hooks->wnd_proc_original, window, message,
-                           wparam, lparam);
+    return CallWindowProcW(hooks->wnd_proc_original, window, message, wparam,
+                           lparam);
   }
 }

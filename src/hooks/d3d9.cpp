@@ -16,14 +16,14 @@
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 
-namespace hooks {
+namespace d3d9 {
   HRESULT WINAPI reset(IDirect3DDevice9 *device,
                        _D3DPRESENT_PARAMETERS *params) {
     ui::blur_effect->clear_textures();
 
     ImGui_ImplDX9_InvalidateDeviceObjects();
 
-    const auto result = app->hooks->d3d9_reset_original(device, params);
+    const auto result = hooks->d3d9_reset_original(device, params);
 
     ImGui_ImplDX9_CreateDeviceObjects();
 
@@ -77,7 +77,7 @@ static void draw_frame(IDirect3DDevice9 *device, const ui::ImGuiContext &ctx,
   }
 }
 
-namespace hooks {
+namespace d3d9 {
   HRESULT WINAPI present(IDirect3DDevice9 *device, const RECT *src,
                          const RECT *dest, HWND window_override,
                          const RGNDATA *dirty_region) {
@@ -125,7 +125,7 @@ namespace hooks {
       ShowCursor(true);
       app->must_unload = true;
     }
-    return app->hooks->d3d9_present_original(device, src, dest, window_override,
-                                             dirty_region);
+    return hooks->d3d9_present_original(device, src, dest, window_override,
+                                        dirty_region);
   }
 }

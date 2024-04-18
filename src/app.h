@@ -6,7 +6,6 @@
 
 #include "utils/ptr.h"
 
-#include <memory>
 #include <optional>
 
 namespace game {
@@ -39,7 +38,6 @@ struct App {
   };
 
   App(HMODULE module);
-  ~App();
 
   void reset();
 
@@ -58,9 +56,8 @@ struct App {
   // Obtained in `hooks::level_init_post_entity`
   game::PlayerEntity *local_player = nullptr;
 
-  // FIXME: Make them separate global variables
+  // TODO: Own struct and global variable
   Interfaces interfaces;
-  std::unique_ptr<Hooks> hooks;
 
   ui::ImGuiContext fore_imgui_ctx, back_imgui_ctx;
 private:

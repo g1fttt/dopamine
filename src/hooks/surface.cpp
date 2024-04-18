@@ -5,13 +5,13 @@
 
 #include <app.h>
 
-namespace hooks {
+namespace surface {
   bool STDCALL is_cursor_visible() {
-    return app->hooks->is_cursor_visible.call_original() || ui::menu.is_open();
+    return hooks->is_cursor_visible.call_original() || ui::menu.is_open();
   }
 
   void STDCALL lock_cursor() {
     return ui::menu.is_open() ? app->interfaces.surface->unlock_cursor()
-                              : app->hooks->lock_cursor.call_original();
+                              : hooks->lock_cursor.call_original();
   }
 }
