@@ -35,16 +35,16 @@ namespace core {
 
     window = FindWindowA("Valve001", nullptr);
 
-    interfaces = std::make_optional<Interfaces>();
+    interfaces = Interfaces{};
 
-    utils::patterns = std::make_optional<utils::Patterns>();
+    utils::patterns = utils::Patterns{};
 
-    glow::object_manager.emplace(interfaces->material_system);
-    ui::blur_effect = std::make_optional<ui::BlurEffect>();
+    glow::object_manager = glow::ObjectManager{};
+    ui::blur_effect = ui::BlurEffect{};
 
     hooks->setup(window);
 
-    utils::netvars = std::make_optional<utils::Netvars>();
+    utils::netvars = utils::Netvars{};
   }
 
   void App::reset() {

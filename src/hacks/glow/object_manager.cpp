@@ -97,13 +97,13 @@ namespace glow {
     });
   }
 
-  ObjectManager::ObjectManager(game::MaterialSystem *mat_system) {
-    rt_full_frame =
-        mat_system->find_texture("_rt_FullFrameFB", "RenderTargets");
+  ObjectManager::ObjectManager() {
+    rt_full_frame = core::interfaces->material_system->find_texture(
+        "_rt_FullFrameFB", "RenderTargets");
     rt_full_frame->inc_ref_counter();
 
-    rt_quarter_size_1 =
-        mat_system->find_texture("_rt_SmallFB1", "RenderTargets");
+    rt_quarter_size_1 = core::interfaces->material_system->find_texture(
+        "_rt_SmallFB1", "RenderTargets");
     rt_quarter_size_1->inc_ref_counter();
 
     // TODO: Featureful "Material Creator" with std::initializer_list support
@@ -116,7 +116,8 @@ namespace glow {
       glow_kv->set_int("$Model", 1);
       glow_kv->set_int("$LinearWrite", 1);
     }
-    glow_material = mat_system->create_material("glow_color", glow_kv);
+    glow_material = core::interfaces->material_system->create_material(
+        "glow_color", glow_kv);
 
     auto halo_kv = new game::KeyValues{"screenspace_general"};
     {
@@ -128,7 +129,8 @@ namespace glow {
       halo_kv->set_int("$LinearWrite", 1);
     }
     halo_add_to_screen_material =
-        mat_system->create_material("halo_add_to_screen", halo_kv);
+        core::interfaces->material_system->create_material("halo_add_to_screen",
+                                                           halo_kv);
   }
 
   void ObjectManager::draw_glow_models(const game::ViewSetup *view,

@@ -11,7 +11,6 @@ namespace game {
   struct RenderContext;
   struct Material;
   struct Texture;
-  struct MaterialSystem;
 }
 
 namespace glow {
@@ -25,7 +24,7 @@ namespace glow {
   };
 
   struct ObjectManager {
-    ObjectManager(game::MaterialSystem *mat_system);
+    ObjectManager();
 
     inline void register_entity(game::Entity *entity) {
       objects.push_front({.entity = entity});
@@ -42,7 +41,7 @@ namespace glow {
       }
     }
 
-    constexpr void clear_objects() {
+    inline void clear_objects() {
       objects.clear();
     }
 
