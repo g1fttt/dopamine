@@ -8,14 +8,13 @@
 #include "hacks/visuals.h"
 #include "hooks/hooks.h"
 
-#include "utils/netvars.h"
-#include "utils/patterns.h"
-
 #include "game/engine.h"
 #include "game/input_system.h"
 
 #include "config.h"
 #include "interfaces.h"
+#include "netvars.h"
+#include "patterns.h"
 
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
@@ -36,15 +35,13 @@ namespace core {
     window = FindWindowA("Valve001", nullptr);
 
     interfaces = Interfaces{};
-
-    utils::patterns = utils::Patterns{};
+    patterns = Patterns{};
+    netvars = Netvars{};
 
     glow::object_manager = glow::ObjectManager{};
     ui::blur_effect = ui::BlurEffect{};
 
     hooks->setup(window);
-
-    utils::netvars = utils::Netvars{};
   }
 
   void App::reset() {

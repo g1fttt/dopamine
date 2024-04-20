@@ -60,6 +60,6 @@ namespace utils {
       return cast<std::byte>().sub(offset).template cast<T>();
     }
   private:
-    T *value;
+    T *value = nullptr;
   };
 }

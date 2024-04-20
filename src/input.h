@@ -5,7 +5,7 @@
 #include <functional>
 #include <optional>
 
-namespace utils {
+namespace core {
   using KeyCode = WPARAM;
 
   struct Input {

@@ -1,18 +1,18 @@
 #include "netvars.h"
 
-#include <game/client_class.h>
-#include <game/recv.h>
+#include "game/client_class.h"
+#include "game/recv.h"
 
-#include <game/client.h>
+#include "game/client.h"
 
-#include <utils/fnv_hash.h>
+#include "utils/fnv_hash.h"
 
-#include <interfaces.h>
+#include "interfaces.h"
 
 #include <algorithm>
 #include <cctype>
 
-namespace utils {
+namespace core {
   Netvars::Netvars() {
     for (auto *client_class = core::interfaces->client->get_all_classes();
          client_class; client_class = client_class->next) {
@@ -41,7 +41,7 @@ namespace utils {
         continue;
       }
 
-      if (fnv::hash(prop->var_name) == fnv::hash("baseclass")) {
+      if (utils::fnv::hash(prop->var_name) == utils::fnv::hash("baseclass")) {
         continue;
       }
 
@@ -50,8 +50,8 @@ namespace utils {
         walk_table(network_name, prop->data_table, prop->offset + offset);
       }
 
-      const auto hash =
-          fnv::hash({network_name.data() + std::string("->") + prop->var_name});
+      const auto hash = utils::fnv::hash(
+          {network_name.data() + std::string("->") + prop->var_name});
       hashed.emplace_back(hash, prop->offset + offset);
     }
   }

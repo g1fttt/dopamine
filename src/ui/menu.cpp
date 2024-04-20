@@ -1,9 +1,8 @@
 #include "menu.h"
 
 #include <game/input_system.h>
-#include <utils/input.h>
-
 #include <hacks/glow/hack.h>
+#include <input.h>
 
 #include <hacks/misc.h>
 #include <hacks/visuals.h>
@@ -54,7 +53,7 @@ namespace ui {
     ImGui::PopStyleVar();
   }
 
-  void Menu::handle_toggle(const utils::Input &input) {
+  void Menu::handle_toggle(const core::Input &input) {
     if (!input.key_is_up(VK_INSERT)) {
       return;
     }

@@ -1,6 +1,6 @@
 #include "patterns.h"
 
-#include "ptr.h"
+#include "utils/ptr.h"
 
 #include <Windows.h>
 
@@ -59,7 +59,7 @@ static utils::Ptr<void> find_pattern(fs::path module_name,
 
 #undef SHOW_MESSAGE_BOX_AND_EXIT
 
-namespace utils {
+namespace core {
   Patterns::Patterns() {
     // clang-format off
     d3d9_present = find_pattern(L"GameOverlayRenderer.dll", u8"\xA1\xCC\xCC\xCC\xCC\x51\xFF\x75\x14")

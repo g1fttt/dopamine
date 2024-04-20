@@ -1,10 +1,10 @@
 #include "hooks.h"
 
-#include <app.h>
-
 #include <game/input_system.h>
 #include <ui/menu.h>
-#include <utils/input.h>
+
+#include <app.h>
+#include <input.h>
 
 #include <imgui.h>
 
@@ -17,7 +17,7 @@ namespace winapi {
     if (ImGui_ImplWin32_WndProcHandler(window, message, wparam, lparam)) {
       return true;
     }
-    utils::input->with(message, wparam, lparam, [&](const utils::Input &input) {
+    core::input->with(message, wparam, lparam, [&](const core::Input &input) {
       ui::menu.handle_toggle(input);
 
       if (input.key_is_up(VK_END)) {

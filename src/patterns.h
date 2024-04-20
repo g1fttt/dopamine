@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ptr.h"
+#include "utils/ptr.h"
 
 #include <optional>
 
@@ -11,11 +11,11 @@ namespace game {
   struct KeyValues;
 }
 
-namespace utils {
+namespace core {
   struct Patterns {
     Patterns();
 
-    Ptr<void> d3d9_present, d3d9_reset;
+    utils::Ptr<void> d3d9_present, d3d9_reset;
 
     game::KeyValues *(THISCALL *key_values_constructor)(game::KeyValues *,
                                                         const char *) = nullptr;
@@ -25,5 +25,5 @@ namespace utils {
                                        int32_t) = nullptr;
   };
 
-  constinit inline std::optional<utils::Patterns> patterns{};
+  constinit inline std::optional<Patterns> patterns{};
 }

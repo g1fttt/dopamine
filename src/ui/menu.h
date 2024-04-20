@@ -2,14 +2,14 @@
 
 #include <algorithm>
 
-namespace utils {
+namespace core {
   struct Input;
 }
 
 namespace ui {
   struct Menu {
     void draw();
-    void handle_toggle(const utils::Input &input);
+    void handle_toggle(const core::Input &input);
 
     void update_animation();
 

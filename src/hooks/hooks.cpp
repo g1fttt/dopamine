@@ -1,8 +1,7 @@
 #include "hooks.h"
 
-#include <utils/patterns.h>
-
 #include <interfaces.h>
+#include <patterns.h>
 
 namespace winapi {
   LRESULT WINAPI wnd_proc(HWND window, UINT message, WPARAM wparam,
@@ -64,19 +63,19 @@ void Hooks::setup(HWND window) {
       SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(winapi::wnd_proc)));
 
   d3d9_present_original =
-      **utils::patterns->d3d9_present.cast<decltype(d3d9_present_original) *>();
+      **core::patterns->d3d9_present.cast<decltype(d3d9_present_original) *>();
   d3d9_reset_original =
-      **utils::patterns->d3d9_reset.cast<decltype(d3d9_reset_original)>();
+      **core::patterns->d3d9_reset.cast<decltype(d3d9_reset_original)>();
 
-  **utils::patterns->d3d9_present.cast<decltype(d3d9::present) **>() =
+  **core::patterns->d3d9_present.cast<decltype(d3d9::present) **>() =
       d3d9::present;
-  **utils::patterns->d3d9_reset.cast<decltype(d3d9::reset) **>() = d3d9::reset;
+  **core::patterns->d3d9_reset.cast<decltype(d3d9::reset) **>() = d3d9::reset;
 }
 
 void Hooks::remove() {
-  **utils::patterns->d3d9_present.cast<decltype(d3d9::present) **>() =
+  **core::patterns->d3d9_present.cast<decltype(d3d9::present) **>() =
       d3d9_present_original;
-  **utils::patterns->d3d9_reset.cast<decltype(d3d9::reset) **>() =
+  **core::patterns->d3d9_reset.cast<decltype(d3d9::reset) **>() =
       d3d9_reset_original;
 
   SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(wnd_proc_original));

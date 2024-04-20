@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utils/netvars.h>
+#include <netvars.h>
 #include <utils/vmethod.h>
 
 namespace game {

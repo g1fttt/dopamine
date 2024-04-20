@@ -1,5 +1,7 @@
 #pragma once
 
+// Include here so we don't have to include it everywhere along with "netvars.h"
+// header
 #include <utils/fnv_hash.h>
 
 #include <optional>
@@ -9,7 +11,7 @@ namespace game {
   struct RecvTable;
 }
 
-namespace utils {
+namespace core {
   struct Netvars {
     Netvars();
 
@@ -23,14 +25,14 @@ namespace utils {
     std::vector<HashOffset> hashed;
   };
 
-  constinit inline std::optional<utils::Netvars> netvars{};
+  constinit inline std::optional<Netvars> netvars{};
 }
 
 #define NETVAR_OFFSET(RetType, func_name, class_name, var_name, offset)        \
   RetType func_name() const {                                                  \
     constexpr auto hash = utils::fnv::hash(class_name "->" var_name);          \
     return *reinterpret_cast<const RetType *>(                                 \
-        this + utils::netvars->find_by_hash(hash).value() + offset);           \
+        this + core::netvars->find_by_hash(hash).value() + offset);            \
   }
 
 #define NETVAR(RetType, func_name, class_name, var_name)                       \
