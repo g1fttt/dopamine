@@ -5,10 +5,6 @@
 
 #include <cstdint>
 
-// TODO: Move to separate file
-#define METHOD_FROM_PATTERN(field, pattern_name)                               \
-  methods.field = patterns.pattern_name.transmute<decltype(methods.field)>()
-
 namespace game {
   struct KeyValues {
     static void init_methods(const core::Patterns &patterns) {

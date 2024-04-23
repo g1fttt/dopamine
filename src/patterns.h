@@ -2,12 +2,8 @@
 
 #include "utils/ptr.h"
 
-struct IDirect3DDevice9;
-struct _D3DPRESENT_PARAMETERS;
-
-namespace game {
-  struct KeyValues;
-}
+#define METHOD_FROM_PATTERN(field, pattern_name)                               \
+  methods.field = patterns.pattern_name.transmute<decltype(methods.field)>()
 
 namespace core {
   struct Patterns {
@@ -15,8 +11,8 @@ namespace core {
 
     utils::Ptr<void> d3d9_present, d3d9_reset;
 
-    utils::Ptr<void> key_values_constructor = nullptr;
-    utils::Ptr<void> key_values_set_string = nullptr;
-    utils::Ptr<void> key_values_set_int = nullptr;
+    utils::Ptr<void> key_values_constructor;
+    utils::Ptr<void> key_values_set_string;
+    utils::Ptr<void> key_values_set_int;
   };
 }
