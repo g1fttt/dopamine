@@ -2,27 +2,20 @@
 
 #include <d3d9.h>
 
-#include "hacks/glow/object_manager.h"
-#include "ui/post_processing.h"
-
 #include "hacks/visuals.h"
-#include "hooks/hooks.h"
 
 #include "game/engine.h"
 #include "game/input_system.h"
+#include "game/key_values.h"
 
 #include "config.h"
 #include "interfaces.h"
-#include "netvars.h"
-#include "patterns.h"
 
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 
 namespace core {
-  App::App(HMODULE module) {
-    hooks = std::make_unique<Hooks>();
-
+  App::App(HMODULE module) : hooks{std::make_optional<Hooks>()} {
     this->module = module;
     DisableThreadLibraryCalls(module);
 
@@ -36,18 +29,19 @@ namespace core {
 
     interfaces = Interfaces{};
     patterns = Patterns{};
-    netvars = Netvars{};
+    netvars = Netvars{*interfaces};
 
-    glow::object_manager = glow::ObjectManager{};
-    ui::blur_effect = ui::BlurEffect{};
+    game::KeyValues::init_methods(*patterns);
 
-    hooks->setup(window);
+    glow_object_manager = glow::ObjectManager{*interfaces};
+
+    hooks->setup(*interfaces, *patterns, window);
   }
 
   void App::reset() {
     interfaces->input_system->enable_input(true);
 
-    hooks->remove();
+    hooks->remove(*patterns);
 
     ImGui_ImplWin32_Shutdown();
     ImGui_ImplDX9_Shutdown();

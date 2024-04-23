@@ -1,5 +1,3 @@
-#include "hooks.h"
-
 #include <d3d9.h>
 
 #include <ui/menu.h>
@@ -11,7 +9,6 @@
 #include <hacks/visuals.h>
 
 #include <app.h>
-#include <interfaces.h>
 
 #include <imgui.h>
 #include <imgui_impl_dx9.h>
@@ -20,11 +17,11 @@
 namespace d3d9 {
   HRESULT WINAPI reset(IDirect3DDevice9 *device,
                        _D3DPRESENT_PARAMETERS *params) {
-    ui::blur_effect->clear_textures();
+    ui::blur_effect.clear_textures();
 
     ImGui_ImplDX9_InvalidateDeviceObjects();
 
-    const auto result = hooks->d3d9_reset_original(device, params);
+    const auto result = app->hooks->d3d9_reset_original(device, params);
 
     ImGui_ImplDX9_CreateDeviceObjects();
 
@@ -37,7 +34,7 @@ static ImGuiContext *create_imgui_context(IDirect3DDevice9 *device) {
   ImGui::SetCurrentContext(ctx);
 
   ImGui_ImplDX9_Init(device);
-  ImGui_ImplWin32_Init(core::app->window);
+  ImGui_ImplWin32_Init(app->window);
 
   ImGui::StyleColorsDark();
 
@@ -54,8 +51,8 @@ static ImGuiContext *create_imgui_context(IDirect3DDevice9 *device) {
 }
 
 static bool init_imgui(IDirect3DDevice9 *device) {
-  core::app->fore_imgui_ctx.set(create_imgui_context(device));
-  core::app->back_imgui_ctx.set(create_imgui_context(device));
+  app->fore_imgui_ctx.set(create_imgui_context(device));
+  app->back_imgui_ctx.set(create_imgui_context(device));
   return true;
 }
 
@@ -97,24 +94,24 @@ namespace d3d9 {
     // Fix menu (and blur) not rendering without `net_graph` or `cl_showfps`
     device->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
 
-    draw_frame(device, core::app->back_imgui_ctx, [&] {
+    draw_frame(device, app->back_imgui_ctx, [&] {
       auto *draw_list = ImGui::GetBackgroundDrawList();
 
       if (!ui::menu.is_fully_closed()) {
-        ui::blur_effect->set_device(device);
-        ui::blur_effect->draw(draw_list, ui::menu.get_transparency());
+        ui::blur_effect.set_device(device);
+        ui::blur_effect.draw(draw_list, ui::menu.get_transparency());
       }
 
-      const auto should_draw_visuals =
-          core::interfaces->engine->is_in_game() &&
-          !core::interfaces->surface->is_cursor_visible();
+      const auto interfaces = *app->interfaces;
+      const auto should_draw_visuals = interfaces.engine->is_in_game() &&
+                                       !interfaces.surface->is_cursor_visible();
 
       if (should_draw_visuals) {
-        hacks::visuals.draw_sniper_crosshair(draw_list);
+        hacks::visuals.draw_sniper_crosshair(app->local_player, draw_list);
       }
     });
 
-    draw_frame(device, core::app->fore_imgui_ctx, [&] {
+    draw_frame(device, app->fore_imgui_ctx, [&] {
       // Fix broken ImGui menu colors with Source engine gamma correction
       device->SetRenderState(D3DRS_SRGBWRITEENABLE, false);
 
@@ -123,11 +120,11 @@ namespace d3d9 {
 
     state_block->Apply();
   end:
-    if (core::app->should_unload) {
+    if (app->should_unload) {
       ShowCursor(true);
-      core::app->must_unload = true;
+      app->must_unload = true;
     }
-    return hooks->d3d9_present_original(device, src, dest, window_override,
-                                        dirty_region);
+    return app->hooks->d3d9_present_original(device, src, dest, window_override,
+                                             dirty_region);
   }
 }

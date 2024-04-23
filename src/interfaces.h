@@ -1,8 +1,6 @@
 #pragma once
 
-#include <utils/ptr.h>
-
-#include <optional>
+#include "utils/ptr.h"
 
 namespace game {
   struct Client;
@@ -31,6 +29,4 @@ namespace core {
     game::ModelRender *model_render;
     void *client_mode = nullptr;
   };
-
-  constinit inline std::optional<Interfaces> interfaces{};
 }

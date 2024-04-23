@@ -2,11 +2,14 @@
 
 #include <utils/vmt.h>
 
-#include <memory>
-
 namespace game {
   struct UserCommand;
   struct ViewSetup;
+}
+
+namespace core {
+  struct Interfaces;
+  struct Patterns;
 }
 
 struct IDirect3DDevice9;
@@ -18,8 +21,9 @@ struct Hooks {
   using D3D9_Reset = HRESULT WINAPI(IDirect3DDevice9 *,
                                     _D3DPRESENT_PARAMETERS *);
 
-  void setup(HWND window);
-  void remove();
+  void setup(core::Interfaces &interfaces, core::Patterns &patterns,
+             HWND window);
+  void remove(core::Patterns &patterns);
 
   HWND window = nullptr;
 
@@ -37,5 +41,3 @@ struct Hooks {
 
   WNDPROC wnd_proc_original = nullptr;
 };
-
-constinit inline std::unique_ptr<Hooks> hooks{};

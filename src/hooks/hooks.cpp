@@ -37,25 +37,26 @@ namespace surface {
   bool STDCALL is_cursor_visible();
 }
 
-void Hooks::setup(HWND window) {
+void Hooks::setup(core::Interfaces &interfaces, core::Patterns &patterns,
+                  HWND window) {
   this->window = window;
 
-  const auto client_mode = core::interfaces->client_mode;
+  const auto client_mode = interfaces.client_mode;
   override_view.init_and_hook<16>(client_mode, client_mode::override_view);
   create_move.init_and_hook<21>(client_mode, client_mode::create_move);
   do_post_screen_space_effects.init_and_hook<39>(
       client_mode, client_mode::do_post_screen_space_effects);
 
-  const auto client = core::interfaces->client.get();
+  const auto client = interfaces.client.get();
   level_init_post_entity.init_and_hook<6>(client,
                                           client::level_init_post_entity);
   level_shutdown.init_and_hook<7>(client, client::level_shutdown);
 
-  const auto engine = core::interfaces->engine;
+  const auto engine = interfaces.engine;
   get_screen_aspect_ratio.init_and_hook<95>(engine,
                                             engine::get_screen_aspect_ratio);
 
-  const auto surface = core::interfaces->surface;
+  const auto surface = interfaces.surface;
   is_cursor_visible.init_and_hook<53>(surface, surface::is_cursor_visible);
   lock_cursor.init_and_hook<62>(surface, surface::lock_cursor);
 
@@ -63,20 +64,18 @@ void Hooks::setup(HWND window) {
       SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(winapi::wnd_proc)));
 
   d3d9_present_original =
-      **core::patterns->d3d9_present.cast<decltype(d3d9_present_original) *>();
+      **patterns.d3d9_present.cast<decltype(d3d9_present_original) *>();
   d3d9_reset_original =
-      **core::patterns->d3d9_reset.cast<decltype(d3d9_reset_original)>();
+      **patterns.d3d9_reset.cast<decltype(d3d9_reset_original)>();
 
-  **core::patterns->d3d9_present.cast<decltype(d3d9::present) **>() =
-      d3d9::present;
-  **core::patterns->d3d9_reset.cast<decltype(d3d9::reset) **>() = d3d9::reset;
+  **patterns.d3d9_present.cast<decltype(d3d9::present) **>() = d3d9::present;
+  **patterns.d3d9_reset.cast<decltype(d3d9::reset) **>() = d3d9::reset;
 }
 
-void Hooks::remove() {
-  **core::patterns->d3d9_present.cast<decltype(d3d9::present) **>() =
+void Hooks::remove(core::Patterns &patterns) {
+  **patterns.d3d9_present.cast<decltype(d3d9::present) **>() =
       d3d9_present_original;
-  **core::patterns->d3d9_reset.cast<decltype(d3d9::reset) **>() =
-      d3d9_reset_original;
+  **patterns.d3d9_reset.cast<decltype(d3d9::reset) **>() = d3d9_reset_original;
 
   SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(wnd_proc_original));
 

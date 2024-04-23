@@ -12,8 +12,12 @@ namespace game {
 }
 
 namespace core {
+  struct Interfaces;
+}
+
+namespace core {
   struct Netvars {
-    Netvars();
+    Netvars(const core::Interfaces &interfaces);
 
     std::optional<uintptr_t> find_by_hash(uintptr_t hash);
   private:
@@ -24,15 +28,13 @@ namespace core {
 
     std::vector<HashOffset> hashed;
   };
-
-  constinit inline std::optional<Netvars> netvars{};
 }
 
 #define NETVAR_OFFSET(RetType, func_name, class_name, var_name, offset)        \
   RetType func_name() const {                                                  \
     constexpr auto hash = utils::fnv::hash(class_name "->" var_name);          \
     return *reinterpret_cast<const RetType *>(                                 \
-        this + core::netvars->find_by_hash(hash).value() + offset);            \
+        this + app->netvars->find_by_hash(hash).value() + offset);             \
   }
 
 #define NETVAR(RetType, func_name, class_name, var_name)                       \

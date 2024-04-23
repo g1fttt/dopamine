@@ -3,7 +3,6 @@
 #include <utils/color.h>
 
 #include <forward_list>
-#include <optional>
 
 namespace game {
   struct Entity;
@@ -11,6 +10,10 @@ namespace game {
   struct RenderContext;
   struct Material;
   struct Texture;
+}
+
+namespace core {
+  struct Interfaces;
 }
 
 namespace glow {
@@ -24,7 +27,7 @@ namespace glow {
   };
 
   struct ObjectManager {
-    ObjectManager();
+    ObjectManager(const core::Interfaces &interfaces);
 
     inline void register_entity(game::Entity *entity) {
       objects.push_front({.entity = entity});
@@ -45,18 +48,19 @@ namespace glow {
       objects.clear();
     }
 
-    void draw_glow_effects(const game::ViewSetup *view) const;
+    void draw_glow_effects(const core::Interfaces &interfaces,
+                           const game::ViewSetup *view) const;
     bool has_glow_effect(game::Entity *entity) const;
   private:
-    void draw_glow_models(const game::ViewSetup *view,
+    void draw_glow_models(const core::Interfaces &interfaces,
+                          const game::ViewSetup *view,
                           game::RenderContext *render_ctx) const;
-    void apply_entity_glow_effects(const game::ViewSetup *view,
+    void apply_entity_glow_effects(const core::Interfaces &interfaces,
+                                   const game::ViewSetup *view,
                                    game::RenderContext *render_ctx) const;
 
     game::Texture *rt_full_frame, *rt_quarter_size_1 = nullptr;
     game::Material *glow_material, *halo_add_to_screen_material = nullptr;
     std::forward_list<Object> objects;
   };
-
-  constinit inline std::optional<ObjectManager> object_manager{};
 }

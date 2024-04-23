@@ -8,13 +8,14 @@
 #include <imgui.h>
 
 namespace hacks {
-  void Visuals::draw_sniper_crosshair(ImDrawList *draw_list) const {
+  void Visuals::draw_sniper_crosshair(game::PlayerEntity *local_player,
+                                      ImDrawList *draw_list) const {
     const auto &cfg = config.sniper_rifle_crosshair;
-    if (!cfg.enabled || !core::app->local_player) {
+    if (!cfg.enabled || !local_player) {
       return;
     }
 
-    if (const auto weapon = core::app->local_player->active_weapon();
+    if (const auto weapon = local_player->active_weapon();
         !weapon || !weapon->is_sniper_rifle() || weapon->is_in_scope()) {
       return;
     }
@@ -37,7 +38,7 @@ namespace hacks {
 
   void Visuals::override_fov(game::ViewSetup *view) const {
     const auto &cfg = config.add_fov;
-    if (!cfg.enabled || core::app->should_anti_screenshot()) {
+    if (!cfg.enabled || app->should_anti_screenshot()) {
       return;
     }
 

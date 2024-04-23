@@ -4,6 +4,7 @@
 
 namespace game {
   struct UserCommand;
+  struct PlayerEntity;
 }
 
 namespace hacks {
@@ -28,7 +29,8 @@ namespace hacks {
       Bunnyhop bunnyhop;
     };
 
-    void bunnyhop(game::UserCommand *cmd) const;
+    void bunnyhop(game::PlayerEntity *local_player,
+                  game::UserCommand *cmd) const;
 
     Config config;
   };

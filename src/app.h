@@ -2,8 +2,15 @@
 
 #include <Windows.h>
 
+#include "hacks/glow/object_manager.h"
+#include "hooks/hooks.h"
 #include "ui/shared.h"
 
+#include "interfaces.h"
+#include "netvars.h"
+#include "patterns.h"
+
+#include <memory>
 #include <optional>
 
 namespace game {
@@ -21,6 +28,14 @@ namespace core {
     HMODULE module = nullptr;
     HWND window = nullptr;
 
+    std::optional<Hooks> hooks;
+    std::optional<Interfaces> interfaces;
+
+    std::optional<Netvars> netvars;
+    std::optional<Patterns> patterns;
+
+    std::optional<glow::ObjectManager> glow_object_manager;
+
     // true if VK_END is pressed
     bool should_unload = false;
 
@@ -32,6 +47,6 @@ namespace core {
 
     ui::ImGuiContext fore_imgui_ctx, back_imgui_ctx;
   };
-
-  constinit inline std::optional<App> app{};
 }
+
+constinit inline std::unique_ptr<core::App> app{};

@@ -3,7 +3,6 @@
 #include <Windows.h>
 
 #include <functional>
-#include <optional>
 
 namespace core {
   using KeyCode = WPARAM;
@@ -25,5 +24,5 @@ namespace core {
     Key last_up;
   };
 
-  constinit inline std::optional<Input> input{};
+  constinit inline Input input{};
 }

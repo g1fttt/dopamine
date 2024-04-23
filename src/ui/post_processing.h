@@ -2,9 +2,9 @@
 
 #include <wrl/client.h>
 
-#include <optional>
+#include <cstdint>
 
-using namespace Microsoft::WRL;
+using Microsoft::WRL::ComPtr;
 
 struct ImDrawList;
 
@@ -52,13 +52,13 @@ namespace ui {
     void create_shaders();
     void create_textures();
 
-    IDirect3DDevice9 *device;
+    IDirect3DDevice9 *device = nullptr;
     // Yes, I LOVE smart pointers
     ComPtr<IDirect3DSurface9> rt_backup;
     ComPtr<IDirect3DTexture9> blur_texture1, blur_texture2;
     ShaderProgram blur_shader_x, blur_shader_y;
-    uint32_t backbuf_width, backbuf_height;
+    uint32_t backbuf_width, backbuf_height = 0;
   };
 
-  constinit inline std::optional<BlurEffect> blur_effect{};
+  inline BlurEffect blur_effect{};
 }

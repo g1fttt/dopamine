@@ -59,19 +59,19 @@ namespace ui {
   constexpr auto BLUR_DOWNSAMPLE = 4.0f;
 
   inline void begin(const ImDrawList *, const ImDrawCmd *) {
-    blur_effect->begin();
+    blur_effect.begin();
   }
 
   inline void first_pass(const ImDrawList *, const ImDrawCmd *) {
-    blur_effect->first_pass();
+    blur_effect.first_pass();
   }
 
   inline void second_pass(const ImDrawList *, const ImDrawCmd *) {
-    blur_effect->second_pass();
+    blur_effect.second_pass();
   }
 
   inline void end(const ImDrawList *, const ImDrawCmd *) {
-    blur_effect->end();
+    blur_effect.end();
   }
 
   void BlurEffect::draw(ImDrawList *draw_list, float alpha) {

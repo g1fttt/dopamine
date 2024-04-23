@@ -13,8 +13,8 @@
 #include <cctype>
 
 namespace core {
-  Netvars::Netvars() {
-    for (auto *client_class = core::interfaces->client->get_all_classes();
+  Netvars::Netvars(const core::Interfaces &interfaces) {
+    for (auto *client_class = interfaces.client->get_all_classes();
          client_class; client_class = client_class->next) {
       walk_table(client_class->network_name, client_class->recv_table);
     }

@@ -1,5 +1,3 @@
-#include "object_manager.h"
-
 #include <game/entity.h>
 #include <game/entity_list.h>
 #include <game/key_values.h>
@@ -13,7 +11,6 @@
 #include <game/view.h>
 
 #include <app.h>
-#include <interfaces.h>
 
 struct StencilState {
   constexpr static void create_and_set(const StencilState &self,
@@ -47,7 +44,7 @@ namespace glow {
   bool Object::should_draw() const {
     return enabled && entity && entity->renderable()->should_draw() &&
            !entity->networkable()->is_dormant() &&
-           !core::app->should_anti_screenshot();
+           !app->should_anti_screenshot();
   }
 
   void Object::draw_model() const {
@@ -82,11 +79,12 @@ namespace glow {
     }
   }
 
-  void ObjectManager::draw_glow_effects(const game::ViewSetup *view) const {
-    const auto render_ctx = core::interfaces->material_system->render_context();
+  void ObjectManager::draw_glow_effects(const core::Interfaces &interfaces,
+                                        const game::ViewSetup *view) const {
+    const auto render_ctx = interfaces.material_system->render_context();
     {
       render_ctx->begin_pix_event("apply_entity_glow_effects");
-      { apply_entity_glow_effects(view, render_ctx); }
+      { apply_entity_glow_effects(interfaces, view, render_ctx); }
       render_ctx->end_pix_event();
     }
   }
@@ -97,29 +95,28 @@ namespace glow {
     });
   }
 
-  ObjectManager::ObjectManager() {
-    rt_full_frame = core::interfaces->material_system->find_texture(
-        "_rt_FullFrameFB", "RenderTargets");
+  ObjectManager::ObjectManager(const core::Interfaces &interfaces) {
+    rt_full_frame = interfaces.material_system->find_texture("_rt_FullFrameFB",
+                                                             "RenderTargets");
     rt_full_frame->inc_ref_counter();
 
-    rt_quarter_size_1 = core::interfaces->material_system->find_texture(
+    rt_quarter_size_1 = interfaces.material_system->find_texture(
         "_rt_SmallFB1", "RenderTargets");
     rt_quarter_size_1->inc_ref_counter();
 
     // TODO: Featureful "Material Creator" with std::initializer_list support
 
-    // FIXME: Cleanup on hack unload
-    auto glow_kv = new game::KeyValues{"UnlitGeneric"};
+    static auto glow_kv = new game::KeyValues{"UnlitGeneric"};
     {
       glow_kv->set_string("$BaseTexture", "white");
       glow_kv->set_int("$IgnoreZ", 1);
       glow_kv->set_int("$Model", 1);
       glow_kv->set_int("$LinearWrite", 1);
     }
-    glow_material = core::interfaces->material_system->create_material(
-        "glow_color", glow_kv);
+    glow_material =
+        interfaces.material_system->create_material("glow_color", glow_kv);
 
-    auto halo_kv = new game::KeyValues{"screenspace_general"};
+    static auto halo_kv = new game::KeyValues{"screenspace_general"};
     {
       halo_kv->set_string("$PixShader", "haloaddoutline_ps20");
       halo_kv->set_int("$Alpha_Blend_Color_Overlay", 1);
@@ -128,23 +125,22 @@ namespace glow {
       halo_kv->set_int("$LinearRead_BaseTexture", 1);
       halo_kv->set_int("$LinearWrite", 1);
     }
-    halo_add_to_screen_material =
-        core::interfaces->material_system->create_material("halo_add_to_screen",
-                                                           halo_kv);
+    halo_add_to_screen_material = interfaces.material_system->create_material(
+        "halo_add_to_screen", halo_kv);
   }
 
-  void ObjectManager::draw_glow_models(const game::ViewSetup *view,
+  void ObjectManager::draw_glow_models(const core::Interfaces &interfaces,
+                                       const game::ViewSetup *view,
                                        game::RenderContext *render_ctx) const {
     render_ctx->push_render_target_and_viewport(rt_full_frame);
     render_ctx->set_viewport(0, 0, view->width, view->height);
 
-    const auto orig_color =
-        core::interfaces->render_view->get_color_modulation();
+    const auto orig_color = interfaces.render_view->get_color_modulation();
 
     render_ctx->clear_color_3ub(0, 0, 0);
     render_ctx->clear_buffers(true, false);
 
-    core::interfaces->model_render->forced_material_override(glow_material);
+    interfaces.model_render->forced_material_override(glow_material);
 
     StencilState::create_and_set({.test_mask = 0xFF}, render_ctx);
 
@@ -153,17 +149,15 @@ namespace glow {
         continue;
       }
 
-      core::interfaces->render_view->set_blend(obj.color.a);
-      core::interfaces->render_view->set_color_modulation(
-          obj.color.float_array());
+      interfaces.render_view->set_blend(obj.color.a);
+      interfaces.render_view->set_color_modulation(obj.color.float_array());
 
       obj.draw_model();
     }
 
-    core::interfaces->model_render->forced_material_override(nullptr);
-    core::interfaces->render_view->set_color_modulation(
-        orig_color.float_array());
-    core::interfaces->render_view->set_blend(orig_color.a);
+    interfaces.model_render->forced_material_override(nullptr);
+    interfaces.render_view->set_color_modulation(orig_color.float_array());
+    interfaces.render_view->set_blend(orig_color.a);
 
     StencilState::default_and_set(render_ctx);
 
@@ -171,17 +165,18 @@ namespace glow {
   }
 
   void ObjectManager::apply_entity_glow_effects(
-      const game::ViewSetup *view, game::RenderContext *render_ctx) const {
-    const auto glow_material = core::interfaces->material_system->find_material(
+      const core::Interfaces &interfaces, const game::ViewSetup *view,
+      game::RenderContext *render_ctx) const {
+    const auto glow_material = interfaces.material_system->find_material(
         "dev/glow_color", "Other Textures");
-    core::interfaces->model_render->forced_material_override(glow_material);
+    interfaces.model_render->forced_material_override(glow_material);
 
     render_ctx->override_depth_enable(true, false);
 
     StencilState::default_and_set(render_ctx);
 
-    const auto saved_blend = core::interfaces->render_view->get_blend();
-    core::interfaces->render_view->set_blend(0.0f);
+    const auto saved_blend = interfaces.render_view->get_blend();
+    interfaces.render_view->set_blend(0.0f);
 
     bool drew_anything = false;
 
@@ -205,8 +200,8 @@ namespace glow {
 
     StencilState::default_and_set(render_ctx);
 
-    core::interfaces->render_view->set_blend(saved_blend);
-    core::interfaces->model_render->forced_material_override(nullptr);
+    interfaces.render_view->set_blend(saved_blend);
+    interfaces.model_render->forced_material_override(nullptr);
 
     // https://github.com/ValveSoftware/source-sdk-2013/blob/0d8dceea4310fde5706b3ce1c70609d72a38efdf/sp/src/game/client/glow_outline_effect.cpp#L256-L260
     if (!drew_anything) {
@@ -214,7 +209,7 @@ namespace glow {
     }
 
     render_ctx->begin_pix_event("draw_glow_models");
-    { draw_glow_models(view, render_ctx); }
+    { draw_glow_models(interfaces, view, render_ctx); }
     render_ctx->end_pix_event();
 
     const auto dim_var = halo_add_to_screen_material->find_var("$C0_X");

@@ -8,6 +8,7 @@ struct ImDrawList;
 
 namespace game {
   struct ViewSetup;
+  struct PlayerEntity;
 }
 
 namespace hacks {
@@ -42,7 +43,8 @@ namespace hacks {
       SniperRifleCrosshair sniper_rifle_crosshair;
     };
 
-    void draw_sniper_crosshair(ImDrawList *draw_list) const;
+    void draw_sniper_crosshair(game::PlayerEntity *local_player,
+                               ImDrawList *draw_list) const;
     void override_fov(game::ViewSetup *view) const;
 
     Config config;

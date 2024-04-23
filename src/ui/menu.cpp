@@ -1,14 +1,14 @@
 #include "menu.h"
 
 #include <game/input_system.h>
-#include <hacks/glow/hack.h>
-#include <input.h>
 
+#include <hacks/glow/hack.h>
 #include <hacks/misc.h>
 #include <hacks/visuals.h>
 
+#include <app.h>
 #include <config.h>
-#include <interfaces.h>
+#include <input.h>
 
 #include <imgui.h>
 
@@ -58,11 +58,13 @@ namespace ui {
       return;
     }
 
+    const auto &interfaces = *app->interfaces;
+
     open = !open;
     if (!open) {
-      core::interfaces->input_system->reset_input_state();
+      interfaces.input_system->reset_input_state();
     }
-    core::interfaces->input_system->enable_input(!open);
+    interfaces.input_system->enable_input(!open);
 
     if (toggle_animation_end > 0.0f && toggle_animation_end < 1.0f) {
       toggle_animation_end = 1.0f - toggle_animation_end;

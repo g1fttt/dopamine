@@ -4,7 +4,17 @@
 
 #include <config.h>
 
+namespace game {
+  struct PlayerEntity;
+}
+
+namespace core {
+  struct Interfaces;
+}
+
 namespace glow {
+  struct ObjectManager;
+
   struct Hack {
     struct Glow {
       // clang-format off
@@ -28,7 +38,9 @@ namespace glow {
       Glow allies;
     };
 
-    void manage_entities() const;
+    void manage_entities(const core::Interfaces &interfaces,
+                         ObjectManager &object_manager,
+                         game::PlayerEntity *local_player) const;
 
     Config config;
   };

@@ -1,5 +1,3 @@
-#include "hooks.h"
-
 #include <game/input_system.h>
 #include <ui/menu.h>
 
@@ -17,14 +15,14 @@ namespace winapi {
     if (ImGui_ImplWin32_WndProcHandler(window, message, wparam, lparam)) {
       return true;
     }
-    core::input->with(message, wparam, lparam, [&](const core::Input &input) {
+    core::input.with(message, wparam, lparam, [&](const core::Input &input) {
       ui::menu.handle_toggle(input);
 
       if (input.key_is_up(VK_END)) {
-        core::app->should_unload = true;
+        app->should_unload = true;
       }
     });
-    return CallWindowProcW(hooks->wnd_proc_original, window, message, wparam,
-                           lparam);
+    return CallWindowProcW(app->hooks->wnd_proc_original, window, message,
+                           wparam, lparam);
   }
 }

@@ -1,7 +1,8 @@
 #pragma once
 
-#include <netvars.h>
 #include <utils/vmethod.h>
+
+#include <app.h>
 
 namespace game {
   struct NetworkableEntity {

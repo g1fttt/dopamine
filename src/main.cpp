@@ -5,15 +5,17 @@
 BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID reserved) {
   if (reason == DLL_PROCESS_ATTACH) {
     auto t = std::thread([=]() {
-      core::app.emplace(module);
+      app = std::make_unique<core::App>(module);
       {
-        while (!core::app->must_unload) {
+        while (!app->must_unload) {
           using namespace std::chrono_literals;
 
           std::this_thread::sleep_for(50ms);
         }
       }
-      core::app.reset();
+      app->reset();
+
+      std::destroy_at(app.release());
     });
     t.detach();
   }
