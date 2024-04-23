@@ -6,7 +6,8 @@
 
 #include <type_traits>
 
-namespace utils {
+namespace utils
+{
   template <typename T, typename... Args> struct VMTHook {
     constexpr VMTHook(const VMTHook &) = delete;
     constexpr VMTHook() = default;
@@ -22,7 +23,8 @@ namespace utils {
 
       DWORD old = 0;
       if (VirtualProtect(ptr_to_target, sizeof(ptr_to_target),
-                         PAGE_EXECUTE_READWRITE, &old)) {
+                         PAGE_EXECUTE_READWRITE, &old))
+      {
         *ptr_to_target = LPVOID(hook);
         VirtualProtect(ptr_to_target, sizeof(ptr_to_target), old, nullptr);
       }
@@ -31,7 +33,8 @@ namespace utils {
     void unhook() {
       DWORD old = 0;
       if (VirtualProtect(ptr_to_target, sizeof(ptr_to_target),
-                         PAGE_EXECUTE_READWRITE, &old)) {
+                         PAGE_EXECUTE_READWRITE, &old))
+      {
         *ptr_to_target = original;
         VirtualProtect(ptr_to_target, sizeof(ptr_to_target), old, nullptr);
       }

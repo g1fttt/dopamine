@@ -4,7 +4,8 @@
 
 #include <cstdint>
 
-namespace game {
+namespace game
+{
   struct Texture {
     VMETHOD(int32_t, actual_width, 3, (), (this))
     VMETHOD(int32_t, actual_height, 4, (), (this))

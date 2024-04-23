@@ -4,7 +4,8 @@
 
 #include <forward_list>
 
-namespace game {
+namespace game
+{
   struct Entity;
   struct ViewSetup;
   struct RenderContext;
@@ -12,11 +13,13 @@ namespace game {
   struct Texture;
 }
 
-namespace core {
+namespace core
+{
   struct Interfaces;
 }
 
-namespace glow {
+namespace glow
+{
   struct Object {
     bool should_draw() const;
     void draw_model() const;

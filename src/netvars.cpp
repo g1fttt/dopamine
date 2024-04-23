@@ -12,10 +12,12 @@
 #include <algorithm>
 #include <cctype>
 
-namespace core {
+namespace core
+{
   Netvars::Netvars(const core::Interfaces &interfaces) {
     for (auto *client_class = interfaces.client->get_all_classes();
-         client_class; client_class = client_class->next) {
+         client_class; client_class = client_class->next)
+    {
       walk_table(client_class->network_name, client_class->recv_table);
     }
     std::ranges::sort(hashed, {}, &HashOffset::first);
@@ -46,7 +48,8 @@ namespace core {
       }
 
       if (prop->recv_type == game::SendPropType::NumSendPropTypes &&
-          prop->data_table && prop->data_table->name[0] == 'D') {
+          prop->data_table && prop->data_table->name[0] == 'D')
+      {
         walk_table(network_name, prop->data_table, prop->offset + offset);
       }
 

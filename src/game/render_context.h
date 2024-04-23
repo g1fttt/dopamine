@@ -4,7 +4,8 @@
 
 #include <cstdint>
 
-namespace game {
+namespace game
+{
   struct Texture;
   struct Material;
 

@@ -2,7 +2,8 @@
 
 #include "utils/ptr.h"
 
-namespace game {
+namespace game
+{
   struct Client;
   struct EntityList;
   struct Engine;
@@ -14,7 +15,8 @@ namespace game {
   struct ModelRender;
 }
 
-namespace core {
+namespace core
+{
   struct Interfaces {
     Interfaces();
 

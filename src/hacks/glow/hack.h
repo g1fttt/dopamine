@@ -4,15 +4,18 @@
 
 #include <config.h>
 
-namespace game {
+namespace game
+{
   struct PlayerEntity;
 }
 
-namespace core {
+namespace core
+{
   struct Interfaces;
 }
 
-namespace glow {
+namespace glow
+{
   struct ObjectManager;
 
   struct Hack {

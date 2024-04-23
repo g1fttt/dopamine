@@ -3,7 +3,8 @@
 
 #include <app.h>
 
-namespace surface {
+namespace surface
+{
   bool STDCALL is_cursor_visible() {
     return app->hooks->is_cursor_visible.call_original() || ui::menu.is_open();
   }

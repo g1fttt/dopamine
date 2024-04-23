@@ -14,7 +14,8 @@
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 
-namespace d3d9 {
+namespace d3d9
+{
   HRESULT WINAPI reset(IDirect3DDevice9 *device,
                        _D3DPRESENT_PARAMETERS *params) {
     ui::blur_effect.clear_textures();
@@ -64,7 +65,9 @@ static void draw_frame(IDirect3DDevice9 *device, const ui::ImGuiContext &ctx,
   ImGui_ImplWin32_NewFrame();
 
   ImGui::NewFrame();
-  { cb(); }
+  {
+    cb();
+  }
   ImGui::EndFrame();
 
   ImGui::Render();
@@ -75,7 +78,8 @@ static void draw_frame(IDirect3DDevice9 *device, const ui::ImGuiContext &ctx,
   }
 }
 
-namespace d3d9 {
+namespace d3d9
+{
   HRESULT WINAPI present(IDirect3DDevice9 *device, const RECT *src,
                          const RECT *dest, HWND window_override,
                          const RGNDATA *dirty_region) {
@@ -85,7 +89,8 @@ namespace d3d9 {
 
     ComPtr<IDirect3DStateBlock9> state_block{};
     if (device->CreateStateBlock(D3DSBT_ALL, state_block.GetAddressOf()) !=
-        D3D_OK) {
+        D3D_OK)
+    {
       goto end;
     }
 

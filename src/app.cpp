@@ -14,8 +14,10 @@
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 
-namespace core {
-  App::App(HMODULE module) : hooks{std::make_optional<Hooks>()} {
+namespace core
+{
+  App::App(HMODULE module)
+      : hooks{std::make_optional<Hooks>()} {
     this->module = module;
     DisableThreadLibraryCalls(module);
 

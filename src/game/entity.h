@@ -3,7 +3,8 @@
 #include <app.h>
 #include <utils/vmethod.h>
 
-namespace game {
+namespace game
+{
   struct NetworkableEntity {
     VMETHOD(bool, is_dormant, 8, (), (this))
   };

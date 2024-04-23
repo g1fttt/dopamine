@@ -17,7 +17,8 @@ static T *interface_base(std::wstring_view module_name,
       create_interface(interface_name.data(), nullptr));
 }
 
-namespace core {
+namespace core
+{
   Interfaces::Interfaces() {
     client = interface_base<game::Client>(L"client.dll", "VClient017");
     entity_list =

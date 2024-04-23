@@ -11,5 +11,12 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortLambdasOnASingleLine: Empty
 AllowShortLoopsOnASingleLine: False
 
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterControlStatement: MultiLine
+  AfterNamespace: True
+
+BreakConstructorInitializers: BeforeComma
+
 FixNamespaceComments: False
 NamespaceIndentation: All

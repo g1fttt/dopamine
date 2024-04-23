@@ -5,7 +5,8 @@
 #define METHOD_FROM_PATTERN(field, pattern_name)                               \
   methods.field = patterns.pattern_name.transmute<decltype(methods.field)>()
 
-namespace core {
+namespace core
+{
   struct Patterns {
     Patterns();
 

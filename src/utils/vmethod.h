@@ -1,6 +1,7 @@
 #pragma once
 
-namespace utils {
+namespace utils
+{
   template <typename T, size_t index, typename... Args>
   T call_vmethod(void *base, Args... args) {
     return (*reinterpret_cast<T(THISCALL ***)(void *, Args...)>(base))[index](

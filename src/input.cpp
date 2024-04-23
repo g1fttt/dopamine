@@ -1,10 +1,13 @@
 #include "input.h"
 
-namespace core {
+namespace core
+{
   void Input::with(UINT message, WPARAM wparam, LPARAM lparam,
                    const std::function<void(const Input &)> &cb) {
     update_state(message, wparam, lparam);
-    { cb(*this); }
+    {
+      cb(*this);
+    }
     reset_state();
   }
 

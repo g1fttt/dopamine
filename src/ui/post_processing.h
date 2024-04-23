@@ -13,8 +13,10 @@ struct IDirect3DTexture9;
 struct IDirect3DPixelShader9;
 struct IDirect3DSurface9;
 
-namespace ui {
-  namespace {
+namespace ui
+{
+  namespace
+  {
     struct ShaderProgram {
       void use(float uniform);
       void init(const BYTE *pixel_shader_src);
@@ -30,7 +32,8 @@ namespace ui {
   }
 }
 
-namespace ui {
+namespace ui
+{
   struct BlurEffect {
     void draw(ImDrawList *draw_list, float alpha);
 

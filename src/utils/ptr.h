@@ -2,11 +2,15 @@
 
 #include <cstddef>
 
-namespace utils {
+namespace utils
+{
   template <typename T> struct Ptr {
-    constexpr Ptr(T *value) : value{value} {}
-    constexpr Ptr(size_t address) : value{reinterpret_cast<T *>(address)} {}
-    constexpr Ptr() : value{nullptr} {}
+    constexpr Ptr(T *value)
+        : value{value} {}
+    constexpr Ptr(size_t address)
+        : value{reinterpret_cast<T *>(address)} {}
+    constexpr Ptr()
+        : value{nullptr} {}
 
     constexpr void operator=(T *other) {
       value = other;

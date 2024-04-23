@@ -8,7 +8,8 @@
 
 #include "object_manager.h"
 
-namespace glow {
+namespace glow
+{
   void Hack::manage_entities(const core::Interfaces &interfaces,
                              ObjectManager &object_manager,
                              game::PlayerEntity *local_player) const {

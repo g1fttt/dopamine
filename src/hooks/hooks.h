@@ -2,12 +2,14 @@
 
 #include <utils/vmt.h>
 
-namespace game {
+namespace game
+{
   struct UserCommand;
   struct ViewSetup;
 }
 
-namespace core {
+namespace core
+{
   struct Interfaces;
   struct Patterns;
 }

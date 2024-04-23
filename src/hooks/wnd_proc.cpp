@@ -9,7 +9,8 @@
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM,
                                                              LPARAM);
 
-namespace winapi {
+namespace winapi
+{
   LRESULT WINAPI wnd_proc(HWND window, UINT message, WPARAM wparam,
                           LPARAM lparam) {
     if (ImGui_ImplWin32_WndProcHandler(window, message, wparam, lparam)) {

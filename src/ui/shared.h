@@ -2,7 +2,8 @@
 
 #include <imgui.h>
 
-namespace ui {
+namespace ui
+{
   struct ImGuiContext {
     inline void destroy() const {
       ImGui::DestroyContext(ctx);

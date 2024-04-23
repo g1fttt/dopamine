@@ -7,7 +7,8 @@
 
 #include <imgui.h>
 
-namespace ui {
+namespace ui
+{
   void ShaderProgram::use(float uniform) {
     device->SetPixelShader(pixel_shader.Get());
 
@@ -29,7 +30,8 @@ static void copy_backbuf_to_texture(IDirect3DDevice9 *device,
                                     D3DTEXTUREFILTERTYPE filter) {
   ComPtr<IDirect3DSurface9> backbuf{};
   if (device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO,
-                            backbuf.GetAddressOf()) == D3D_OK) {
+                            backbuf.GetAddressOf()) == D3D_OK)
+  {
     ComPtr<IDirect3DSurface9> surface{};
     if (texture->GetSurfaceLevel(0, surface.GetAddressOf()) == D3D_OK) {
       device->StretchRect(backbuf.Get(), nullptr, surface.Get(), nullptr,
@@ -55,7 +57,8 @@ create_texture(IDirect3DDevice9 *device, uint32_t width, uint32_t height) {
   return texture;
 }
 
-namespace ui {
+namespace ui
+{
   constexpr auto BLUR_DOWNSAMPLE = 4.0f;
 
   inline void begin(const ImDrawList *, const ImDrawCmd *) {

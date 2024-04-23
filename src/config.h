@@ -7,13 +7,16 @@
 #define FIELD(field, key)                                                      \
   (&Self::field, key, default_<decltype(Self::field)>((Self{}).field))
 
-namespace core::config {
+namespace core::config
+{
   template <typename T>
   concept Fundamental = std::is_fundamental_v<T>;
 
   template <typename T, typename Context = serde::serde_context<T>>
   concept Serde = requires(Context &ctx, T &value) {
-    { T::serde(ctx, value) };
+    {
+      T::serde(ctx, value)
+    };
   };
 
   template <typename T>

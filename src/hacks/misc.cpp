@@ -5,7 +5,8 @@
 
 #include <random>
 
-namespace hacks {
+namespace hacks
+{
   void Misc::bunnyhop(game::PlayerEntity *local_player,
                       game::UserCommand *cmd) const {
     const auto &cfg = config.bunnyhop;
@@ -18,7 +19,8 @@ namespace hacks {
     std::bernoulli_distribution distr{config.bunnyhop.chance / 100.0f};
 
     if (const auto should_bunnyhop = distr(gen);
-        !local_player->is_on_ground() || !should_bunnyhop) {
+        !local_player->is_on_ground() || !should_bunnyhop)
+    {
       cmd->buttons &= ~game::UserCommand::InJump;
     }
   }

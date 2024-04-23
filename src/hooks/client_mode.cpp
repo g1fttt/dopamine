@@ -10,7 +10,8 @@
 
 #include <app.h>
 
-namespace client_mode {
+namespace client_mode
+{
   bool STDCALL create_move(float input_sample_frame_time,
                            game::UserCommand *cmd) {
     const auto result =

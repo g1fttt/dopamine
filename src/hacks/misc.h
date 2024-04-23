@@ -2,12 +2,14 @@
 
 #include <config.h>
 
-namespace game {
+namespace game
+{
   struct UserCommand;
   struct PlayerEntity;
 }
 
-namespace hacks {
+namespace hacks
+{
   struct Misc {
     struct Bunnyhop {
       // clang-format off

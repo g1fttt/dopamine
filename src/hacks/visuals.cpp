@@ -7,7 +7,8 @@
 
 #include <imgui.h>
 
-namespace hacks {
+namespace hacks
+{
   void Visuals::draw_sniper_crosshair(game::PlayerEntity *local_player,
                                       ImDrawList *draw_list) const {
     const auto &cfg = config.sniper_rifle_crosshair;
@@ -16,7 +17,8 @@ namespace hacks {
     }
 
     if (const auto weapon = local_player->active_weapon();
-        !weapon || !weapon->is_sniper_rifle() || weapon->is_in_scope()) {
+        !weapon || !weapon->is_sniper_rifle() || weapon->is_in_scope())
+    {
       return;
     }
 

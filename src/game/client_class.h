@@ -2,7 +2,8 @@
 
 #include <utils/pad.h>
 
-namespace game {
+namespace game
+{
   struct RecvTable;
 
   struct ClientClass {

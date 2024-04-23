@@ -2,11 +2,13 @@
 
 #include <algorithm>
 
-namespace core {
+namespace core
+{
   struct Input;
 }
 
-namespace ui {
+namespace ui
+{
   struct Menu {
     void draw();
     void handle_toggle(const core::Input &input);

@@ -3,12 +3,14 @@
 #include <interfaces.h>
 #include <patterns.h>
 
-namespace winapi {
+namespace winapi
+{
   LRESULT WINAPI wnd_proc(HWND window, UINT message, WPARAM wparam,
                           LPARAM lparam);
 }
 
-namespace d3d9 {
+namespace d3d9
+{
   HRESULT WINAPI reset(IDirect3DDevice9 *device,
                        _D3DPRESENT_PARAMETERS *params);
   HRESULT WINAPI present(IDirect3DDevice9 *device, const RECT *src,
@@ -16,23 +18,27 @@ namespace d3d9 {
                          const RGNDATA *dirty_region);
 }
 
-namespace client_mode {
+namespace client_mode
+{
   bool STDCALL create_move(float input_sample_frame_time,
                            game::UserCommand *cmd);
   void STDCALL override_view(game::ViewSetup *view);
   bool STDCALL do_post_screen_space_effects(const game::ViewSetup *view);
 }
 
-namespace client {
+namespace client
+{
   void STDCALL level_init_post_entity();
   void STDCALL level_shutdown();
 }
 
-namespace engine {
+namespace engine
+{
   float STDCALL get_screen_aspect_ratio();
 }
 
-namespace surface {
+namespace surface
+{
   void STDCALL lock_cursor();
   bool STDCALL is_cursor_visible();
 }

@@ -6,12 +6,14 @@
 
 struct ImDrawList;
 
-namespace game {
+namespace game
+{
   struct ViewSetup;
   struct PlayerEntity;
 }
 
-namespace hacks {
+namespace hacks
+{
   struct Visuals {
     struct SniperRifleCrosshair {
       // clang-format off

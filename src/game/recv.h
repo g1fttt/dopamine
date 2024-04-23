@@ -4,7 +4,8 @@
 
 #include <cstdint>
 
-namespace game {
+namespace game
+{
   enum struct SendPropType {
     NumSendPropTypes = 6,
   };

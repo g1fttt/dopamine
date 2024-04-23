@@ -37,7 +37,8 @@ struct Config {
   glow::Hack::Config glow;
 };
 
-namespace core::config {
+namespace core::config
+{
   void save() {
     const auto value = serde::serialize<toml::value>(Config{
         .misc = hacks::misc.config,

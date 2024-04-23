@@ -3,7 +3,8 @@
 #include <utils/color.h>
 #include <utils/vmethod.h>
 
-namespace game {
+namespace game
+{
   struct RenderView {
     utils::Color get_color_modulation() {
       utils::Color color{};

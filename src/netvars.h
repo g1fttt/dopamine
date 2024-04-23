@@ -7,15 +7,18 @@
 #include <optional>
 #include <vector>
 
-namespace game {
+namespace game
+{
   struct RecvTable;
 }
 
-namespace core {
+namespace core
+{
   struct Interfaces;
 }
 
-namespace core {
+namespace core
+{
   struct Netvars {
     Netvars(const core::Interfaces &interfaces);
 

@@ -24,12 +24,15 @@ static void draw_feature(T &feat, const char *name, const char *id,
   if (feat.enabled) {
     ImGui::SameLine();
     ImGui::PushID(id);
-    { cb(feat); }
+    {
+      cb(feat);
+    }
     ImGui::PopID();
   }
 }
 
-namespace ui {
+namespace ui
+{
   constexpr auto WINDOW_FLAGS = ImGuiWindowFlags_NoResize |
                                 ImGuiWindowFlags_NoScrollbar |
                                 ImGuiWindowFlags_AlwaysAutoResize;

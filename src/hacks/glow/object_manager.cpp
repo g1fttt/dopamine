@@ -40,7 +40,8 @@ private:
   }
 };
 
-namespace glow {
+namespace glow
+{
   bool Object::should_draw() const {
     return enabled && entity && entity->renderable()->should_draw() &&
            !entity->networkable()->is_dormant() &&
@@ -51,16 +52,19 @@ namespace glow {
     entity->renderable()->draw_model();
 
     for (auto attachment = entity->move_child(); attachment;
-         attachment = attachment->move_peer()) {
+         attachment = attachment->move_peer())
+    {
       if (const auto renderable = attachment->renderable();
-          renderable->should_draw()) {
+          renderable->should_draw())
+      {
         renderable->draw_model();
       }
     }
   }
 }
 
-namespace glow {
+namespace glow
+{
   void ObjectManager::unregister_object_by_entity(game::Entity *entity) {
     objects.remove_if([=, this](const Object &obj) {
       return entity == obj.entity;
@@ -84,7 +88,9 @@ namespace glow {
     const auto render_ctx = interfaces.material_system->render_context();
     {
       render_ctx->begin_pix_event("apply_entity_glow_effects");
-      { apply_entity_glow_effects(interfaces, view, render_ctx); }
+      {
+        apply_entity_glow_effects(interfaces, view, render_ctx);
+      }
       render_ctx->end_pix_event();
     }
   }
@@ -207,7 +213,9 @@ namespace glow {
     }
 
     render_ctx->begin_pix_event("draw_glow_models");
-    { draw_glow_models(interfaces, view, render_ctx); }
+    {
+      draw_glow_models(interfaces, view, render_ctx);
+    }
     render_ctx->end_pix_event();
 
     const auto dim_var = halo_add_to_screen_material->find_var("$C0_X");

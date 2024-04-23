@@ -5,7 +5,8 @@
 
 #include <cstdint>
 
-namespace game {
+namespace game
+{
   struct KeyValues {
     static void init_methods(const core::Patterns &patterns) {
       METHOD_FROM_PATTERN(constructor, key_values_constructor);

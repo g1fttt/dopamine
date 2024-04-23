@@ -2,7 +2,8 @@
 
 #include <utils/vmethod.h>
 
-namespace game {
+namespace game
+{
   struct MaterialVar;
 
   struct Material {

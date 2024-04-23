@@ -5,7 +5,8 @@
 
 #include <app.h>
 
-namespace client {
+namespace client
+{
   void STDCALL level_init_post_entity() {
     app->hooks->level_init_post_entity.call_original();
 

@@ -13,11 +13,13 @@
 #include <memory>
 #include <optional>
 
-namespace game {
+namespace game
+{
   struct PlayerEntity;
 }
 
-namespace core {
+namespace core
+{
   struct App {
     App(HMODULE module);
 
