@@ -5,7 +5,7 @@
 
 namespace game {
   struct RenderView {
-    constexpr utils::Color get_color_modulation() {
+    utils::Color get_color_modulation() {
       utils::Color color{};
       {
         get_color_modulation(color.float_array());

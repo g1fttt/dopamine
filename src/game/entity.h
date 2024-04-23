@@ -19,7 +19,7 @@ namespace game {
   };
 
   struct Entity {
-    template <typename T> constexpr T *as() {
+    template <typename T> inline T *as() {
       return reinterpret_cast<T *>(this);
     }
 
@@ -45,7 +45,7 @@ namespace game {
   };
 
   struct WeaponEntity : Entity {
-    constexpr bool is_sniper_rifle() {
+    bool is_sniper_rifle() {
       switch (id()) {
       case WeaponID::Scout:
       case WeaponID::SG550:
@@ -57,7 +57,7 @@ namespace game {
       }
     }
 
-    constexpr bool is_rifle_with_scope() {
+    bool is_rifle_with_scope() {
       if (!is_sniper_rifle()) {
         switch (id()) {
         case WeaponID::AUG:
@@ -71,7 +71,7 @@ namespace game {
       }
     }
 
-    constexpr bool is_in_scope() {
+    bool is_in_scope() {
       return is_rifle_with_scope() && mode() == WeaponMode::Secondary;
     }
 
@@ -85,7 +85,7 @@ namespace game {
       OnGround = 1 << 0,
     };
 
-    constexpr bool is_on_ground() const {
+    inline bool is_on_ground() {
       return flags() & OnGround;
     }
 

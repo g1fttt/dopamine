@@ -13,12 +13,12 @@
 #include <app.h>
 
 struct StencilState {
-  constexpr static void create_and_set(const StencilState &self,
-                                       game::RenderContext *render_ctx) {
+  inline static void create_and_set(const StencilState &self,
+                                    game::RenderContext *render_ctx) {
     self.set(render_ctx);
   }
 
-  constexpr static void default_and_set(game::RenderContext *render_ctx) {
+  inline static void default_and_set(game::RenderContext *render_ctx) {
     create_and_set({}, render_ctx);
   }
 
@@ -28,7 +28,7 @@ struct StencilState {
   int32_t ref_value = 0;
   uint32_t test_mask, write_mask = 0xFFFFFFFF;
 private:
-  constexpr void set(game::RenderContext *render_ctx) const {
+  void set(game::RenderContext *render_ctx) const {
     render_ctx->set_stencil_enable(enable);
     render_ctx->set_stencil_fail_operation(fail_op);
     render_ctx->set_stencil_z_fail_operation(z_fail_op);

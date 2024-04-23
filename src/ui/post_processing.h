@@ -19,7 +19,7 @@ namespace ui {
       void use(float uniform);
       void init(const BYTE *pixel_shader_src);
 
-      constexpr void set_device(IDirect3DDevice9 *device) {
+      inline void set_device(IDirect3DDevice9 *device) {
         this->device = device;
       }
     private:
@@ -39,7 +39,7 @@ namespace ui {
     void second_pass();
     void end();
 
-    constexpr void set_device(IDirect3DDevice9 *device) {
+    void set_device(IDirect3DDevice9 *device) {
       this->device = device;
       blur_shader_x.set_device(device);
       blur_shader_y.set_device(device);

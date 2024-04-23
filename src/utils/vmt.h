@@ -37,7 +37,7 @@ namespace utils {
       }
     }
 
-    constexpr T call_original(Args... args) const {
+    T call_original(Args... args) const {
       return OriginalMethodPtr(original)(base, args...);
     }
   private:

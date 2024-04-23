@@ -13,15 +13,15 @@ namespace ui {
 
     void update_animation();
 
-    constexpr bool is_open() const {
+    inline bool is_open() const {
       return open;
     }
 
-    constexpr bool is_fully_closed() const {
+    bool is_fully_closed() const {
       return !open && toggle_animation_end > 1.0f;
     }
 
-    constexpr float get_transparency() const {
+    float get_transparency() const {
       return std::clamp(open ? toggle_animation_end
                              : 1.0f - toggle_animation_end,
                         0.0f, 1.0f);
@@ -33,7 +33,7 @@ namespace ui {
       bool glow = false;
     };
 
-    constexpr float animation_len() const {
+    inline float animation_len() const {
       return 0.35f;
     }
 

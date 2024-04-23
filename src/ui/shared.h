@@ -4,15 +4,15 @@
 
 namespace ui {
   struct ImGuiContext {
-    constexpr void destroy() const {
+    inline void destroy() const {
       ImGui::DestroyContext(ctx);
     }
 
-    constexpr void set(::ImGuiContext *ctx) {
+    inline void set(::ImGuiContext *ctx) {
       this->ctx = ctx;
     }
 
-    constexpr void push() const {
+    inline void push() const {
       ImGui::SetCurrentContext(ctx);
     }
   private:
