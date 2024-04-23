@@ -167,8 +167,6 @@ namespace glow {
   void ObjectManager::apply_entity_glow_effects(
       const core::Interfaces &interfaces, const game::ViewSetup *view,
       game::RenderContext *render_ctx) const {
-    const auto glow_material = interfaces.material_system->find_material(
-        "dev/glow_color", "Other Textures");
     interfaces.model_render->forced_material_override(glow_material);
 
     render_ctx->override_depth_enable(true, false);
