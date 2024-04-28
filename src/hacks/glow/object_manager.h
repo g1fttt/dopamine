@@ -16,6 +16,7 @@ namespace game
 namespace core
 {
   struct Interfaces;
+  struct MaterialCreator;
 }
 
 namespace glow
@@ -30,7 +31,8 @@ namespace glow
   };
 
   struct ObjectManager {
-    ObjectManager(const core::Interfaces &interfaces);
+    ObjectManager(const core::Interfaces &interfaces,
+                  core::MaterialCreator &material_creator);
 
     inline void register_entity(game::Entity *entity) {
       objects.push_front({.entity = entity});

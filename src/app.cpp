@@ -15,8 +15,12 @@
 namespace core
 {
   App::App(HMODULE module)
-      : hooks{std::make_optional<Hooks>()} {
-    this->module = module;
+      : module{module}
+      , window{FindWindowA("Valve001", nullptr)}
+      , hooks{std::make_optional<Hooks>()}
+      , interfaces{Interfaces{}}
+      , patterns{Patterns{}}
+      , netvars{*interfaces} {
     DisableThreadLibraryCalls(module);
 
     config::init_or_nothing();
@@ -25,17 +29,11 @@ namespace core
       config::save();
     });
 
-    window = FindWindowA("Valve001", nullptr);
-
-    interfaces = Interfaces{};
-    patterns = Patterns{};
-    netvars = Netvars{*interfaces};
-
     game::PlayerEntity::init_methods(*patterns);
     game::EntityList::init_methods(*patterns);
     game::KeyValues::init_methods(*patterns);
 
-    glow_object_manager = glow::ObjectManager{*interfaces};
+    glow_object_manager = glow::ObjectManager{*interfaces, material_creator};
 
     interfaces->entity_list->add_entity_listener(&entity_listener);
 

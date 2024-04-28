@@ -10,8 +10,6 @@
 #include <game/texture.h>
 #include <game/view.h>
 
-#include <app.h>
-
 struct StencilState {
   inline static void create_and_set(const StencilState &self,
                                     game::RenderContext *render_ctx) {
@@ -65,6 +63,34 @@ namespace glow
 
 namespace glow
 {
+  ObjectManager::ObjectManager(const core::Interfaces &interfaces,
+                               core::MaterialCreator &material_creator) {
+    rt_full_frame = interfaces.material_system->find_texture("_rt_FullFrameFB",
+                                                             "RenderTargets");
+    rt_full_frame->inc_ref_counter();
+
+    rt_quarter_size_1 = interfaces.material_system->find_texture(
+        "_rt_SmallFB1", "RenderTargets");
+    rt_quarter_size_1->inc_ref_counter();
+
+    glow_material = material_creator.create("UnlitGeneric", interfaces)
+                        .string("$BaseTexture", "white")
+                        .integer("$IgnoreZ", 1)
+                        .integer("$Model", 1)
+                        .integer("$LinearWrite", 1)
+                        .bind("__glow_color");
+
+    halo_add_to_screen_material =
+        material_creator.create("screenspace_general", interfaces)
+            .string("$PixShader", "haloaddoutline_ps20")
+            .integer("$Alpha_Blend_Color_Overlay", 1)
+            .string("$BaseTexture", "_rt_FullFrameFB")
+            .integer("$IgnoreZ", 1)
+            .integer("$LinearRead_BaseTexture", 1)
+            .integer("$LinearWrite", 1)
+            .bind("__halo_add_to_screen");
+  }
+
   void ObjectManager::unregister_object_by_entity(game::Entity *entity) {
     objects.remove_if([=, this](const Object &obj) {
       return entity == obj.entity;
@@ -99,40 +125,6 @@ namespace glow
     return std::any_of(objects.begin(), objects.end(), [=](const Object &obj) {
       return entity == obj.entity;
     });
-  }
-
-  ObjectManager::ObjectManager(const core::Interfaces &interfaces) {
-    rt_full_frame = interfaces.material_system->find_texture("_rt_FullFrameFB",
-                                                             "RenderTargets");
-    rt_full_frame->inc_ref_counter();
-
-    rt_quarter_size_1 = interfaces.material_system->find_texture(
-        "_rt_SmallFB1", "RenderTargets");
-    rt_quarter_size_1->inc_ref_counter();
-
-    // TODO: Featureful "Material Creator" with std::initializer_list support
-
-    static auto glow_kv = new game::KeyValues{"UnlitGeneric"};
-    {
-      glow_kv->set_string("$BaseTexture", "white");
-      glow_kv->set_int("$IgnoreZ", 1);
-      glow_kv->set_int("$Model", 1);
-      glow_kv->set_int("$LinearWrite", 1);
-    }
-    glow_material =
-        interfaces.material_system->create_material("glow_color", glow_kv);
-
-    static auto halo_kv = new game::KeyValues{"screenspace_general"};
-    {
-      halo_kv->set_string("$PixShader", "haloaddoutline_ps20");
-      halo_kv->set_int("$Alpha_Blend_Color_Overlay", 1);
-      halo_kv->set_string("$BaseTexture", "_rt_FullFrameFB");
-      halo_kv->set_int("$IgnoreZ", 1);
-      halo_kv->set_int("$LinearRead_BaseTexture", 1);
-      halo_kv->set_int("$LinearWrite", 1);
-    }
-    halo_add_to_screen_material = interfaces.material_system->create_material(
-        "halo_add_to_screen", halo_kv);
   }
 
   void ObjectManager::draw_glow_models(const core::Interfaces &interfaces,
