@@ -20,3 +20,5 @@ BreakConstructorInitializers: BeforeComma
 
 FixNamespaceComments: False
 NamespaceIndentation: All
+
+SpaceBeforeRangeBasedForLoopColon: False
