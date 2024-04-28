@@ -71,6 +71,13 @@ namespace core
     key_values_constructor = find_pattern(L"StudioRender.dll", u8"\x55\x8B\xEC\x56\x8B\xF1\x6A");
     key_values_set_string = find_pattern(L"client.dll", u8"\x55\x8B\xEC\x57\x6A\x01\xFF\x75\x08\xE8\xCC\xCC\xCC\xCC\x8B\xF8\x85\xFF\x74\x60");
     key_values_set_int = find_pattern(L"StudioRender.dll", u8"\x55\x8B\xEC\x6A\x01");
+
+    global_entity_list = **find_pattern(L"client.dll", u8"\xA1\xCC\xCC\xCC\xCC\x66\x8B\x80\x48\x80\x01\x00")
+                      .byte_add(1)
+                      .cast<void **>();
+    add_entity_listener = find_pattern(L"client.dll", u8"\x55\x8B\xEC\x8B\x91\x24\x00");
+
+    is_local_player = find_pattern(L"client.dll", u8"\x33\xC0\x39\x0D\xCC\xCC\xCC\xCC\x0F");
     // clang-format on
   }
 }

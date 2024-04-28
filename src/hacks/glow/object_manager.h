@@ -36,13 +36,12 @@ namespace glow
       objects.push_front({.entity = entity});
     }
 
-    // TODO: Unregister player's entity when the so leaves the server
     void unregister_object_by_entity(game::Entity *entity);
     void update_object_by_entity(game::Entity *entity,
                                  const utils::Color &color);
 
     inline void force_disable() {
-      for (auto &obj : objects) {
+      for (auto &obj: objects) {
         obj.enabled = false;
       }
     }

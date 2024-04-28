@@ -1,14 +1,10 @@
 #include <game/engine.h>
 #include <game/entity.h>
-#include <game/entity_list.h>
 #include <game/view.h>
 
 #include <hacks/glow/hack.h>
-
 #include <hacks/misc.h>
 #include <hacks/visuals.h>
-
-#include <app.h>
 
 namespace client_mode
 {
@@ -37,8 +33,8 @@ namespace client_mode
     if (interfaces.engine->is_in_game()) {
       auto &glow_object_manager = *app->glow_object_manager;
 
-      glow::hack.manage_entities(interfaces, glow_object_manager,
-                                 app->local_player);
+      glow::hack.manage_players(glow_object_manager, app->local_player);
+
       glow_object_manager.draw_glow_effects(interfaces, view);
       glow_object_manager.force_disable();
     }

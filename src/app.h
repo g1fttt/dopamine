@@ -6,6 +6,7 @@
 #include "hooks/hooks.h"
 #include "ui/shared.h"
 
+#include "entity_listener.h"
 #include "interfaces.h"
 #include "netvars.h"
 #include "patterns.h"
@@ -37,6 +38,8 @@ namespace core
     std::optional<Patterns> patterns;
 
     std::optional<glow::ObjectManager> glow_object_manager;
+
+    EntityListener entity_listener;
 
     // true if VK_END is pressed
     bool should_unload = false;

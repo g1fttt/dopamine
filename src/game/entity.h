@@ -86,6 +86,14 @@ namespace game
       OnGround = 1 << 0,
     };
 
+    static void init_methods(const core::Patterns &patterns) {
+      METHOD_FROM_PATTERN_2(is_local_player);
+    }
+
+    inline bool is_local_player() {
+      return methods.is_local_player(this);
+    }
+
     inline bool is_on_ground() {
       return flags() & OnGround;
     }
@@ -94,5 +102,11 @@ namespace game
 
     NETVAR(int32_t, team, "CBaseEntity", "m_iTeamNum")
     NETVAR(Flag, flags, "CBasePlayer", "m_fFlags")
+  private:
+    struct Methods {
+      bool(THISCALL *is_local_player)(Entity *);
+    };
+
+    inline static Methods methods{};
   };
 }

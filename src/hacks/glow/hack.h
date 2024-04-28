@@ -41,9 +41,8 @@ namespace glow
       Glow allies;
     };
 
-    void manage_entities(const core::Interfaces &interfaces,
-                         ObjectManager &object_manager,
-                         game::PlayerEntity *local_player) const;
+    void manage_players(ObjectManager &object_manager,
+                        game::PlayerEntity *local_player) const;
 
     Config config;
   };

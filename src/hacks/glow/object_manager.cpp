@@ -150,7 +150,7 @@ namespace glow
 
     StencilState::create_and_set({.test_mask = 0xFF}, render_ctx);
 
-    for (const auto &obj : objects) {
+    for (const auto &obj: objects) {
       if (!obj.should_draw()) {
         continue;
       }
@@ -184,7 +184,7 @@ namespace glow
 
     bool drew_anything = false;
 
-    for (const auto &obj : objects) {
+    for (const auto &obj: objects) {
       if (!obj.should_draw()) {
         continue;
       }

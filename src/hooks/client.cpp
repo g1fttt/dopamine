@@ -1,9 +1,5 @@
-#include <game/entity.h>
-
 #include <game/engine.h>
-#include <game/entity_list.h>
-
-#include <app.h>
+#include <game/entity.h>
 
 namespace client
 {

@@ -32,9 +32,12 @@ struct Hooks {
   utils::VMTHook<bool, float, game::UserCommand *> create_move;
   utils::VMTHook<void, game::ViewSetup *> override_view;
   utils::VMTHook<bool, const game::ViewSetup *> do_post_screen_space_effects;
+
   utils::VMTHook<void> level_init_post_entity;
   utils::VMTHook<void> level_shutdown;
+
   utils::VMTHook<float> get_screen_aspect_ratio;
+
   utils::VMTHook<bool> is_cursor_visible;
   utils::VMTHook<void> lock_cursor;
 
