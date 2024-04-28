@@ -24,8 +24,9 @@ namespace core
   }
 
   void EntityListener::on_entity_deleted(game::Entity *entity) {
-    if (!entity->is_player())
+    if (!entity->is_player()) {
       return;
+    }
 
     if (const auto player = entity->as<game::PlayerEntity>();
         !player->is_local_player())
