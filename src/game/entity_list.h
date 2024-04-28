@@ -33,8 +33,6 @@ namespace game
   private:
     struct Methods {
       void(THISCALL *add_entity_listener)(GlobalEntityList *, EntityListener *);
-      void(THISCALL *remove_entity_listener)(GlobalEntityList *,
-                                             EntityListener *);
     };
 
     inline static Methods methods{};
