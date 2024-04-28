@@ -23,8 +23,7 @@ namespace core
 {
   struct App {
     App(HMODULE module);
-
-    void reset();
+    ~App();
 
     bool should_anti_screenshot() const;
 

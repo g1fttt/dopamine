@@ -42,7 +42,7 @@ namespace core
     hooks->setup(*interfaces, *patterns, window);
   }
 
-  void App::reset() {
+  App::~App() {
     interfaces->input_system->enable_input(true);
 
     hooks->remove(*patterns);

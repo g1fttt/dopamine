@@ -13,8 +13,6 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID reserved) {
           std::this_thread::sleep_for(50ms);
         }
       }
-      app->reset();
-
       std::destroy_at(app.release());
     });
     t.detach();
