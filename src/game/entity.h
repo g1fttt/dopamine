@@ -24,8 +24,15 @@ namespace game
       return reinterpret_cast<T *>(this);
     }
 
-    Entity *move_child();
-    Entity *move_peer();
+    Entity *move_child() {
+      return app->interfaces->entity_list->get_entity_from_handle(
+          *utils::Ptr{this + 0x184}.cast<int32_t>());
+    }
+
+    Entity *move_peer() {
+      return app->interfaces->entity_list->get_entity_from_handle(
+          *utils::Ptr{this + 0x188}.cast<int32_t>());
+    }
 
     VMETHOD(NetworkableEntity *, networkable, 4, (), (this))
     VMETHOD(RenderableEntity *, renderable, 5, (), (this))

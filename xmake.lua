@@ -25,7 +25,6 @@ target('dopamine')
     'src/*.cpp',
     'src/hooks/*.cpp',
     'src/utils/*.cpp',
-    'src/game/*.cpp',
     'src/ui/*.cpp',
     'src/hacks/*.cpp',
     'src/hacks/glow/*.cpp')
