@@ -125,10 +125,6 @@ namespace d3d9
 
     state_block->Apply();
   end:
-    if (app->should_unload) {
-      ShowCursor(true);
-      app->must_unload = true;
-    }
     return app->hooks->d3d9_present_original(device, src, dest, window_override,
                                              dirty_region);
   }

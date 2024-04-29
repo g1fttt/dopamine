@@ -26,6 +26,8 @@ namespace core
     App(HMODULE module);
     ~App();
 
+    void reset_cursor_and_input_state();
+
     bool should_anti_screenshot() const;
 
     HMODULE module = nullptr;
@@ -44,9 +46,6 @@ namespace core
 
     // true if VK_END is pressed
     bool should_unload = false;
-
-    // true if `should_unload` && `IDirect3DDevice9::Present` finished resetting
-    bool must_unload = false;
 
     // Obtained in `hooks::level_init_post_entity`
     game::PlayerEntity *local_player = nullptr;

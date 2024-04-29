@@ -7,7 +7,7 @@ BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID reserved) {
     auto t = std::thread([=]() {
       app = std::make_unique<core::App>(module);
       {
-        while (!app->must_unload) {
+        while (!app->should_unload) {
           using namespace std::chrono_literals;
 
           std::this_thread::sleep_for(50ms);

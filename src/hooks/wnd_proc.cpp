@@ -1,4 +1,3 @@
-#include <game/input_system.h>
 #include <ui/menu.h>
 
 #include <app.h>
@@ -16,10 +15,14 @@ namespace winapi
     if (ImGui_ImplWin32_WndProcHandler(window, message, wparam, lparam)) {
       return true;
     }
+
     core::input.with(message, wparam, lparam, [&](const core::Input &input) {
       ui::menu.handle_toggle(input);
 
       if (input.key_is_up(VK_END)) {
+        // Cursor and input related stuff should be resetted inside any WinAPI
+        // function (Present, Reset, WndProc, etc.)
+        app->reset_cursor_and_input_state();
         app->should_unload = true;
       }
     });

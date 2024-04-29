@@ -1,6 +1,7 @@
 #include <d3d9.h>
 
 #include "hacks/visuals.h"
+#include "utils/lock.h"
 
 #include "game/engine.h"
 #include "game/entity.h"
@@ -21,6 +22,9 @@ namespace core
       , interfaces{Interfaces{}}
       , patterns{Patterns{}}
       , netvars{*interfaces} {
+    // Locking game threads to avoid using uninitialized global context (app)
+    utils::Lock lock{};
+
     DisableThreadLibraryCalls(module);
 
     config::init_or_nothing();
@@ -41,8 +45,6 @@ namespace core
   }
 
   App::~App() {
-    interfaces->input_system->enable_input(true);
-
     hooks->remove(*patterns);
 
     // I didn't found CGlobalEntityList::RemoveEntityListener, so our entity
@@ -59,5 +61,10 @@ namespace core
   bool App::should_anti_screenshot() const {
     return hacks::visuals.config.anti_screenshot &&
            interfaces->engine->is_taking_screenshot();
+  }
+
+  void App::reset_cursor_and_input_state() {
+    ShowCursor(true);
+    interfaces->input_system->enable_input(true);
   }
 }
