@@ -47,6 +47,9 @@ void Hooks::setup(core::Interfaces &interfaces, core::Patterns &patterns,
                   HWND window) {
   this->window = window;
 
+  wnd_proc_original = WNDPROC(
+      SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(winapi::wnd_proc)));
+
   const auto client_mode = interfaces.client_mode;
   override_view.init_and_hook<16>(client_mode, client_mode::override_view);
   create_move.init_and_hook<21>(client_mode, client_mode::create_move);
@@ -66,9 +69,6 @@ void Hooks::setup(core::Interfaces &interfaces, core::Patterns &patterns,
   is_cursor_visible.init_and_hook<53>(surface, surface::is_cursor_visible);
   lock_cursor.init_and_hook<62>(surface, surface::lock_cursor);
 
-  wnd_proc_original = WNDPROC(
-      SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(winapi::wnd_proc)));
-
   d3d9_present_original =
       **patterns.d3d9_present.cast<decltype(d3d9_present_original) *>();
   d3d9_reset_original =
@@ -83,8 +83,6 @@ void Hooks::remove(core::Patterns &patterns) {
       d3d9_present_original;
   **patterns.d3d9_reset.cast<decltype(d3d9::reset) **>() = d3d9_reset_original;
 
-  SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(wnd_proc_original));
-
   create_move.unhook();
   override_view.unhook();
   do_post_screen_space_effects.unhook();
@@ -96,4 +94,6 @@ void Hooks::remove(core::Patterns &patterns) {
 
   is_cursor_visible.unhook();
   lock_cursor.unhook();
+
+  SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(wnd_proc_original));
 }
