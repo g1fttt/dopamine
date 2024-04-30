@@ -52,10 +52,12 @@ static ImGuiContext *create_imgui_context(IDirect3DDevice9 *device) {
   return ctx;
 }
 
-static bool init_imgui(IDirect3DDevice9 *device) {
-  app->fore_imgui_ctx.set(create_imgui_context(device));
-  app->back_imgui_ctx.set(create_imgui_context(device));
-  return true;
+static void init_imgui_once(IDirect3DDevice9 *device) {
+  static std::once_flag once{};
+  std::call_once(once, [=] {
+    app->fore_imgui_ctx.set(create_imgui_context(device));
+    app->back_imgui_ctx.set(create_imgui_context(device));
+  });
 }
 
 static void draw_frame(IDirect3DDevice9 *device, const ui::ImGuiContext &ctx,
@@ -86,7 +88,7 @@ namespace d3d9
                          const RGNDATA *dirty_region) {
     utils::Lock lock{};
 
-    static auto _ = init_imgui(device);
+    init_imgui_once(device);
 
     ui::menu.update_animation();
 
