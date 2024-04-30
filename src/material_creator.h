@@ -20,12 +20,14 @@ namespace core
         : kv{kv}
         , interfaces{interfaces} {}
 
-    inline IntermedidateMaterial &string(const char *key, const char *value) {
+    [[nodiscard]] inline IntermedidateMaterial &string(const char *key,
+                                                       const char *value) {
       kv->set_string(key, value);
       return *this;
     }
 
-    inline IntermedidateMaterial &integer(const char *key, int32_t value) {
+    [[nodiscard]] inline IntermedidateMaterial &integer(const char *key,
+                                                        int32_t value) {
       kv->set_int(key, value);
       return *this;
     }
@@ -39,8 +41,8 @@ namespace core
   };
 
   struct MaterialCreator {
-    IntermedidateMaterial create(const char *shader,
-                                 const core::Interfaces &interfaces) {
+    [[nodiscard]] IntermedidateMaterial
+    create(const char *shader, const core::Interfaces &interfaces) {
       return {std::construct_at(kvs.allocate(1), shader), interfaces};
     }
   private:
