@@ -20,10 +20,7 @@ namespace winapi
       ui::menu.handle_toggle(input);
 
       if (input.key_is_up(VK_END)) {
-        // Cursor and input related stuff should be resetted inside any WinAPI
-        // function (Present, Reset, WndProc, etc.)
-        app->reset_cursor_and_input_state();
-        app->should_unload = true;
+        app->unload();
       }
     });
     return CallWindowProcW(app->hooks->wnd_proc_original, window, message,

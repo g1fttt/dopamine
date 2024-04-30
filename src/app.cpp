@@ -1,7 +1,6 @@
 #include <d3d9.h>
 
 #include "hacks/visuals.h"
-#include "utils/lock.h"
 
 #include "game/engine.h"
 #include "game/entity.h"
@@ -13,6 +12,14 @@
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 
+static void STDCALL reset_state(core::App *app) {
+  app->interfaces->input_system->enable_input(true);
+
+  // This will trigger DllMain with DLL_PROCESS_DETACH and app pointer will be
+  // destroyed properly
+  FreeLibraryAndExitThread(app->module, EXIT_SUCCESS);
+}
+
 namespace core
 {
   App::App(HMODULE module)
@@ -22,9 +29,6 @@ namespace core
       , interfaces{Interfaces{}}
       , patterns{Patterns{}}
       , netvars{*interfaces} {
-    // Locking game threads to avoid using uninitialized global context (app)
-    utils::Lock lock{};
-
     DisableThreadLibraryCalls(module);
 
     config::init_or_nothing();
@@ -54,8 +58,6 @@ namespace core
 
     ImGui_ImplWin32_Shutdown();
     ImGui_ImplDX9_Shutdown();
-
-    FreeLibraryAndExitThread(module, EXIT_SUCCESS);
   }
 
   bool App::should_anti_screenshot() const {
@@ -63,8 +65,13 @@ namespace core
            interfaces->engine->is_taking_screenshot();
   }
 
-  void App::reset_cursor_and_input_state() {
+  void App::unload() {
     ShowCursor(true);
-    interfaces->input_system->enable_input(true);
+
+    const auto handle = CreateThread(
+        nullptr, 0, LPTHREAD_START_ROUTINE(reset_state), this, 0, nullptr);
+    if (handle) {
+      CloseHandle(handle);
+    }
   }
 }

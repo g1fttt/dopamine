@@ -26,7 +26,8 @@ namespace core
     App(HMODULE module);
     ~App();
 
-    void reset_cursor_and_input_state();
+    // MUST be called from any WinAPI function (Present, Reset, WndProc, etc.)
+    void unload();
 
     bool should_anti_screenshot() const;
 
@@ -43,9 +44,6 @@ namespace core
 
     EntityListener entity_listener;
     MaterialCreator material_creator;
-
-    // true if VK_END is pressed
-    bool should_unload = false;
 
     // Obtained in `hooks::level_init_post_entity`
     game::PlayerEntity *local_player = nullptr;
