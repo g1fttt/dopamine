@@ -63,8 +63,12 @@ namespace glow
                                    const game::ViewSetup *view,
                                    game::RenderContext *render_ctx) const;
 
-    game::Texture *rt_full_frame, *rt_quarter_size_1 = nullptr;
+    game::Texture *rt_quarter_size_1 = nullptr;
+    game::Texture *rt_glow_buf_1, *rt_glow_buf_2 = nullptr;
+
     game::Material *glow_material, *halo_add_to_screen_material = nullptr;
+    game::Material *glow_blur_x_material, *glow_blur_y_material = nullptr;
+
     std::forward_list<Object> objects;
   };
 }

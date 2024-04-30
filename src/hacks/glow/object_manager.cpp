@@ -3,7 +3,6 @@
 #include <game/key_values.h>
 #include <game/material.h>
 #include <game/material_system.h>
-#include <game/material_var.h>
 #include <game/model_render.h>
 #include <game/render_context.h>
 #include <game/render_view.h>
@@ -38,6 +37,13 @@ private:
   }
 };
 
+static void push_render_target_and_set_viewport(game::RenderContext *render_ctx,
+                                                game::Texture *rt,
+                                                int32_t width, int32_t height) {
+  render_ctx->push_render_target_and_viewport(rt);
+  render_ctx->set_viewport(0, 0, width, height);
+}
+
 namespace glow
 {
   bool Object::should_draw() const {
@@ -65,13 +71,22 @@ namespace glow
 {
   ObjectManager::ObjectManager(const core::Interfaces &interfaces,
                                core::MaterialCreator &material_creator) {
-    rt_full_frame = interfaces.material_system->find_texture("_rt_FullFrameFB",
-                                                             "RenderTargets");
-    rt_full_frame->inc_ref_counter();
+    const auto rt_full_frame = interfaces.material_system->find_texture(
+        "_rt_FullFrameFB", game::texture_groups::RENDER_TARGETS);
 
     rt_quarter_size_1 = interfaces.material_system->find_texture(
-        "_rt_SmallFB1", "RenderTargets");
+        "_rt_SmallFB1", game::texture_groups::RENDER_TARGETS);
     rt_quarter_size_1->inc_ref_counter();
+
+    rt_glow_buf_1 =
+        interfaces.material_system->create_named_render_target_texture(
+            "_rt_glow_buf_1", rt_full_frame->actual_width(),
+            rt_full_frame->actual_height());
+
+    rt_glow_buf_2 =
+        interfaces.material_system->create_named_render_target_texture(
+            "_rt_glow_buf_2", rt_full_frame->actual_width(),
+            rt_full_frame->actual_height());
 
     glow_material = material_creator.create("UnlitGeneric", interfaces)
                         .string("$BaseTexture", "white")
@@ -84,11 +99,27 @@ namespace glow
         material_creator.create("screenspace_general", interfaces)
             .string("$PixShader", "haloaddoutline_ps20")
             .integer("$Alpha_Blend_Color_Overlay", 1)
-            .string("$BaseTexture", "_rt_FullFrameFB")
+            .string("$BaseTexture", "_rt_glow_buf_1")
+            .integer("$C0_X", 1)
             .integer("$IgnoreZ", 1)
             .integer("$LinearRead_BaseTexture", 1)
             .integer("$LinearWrite", 1)
-            .bind("__halo_add_to_screen");
+            .bind("_halo_add_to_screen");
+
+    glow_blur_x_material = material_creator.create("BlurFilterX", interfaces)
+                               .string("$BaseTexture", "_rt_glow_buf_1")
+                               .integer("$IgnoreZ", 1)
+                               .integer("$Translucent", 1)
+                               .integer("$AlphaTest", 1)
+                               .bind("_glow_blur_x");
+
+    glow_blur_y_material = material_creator.create("BlurFilterY", interfaces)
+                               .string("$BaseTexture", "_rt_glow_buf_2")
+                               .integer("$BloomAmount", 1)
+                               .integer("$IgnoreZ", 1)
+                               .integer("$Translucent", 1)
+                               .integer("$AlphaTest", 1)
+                               .bind("_glow_blur_y");
   }
 
   void ObjectManager::unregister_object_by_entity(game::Entity *entity) {
@@ -130,8 +161,8 @@ namespace glow
   void ObjectManager::draw_glow_models(const core::Interfaces &interfaces,
                                        const game::ViewSetup *view,
                                        game::RenderContext *render_ctx) const {
-    render_ctx->push_render_target_and_viewport(rt_full_frame);
-    render_ctx->set_viewport(0, 0, view->width, view->height);
+    push_render_target_and_set_viewport(render_ctx, rt_glow_buf_1, view->width,
+                                        view->height);
 
     const auto orig_color = interfaces.render_view->get_color_modulation();
 
@@ -210,8 +241,19 @@ namespace glow
     }
     render_ctx->end_pix_event();
 
-    const auto dim_var = halo_add_to_screen_material->find_var("$C0_X");
-    dim_var->set_value(1.0f);
+    push_render_target_and_set_viewport(render_ctx, rt_glow_buf_2, view->width,
+                                        view->height);
+    {
+      render_ctx->draw_screen_space_rect(
+          glow_blur_x_material, 0, 0, view->width, view->height, 0.0f, 0.0f,
+          view->width - 1, view->height - 1, view->width, view->height);
+
+      render_ctx->set_render_target(rt_glow_buf_1);
+      render_ctx->draw_screen_space_rect(
+          glow_blur_y_material, 0, 0, view->width, view->height, 0.0f, 0.0f,
+          view->width - 1, view->height - 1, view->width, view->height);
+    }
+    render_ctx->pop_render_target_and_viewport();
 
     StencilState::create_and_set({.enable = true,
                                   .cmp_func = game::StencilCmpFunc::Equal,
