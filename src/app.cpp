@@ -8,6 +8,7 @@
 #include "game/key_values.h"
 
 #include "config.h"
+#include "entity_listener.h"
 
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
@@ -43,6 +44,9 @@ namespace core
 
     glow_object_manager = glow::ObjectManager{*interfaces, material_creator};
 
+    // Allow entity_listener to stay in static memory, so game won't crash
+    // trying to access invalid memory address after hack unloading
+    static EntityListener entity_listener{};
     interfaces->entity_list->add_entity_listener(&entity_listener);
 
     hooks->setup(*interfaces, *patterns, window);
@@ -53,8 +57,6 @@ namespace core
 
     // I didn't found CGlobalEntityList::RemoveEntityListener, so our entity
     // listener won't be removed from CUtlVector until game close :(
-    //
-    // Fortunately, it won't cause any (i presume?) crashes
 
     ImGui_ImplWin32_Shutdown();
     ImGui_ImplDX9_Shutdown();
@@ -66,7 +68,7 @@ namespace core
   }
 
   void App::unload() {
-    ShowCursor(true);
+    ShowCursor(TRUE);
 
     const auto handle = CreateThread(
         nullptr, 0, LPTHREAD_START_ROUTINE(reset_state), this, 0, nullptr);

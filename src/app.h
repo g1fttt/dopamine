@@ -6,7 +6,6 @@
 #include "hooks/hooks.h"
 #include "ui/shared.h"
 
-#include "entity_listener.h"
 #include "interfaces.h"
 #include "material_creator.h"
 #include "netvars.h"
@@ -42,7 +41,6 @@ namespace core
 
     std::optional<glow::ObjectManager> glow_object_manager;
 
-    EntityListener entity_listener;
     MaterialCreator material_creator;
 
     // Obtained in `hooks::level_init_post_entity`
