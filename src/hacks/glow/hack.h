@@ -1,8 +1,7 @@
 #pragma once
 
-#include <utils/color.h>
-
 #include <config.h>
+#include <utils/color.h>
 
 namespace game
 {
@@ -41,7 +40,8 @@ namespace glow
       Glow allies;
     };
 
-    void manage_players(ObjectManager &object_manager,
+    void manage_players(const core::Interfaces &interfaces,
+                        ObjectManager &object_manager,
                         game::PlayerEntity *local_player) const;
 
     Config config;

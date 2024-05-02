@@ -1,6 +1,6 @@
 #pragma once
 
-#include <app.h>
+#include <netvars.h>
 #include <utils/vmethod.h>
 
 namespace game
@@ -24,15 +24,8 @@ namespace game
       return reinterpret_cast<T *>(this);
     }
 
-    Entity *move_child() {
-      return app->interfaces->entity_list->get_entity_from_handle(
-          *utils::Ptr{this + 0x184}.cast<int32_t>());
-    }
-
-    Entity *move_peer() {
-      return app->interfaces->entity_list->get_entity_from_handle(
-          *utils::Ptr{this + 0x188}.cast<int32_t>());
-    }
+    Entity *move_child();
+    Entity *move_peer();
 
     VMETHOD(NetworkableEntity *, networkable, 4, (), (this))
     VMETHOD(RenderableEntity *, renderable, 5, (), (this))
@@ -93,13 +86,7 @@ namespace game
       OnGround = 1 << 0,
     };
 
-    static void init_methods(const core::Patterns &patterns) {
-      METHOD_FROM_PATTERN_2(is_local_player);
-    }
-
-    inline bool is_local_player() {
-      return methods.is_local_player(this);
-    }
+    bool is_local_player();
 
     inline bool is_on_ground() {
       return flags() & OnGround;
@@ -109,11 +96,5 @@ namespace game
 
     NETVAR(int32_t, team, "CBaseEntity", "m_iTeamNum")
     NETVAR(Flag, flags, "CBasePlayer", "m_fFlags")
-  private:
-    struct Methods {
-      bool(THISCALL *is_local_player)(Entity *);
-    };
-
-    inline static Methods methods{};
   };
 }

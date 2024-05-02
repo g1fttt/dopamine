@@ -22,8 +22,15 @@ namespace game
 namespace core
 {
   struct App {
-    App(HMODULE module);
-    ~App();
+    App(HMODULE module)
+        : module{module}
+        , window{FindWindowA("Valve001", nullptr)}
+        , hooks{std::make_optional<Hooks>()}
+        , interfaces{Interfaces{}}
+        , patterns{Patterns{}}
+        , netvars{*interfaces} {}
+
+    void setup();
 
     // MUST be called from any WinAPI function (Present, Reset, WndProc, etc.)
     void unload();

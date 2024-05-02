@@ -1,5 +1,4 @@
 #include <game/entity.h>
-#include <game/entity_list.h>
 #include <game/key_values.h>
 #include <game/material.h>
 #include <game/material_system.h>
@@ -8,6 +7,8 @@
 #include <game/render_view.h>
 #include <game/texture.h>
 #include <game/view.h>
+
+#include <app.h>
 
 struct StencilState {
   inline static void create_and_set(const StencilState &self,
@@ -47,7 +48,7 @@ static void push_render_target_and_set_viewport(game::RenderContext *render_ctx,
 namespace glow
 {
   bool Object::should_draw() const {
-    return enabled && entity && entity->renderable()->should_draw() &&
+    return entity && entity->renderable()->should_draw() &&
            !entity->networkable()->is_dormant() &&
            !app->should_anti_screenshot();
   }
@@ -90,54 +91,36 @@ namespace glow
 
     glow_material = material_creator.create("UnlitGeneric", interfaces)
                         .string("$BaseTexture", "white")
-                        .integer("$IgnoreZ", 1)
-                        .integer("$Model", 1)
-                        .integer("$LinearWrite", 1)
+                        .boolean("$IgnoreZ", true)
+                        .boolean("$Model", true)
+                        .boolean("$LinearWrite", true)
                         .bind("__glow_color");
 
     halo_add_to_screen_material =
         material_creator.create("screenspace_general", interfaces)
             .string("$PixShader", "haloaddoutline_ps20")
-            .integer("$Alpha_Blend_Color_Overlay", 1)
+            .boolean("$Alpha_Blend_Color_Overlay", true)
             .string("$BaseTexture", "_rt_glow_buf_1")
             .integer("$C0_X", 1)
-            .integer("$IgnoreZ", 1)
-            .integer("$LinearRead_BaseTexture", 1)
-            .integer("$LinearWrite", 1)
+            .boolean("$IgnoreZ", true)
+            .boolean("$LinearRead_BaseTexture", true)
+            .boolean("$LinearWrite", true)
             .bind("_halo_add_to_screen");
 
     glow_blur_x_material = material_creator.create("BlurFilterX", interfaces)
                                .string("$BaseTexture", "_rt_glow_buf_1")
-                               .integer("$IgnoreZ", 1)
-                               .integer("$Translucent", 1)
-                               .integer("$AlphaTest", 1)
+                               .boolean("$IgnoreZ", true)
+                               .boolean("$Translucent", true)
+                               .boolean("$AlphaTest", true)
                                .bind("_glow_blur_x");
 
     glow_blur_y_material = material_creator.create("BlurFilterY", interfaces)
                                .string("$BaseTexture", "_rt_glow_buf_2")
                                .integer("$BloomAmount", 1)
-                               .integer("$IgnoreZ", 1)
-                               .integer("$Translucent", 1)
-                               .integer("$AlphaTest", 1)
+                               .boolean("$IgnoreZ", true)
+                               .boolean("$Translucent", true)
+                               .boolean("$AlphaTest", true)
                                .bind("_glow_blur_y");
-  }
-
-  void ObjectManager::unregister_object_by_entity(game::Entity *entity) {
-    objects.remove_if([=, this](const Object &obj) {
-      return entity == obj.entity;
-    });
-  }
-
-  void ObjectManager::update_object_by_entity(game::Entity *entity,
-                                              const utils::Color &color) {
-    auto it = std::find_if(objects.begin(), objects.end(),
-                           [=, this](const Object &obj) {
-                             return entity == obj.entity;
-                           });
-    if (it != objects.end()) {
-      it->enabled = true;
-      it->color = color;
-    }
   }
 
   void ObjectManager::draw_glow_effects(const core::Interfaces &interfaces,
@@ -193,6 +176,23 @@ namespace glow
     render_ctx->pop_render_target_and_viewport();
   }
 
+  void ObjectManager::blur_glow_effects(const game::ViewSetup *view,
+                                        game::RenderContext *render_ctx) const {
+    push_render_target_and_set_viewport(render_ctx, rt_glow_buf_2, view->width,
+                                        view->height);
+    {
+      render_ctx->draw_screen_space_rect(
+          glow_blur_x_material, 0, 0, view->width, view->height, 0.0f, 0.0f,
+          view->width - 1, view->height - 1, view->width, view->height);
+
+      render_ctx->set_render_target(rt_glow_buf_1);
+      render_ctx->draw_screen_space_rect(
+          glow_blur_y_material, 0, 0, view->width, view->height, 0.0f, 0.0f,
+          view->width - 1, view->height - 1, view->width, view->height);
+    }
+    render_ctx->pop_render_target_and_viewport();
+  }
+
   void ObjectManager::apply_entity_glow_effects(
       const core::Interfaces &interfaces, const game::ViewSetup *view,
       game::RenderContext *render_ctx) const {
@@ -241,19 +241,7 @@ namespace glow
     }
     render_ctx->end_pix_event();
 
-    push_render_target_and_set_viewport(render_ctx, rt_glow_buf_2, view->width,
-                                        view->height);
-    {
-      render_ctx->draw_screen_space_rect(
-          glow_blur_x_material, 0, 0, view->width, view->height, 0.0f, 0.0f,
-          view->width - 1, view->height - 1, view->width, view->height);
-
-      render_ctx->set_render_target(rt_glow_buf_1);
-      render_ctx->draw_screen_space_rect(
-          glow_blur_y_material, 0, 0, view->width, view->height, 0.0f, 0.0f,
-          view->width - 1, view->height - 1, view->width, view->height);
-    }
-    render_ctx->pop_render_target_and_viewport();
+    blur_glow_effects(view, render_ctx);
 
     StencilState::create_and_set({.enable = true,
                                   .cmp_func = game::StencilCmpFunc::Equal,

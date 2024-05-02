@@ -3,6 +3,7 @@
 // Include here so we don't have to include it everywhere along with "netvars.h"
 // header
 #include <utils/fnv_hash.h>
+#include <utils/ptr.h>
 
 #include <optional>
 #include <vector>
@@ -31,13 +32,16 @@ namespace core
 
     std::vector<HashOffset> hashed;
   };
+
+  std::optional<uintptr_t> find_netvar_by_hash(uintptr_t hash);
 }
 
 #define NETVAR_OFFSET(RetType, func_name, class_name, var_name, offset)        \
-  RetType func_name() const {                                                  \
+  RetType func_name() {                                                        \
     constexpr auto hash = utils::fnv::hash(class_name "->" var_name);          \
-    return *reinterpret_cast<const RetType *>(                                 \
-        this + app->netvars->find_by_hash(hash).value() + offset);             \
+    return *utils::Ptr{this}                                                   \
+                .byte_add(*core::find_netvar_by_hash(hash) + offset)           \
+                .cast<RetType>();                                              \
   }
 
 #define NETVAR(RetType, func_name, class_name, var_name)                       \

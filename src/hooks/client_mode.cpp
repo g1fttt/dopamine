@@ -6,6 +6,8 @@
 #include <hacks/misc.h>
 #include <hacks/visuals.h>
 
+#include <app.h>
+
 namespace client_mode
 {
   bool STDCALL create_move(float input_sample_frame_time,
@@ -33,10 +35,11 @@ namespace client_mode
     if (interfaces.engine->is_in_game()) {
       auto &glow_object_manager = *app->glow_object_manager;
 
-      glow::hack.manage_players(glow_object_manager, app->local_player);
+      glow::hack.manage_players(interfaces, glow_object_manager,
+                                app->local_player);
 
       glow_object_manager.draw_glow_effects(interfaces, view);
-      glow_object_manager.force_disable();
+      glow_object_manager.clear_objects();
     }
     return result;
   }

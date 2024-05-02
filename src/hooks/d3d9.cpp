@@ -7,7 +7,6 @@
 #include <game/surface.h>
 
 #include <hacks/visuals.h>
-#include <utils/lock.h>
 
 #include <app.h>
 
@@ -86,8 +85,6 @@ namespace d3d9
   HRESULT WINAPI present(IDirect3DDevice9 *device, const RECT *src,
                          const RECT *dest, HWND window_override,
                          const RGNDATA *dirty_region) {
-    utils::Lock lock{};
-
     init_imgui_once(device);
 
     ui::menu.update_animation();

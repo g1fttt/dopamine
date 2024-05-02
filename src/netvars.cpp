@@ -1,13 +1,9 @@
-#include "netvars.h"
-
 #include "game/client_class.h"
 #include "game/recv.h"
 
 #include "game/client.h"
 
-#include "utils/fnv_hash.h"
-
-#include "interfaces.h"
+#include "app.h"
 
 #include <algorithm>
 #include <cctype>
@@ -57,5 +53,9 @@ namespace core
           {network_name.data() + std::string("->") + prop->var_name});
       hashed.emplace_back(hash, prop->offset + offset);
     }
+  }
+
+  std::optional<uintptr_t> find_netvar_by_hash(uintptr_t hash) {
+    return app->netvars->find_by_hash(hash);
   }
 }

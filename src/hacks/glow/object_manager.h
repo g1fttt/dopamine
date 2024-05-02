@@ -2,7 +2,7 @@
 
 #include <utils/color.h>
 
-#include <forward_list>
+#include <vector>
 
 namespace game
 {
@@ -25,7 +25,6 @@ namespace glow
     bool should_draw() const;
     void draw_model() const;
 
-    bool enabled = false;
     game::Entity *entity = nullptr;
     utils::Color color;
   };
@@ -34,18 +33,8 @@ namespace glow
     ObjectManager(const core::Interfaces &interfaces,
                   core::MaterialCreator &material_creator);
 
-    inline void register_entity(game::Entity *entity) {
-      objects.push_front({.entity = entity});
-    }
-
-    void unregister_object_by_entity(game::Entity *entity);
-    void update_object_by_entity(game::Entity *entity,
-                                 const utils::Color &color);
-
-    inline void force_disable() {
-      for (auto &obj: objects) {
-        obj.enabled = false;
-      }
+    inline void register_object(const Object &obj) {
+      objects.push_back(obj);
     }
 
     inline void clear_objects() {
@@ -59,6 +48,8 @@ namespace glow
     void draw_glow_models(const core::Interfaces &interfaces,
                           const game::ViewSetup *view,
                           game::RenderContext *render_ctx) const;
+    void blur_glow_effects(const game::ViewSetup *view,
+                           game::RenderContext *render_ctx) const;
     void apply_entity_glow_effects(const core::Interfaces &interfaces,
                                    const game::ViewSetup *view,
                                    game::RenderContext *render_ctx) const;
@@ -69,6 +60,6 @@ namespace glow
     game::Material *glow_material, *halo_add_to_screen_material = nullptr;
     game::Material *glow_blur_x_material, *glow_blur_y_material = nullptr;
 
-    std::forward_list<Object> objects;
+    std::vector<Object> objects;
   };
 }

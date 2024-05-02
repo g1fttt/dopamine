@@ -28,8 +28,13 @@ namespace core
 
     [[nodiscard]] inline IntermedidateMaterial &integer(const char *key,
                                                         int32_t value) {
-      kv->set_int(key, value);
+      kv->set_integer(key, value);
       return *this;
+    }
+
+    [[nodiscard]] inline IntermedidateMaterial &boolean(const char *key,
+                                                        bool value) {
+      return integer(key, value);
     }
 
     inline game::Material *bind(const char *material_name) {

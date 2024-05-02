@@ -2,11 +2,15 @@
 
 #include "utils/ptr.h"
 
-#define METHOD_FROM_PATTERN(field, pattern_name)                               \
-  methods.field = patterns.pattern_name.transmute<decltype(methods.field)>()
+#include <cstdint>
 
-#define METHOD_FROM_PATTERN_2(field)                                           \
-  methods.field = patterns.field.transmute<decltype(methods.field)>()
+namespace game
+{
+  struct GlobalEntityList;
+  struct PlayerEntity;
+  struct EntityListener;
+  struct KeyValues;
+}
 
 namespace core
 {
@@ -15,13 +19,13 @@ namespace core
 
     utils::Ptr<void> d3d9_present, d3d9_reset;
 
-    utils::Ptr<void> key_values_constructor;
-    utils::Ptr<void> key_values_set_string;
-    utils::Ptr<void> key_values_set_int;
+    game::KeyValues *(THISCALL *key_values_constructor)(game::KeyValues *,
+                                                        const char *);
+    void(THISCALL *key_values_set_string)(game::KeyValues *, const char *,
+                                          const char *);
+    void(THISCALL *key_values_set_integer)(game::KeyValues *, const char *,
+                                           int32_t);
 
-    utils::Ptr<void> global_entity_list;
-    utils::Ptr<void> add_entity_listener;
-
-    utils::Ptr<void> is_local_player;
+    bool(THISCALL *is_local_player)(game::PlayerEntity *);
   };
 }
