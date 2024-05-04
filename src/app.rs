@@ -50,9 +50,12 @@ impl App {
 }
 
 unsafe extern "system" fn reset_state(app: *mut c_void) -> u32 {
+    Beep(1500, 200);
+
     let app = app.cast::<App>().as_ref().unwrap();
     FreeLibraryAndExitThread(app.module, 0);
-    0
+
+    unreachable!()
 }
 
 impl App {

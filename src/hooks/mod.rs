@@ -20,25 +20,25 @@ pub struct Hooks {
 
 impl Hooks {
     pub fn create(interfaces: &Interfaces, window: HWND) -> Self {
-        let wnd_proc: WNDPROC = unsafe {
-            #[allow(clippy::fn_to_numeric_cast)]
-            mem::transmute(SetWindowLongPtrW(
-                window,
-                GWLP_WNDPROC,
-                winapi::wnd_proc as _,
-            ))
-        };
-
         Self {
             window,
             create_move: VMTHook::from_base(interfaces.client_mode),
             level_init_post_entity: VMTHook::from_base(interfaces.client),
             level_shutdown: VMTHook::from_base(interfaces.client),
-            wnd_proc,
+            wnd_proc: None,
         }
     }
 
     pub unsafe fn hook_all(&mut self) {
+        self.wnd_proc = unsafe {
+            #[allow(clippy::fn_to_numeric_cast)]
+            mem::transmute(SetWindowLongPtrW(
+                self.window,
+                GWLP_WNDPROC,
+                winapi::wnd_proc as _,
+            ))
+        };
+
         self.create_move
             .init_and_hook(21, client_mode::create_move as _);
 
