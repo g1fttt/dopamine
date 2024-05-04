@@ -1,12 +1,15 @@
 use crate::game::Entity;
 use crate::hooks::Hooks;
 use crate::interfaces::Interfaces;
+use crate::macros::s_to_cs;
 
 use winapi::ctypes::c_void;
 use winapi::shared::minwindef::HMODULE;
 use winapi::um::handleapi::CloseHandle;
 use winapi::um::libloaderapi::{DisableThreadLibraryCalls, FreeLibraryAndExitThread};
 use winapi::um::processthreadsapi::CreateThread;
+use winapi::um::utilapiset::Beep;
+use winapi::um::winuser::FindWindowA;
 
 use std::ptr;
 use std::sync::{Mutex, MutexGuard, OnceLock};
@@ -20,18 +23,19 @@ pub struct App {
 
 impl App {
     pub fn create_and_setup(module: HMODULE) {
-        Self::get_or_init(Some(module)).lock().unwrap().setup();
+        unsafe { Self::get_or_init(Some(module)).lock().unwrap().setup() };
     }
 
-    fn setup(&mut self) {
-        unsafe {
-            DisableThreadLibraryCalls(self.module);
-            self.hooks.hook_all();
-        }
+    unsafe fn setup(&mut self) {
+        DisableThreadLibraryCalls(self.module);
+        self.hooks.hook_all();
+        Beep(750, 200);
     }
 
     pub fn unload(&mut self) {
         unsafe {
+            self.hooks.unhook_all();
+
             let handle = CreateThread(
                 ptr::null_mut(),
                 0,
@@ -65,6 +69,7 @@ impl App {
         Some(f(guard))
     }
 
+    #[inline(always)]
     pub fn get() -> &'static Mutex<Self> {
         Self::get_or_init(None)
     }
@@ -73,9 +78,11 @@ impl App {
         static APP: OnceLock<Mutex<App>> = OnceLock::new();
         APP.get_or_init(|| {
             let interfaces = Interfaces::find();
+            let window = unsafe { FindWindowA(s_to_cs!("Valve001"), ptr::null_mut()) };
+
             Mutex::new(App {
                 module: module.unwrap(),
-                hooks: Hooks::create(&interfaces),
+                hooks: Hooks::create(&interfaces, window),
                 interfaces,
                 local_player: None,
             })

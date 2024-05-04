@@ -31,7 +31,13 @@ impl VMTHook {
         }
     }
 
-    // TODO: unhook method
+    pub unsafe fn unhook(&self) {
+        let mut old = 0;
+        if VirtualProtect(self.ptr_to_target as _, 4, PAGE_EXECUTE_READWRITE, &mut old) != 0 {
+            *self.ptr_to_target = self.original;
+            VirtualProtect(self.ptr_to_target as _, 4, old, ptr::null_mut());
+        }
+    }
 
     pub fn original<T>(&self) -> &T {
         unsafe { mem::transmute(&self.original) }

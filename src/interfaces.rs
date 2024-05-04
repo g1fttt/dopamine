@@ -28,7 +28,7 @@ impl Interfaces {
     }
 }
 
-unsafe fn find_interface<T, P>(module_path: P, interface_name: &str) -> &'static T
+unsafe fn find_interface<T, P>(module_path: P, interface_name: &str) -> &T
 where
     P: AsRef<Path>,
 {
