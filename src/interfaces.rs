@@ -15,15 +15,13 @@ pub struct Interfaces {
 }
 
 impl Interfaces {
-    pub fn find() -> Self {
-        unsafe {
-            let client = find_interface("client.dll", "VClient017");
-            Self {
-                client,
-                client_mode: client_mode_from_client(client),
-                entity_list: find_interface("client.dll", "VClientEntityList003"),
-                engine: find_interface("engine.dll", "VEngineClient013"),
-            }
+    pub unsafe fn find() -> Self {
+        let client = find_interface("client.dll", "VClient017");
+        Self {
+            client,
+            client_mode: client_mode_from_client(client),
+            entity_list: find_interface("client.dll", "VClientEntityList003"),
+            engine: find_interface("engine.dll", "VEngineClient013"),
         }
     }
 }

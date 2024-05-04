@@ -32,21 +32,19 @@ impl App {
         Beep(750, 200);
     }
 
-    pub fn unload(&mut self) {
-        unsafe {
-            self.hooks.unhook_all();
+    pub unsafe fn unload(&mut self) {
+        self.hooks.unhook_all();
 
-            let handle = CreateThread(
-                ptr::null_mut(),
-                0,
-                Some(reset_state),
-                self as *const App as _,
-                0,
-                ptr::null_mut(),
-            );
-            if !handle.is_null() {
-                CloseHandle(handle);
-            }
+        let handle = CreateThread(
+            ptr::null_mut(),
+            0,
+            Some(reset_state),
+            self as *const App as _,
+            0,
+            ptr::null_mut(),
+        );
+        if !handle.is_null() {
+            CloseHandle(handle);
         }
     }
 }
@@ -77,7 +75,7 @@ impl App {
     fn get_or_init(module: Option<HMODULE>) -> &'static Mutex<Self> {
         static APP: OnceLock<Mutex<App>> = OnceLock::new();
         APP.get_or_init(|| {
-            let interfaces = Interfaces::find();
+            let interfaces = unsafe { Interfaces::find() };
             let window = unsafe { FindWindowA(s_to_cs!("Valve001"), ptr::null_mut()) };
 
             Mutex::new(App {
