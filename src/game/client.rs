@@ -1,5 +1,5 @@
+use crate::call_vmethod;
 use crate::game::Entity;
-use crate::macros::call_vmethod;
 
 #[repr(C)]
 pub struct Client;

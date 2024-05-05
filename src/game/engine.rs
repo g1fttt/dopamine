@@ -1,4 +1,4 @@
-use crate::macros::call_vmethod;
+use crate::call_vmethod;
 
 #[repr(C)]
 pub struct Engine;

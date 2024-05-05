@@ -1,5 +1,5 @@
 use crate::game::{Client, ClientMode, Engine, EntityList};
-use crate::macros::{cstr, ok_or_empty_err, pcstr, pcstr_path};
+use crate::{cstr, ok_or_empty_err, pcstr, pcstr_path};
 
 use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
 
