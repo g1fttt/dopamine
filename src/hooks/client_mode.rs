@@ -19,5 +19,4 @@ pub extern "thiscall" fn create_move(
 
         result
     })
-    .unwrap_or_default()
 }

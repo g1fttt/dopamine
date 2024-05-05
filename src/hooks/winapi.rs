@@ -16,5 +16,4 @@ pub unsafe extern "stdcall" fn wnd_proc(
         }
         CallWindowProcW(app.hooks.wnd_proc, window, msg, wparam, lparam)
     })
-    .unwrap_or_default()
 }

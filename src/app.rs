@@ -66,16 +66,15 @@ impl App {
                 .get(&(class_name, prop_name))
                 .cloned()
         })
-        .unwrap_or_default()
     }
 }
 
 impl App {
-    pub fn with<T, F>(mut f: F) -> Option<T>
+    pub fn with<T, F>(mut f: F) -> T
     where
         F: FnMut(&mut Self) -> T,
     {
-        Some(f(Self::get_mut()))
+        f(Self::get_mut())
     }
 
     #[inline(always)]
