@@ -1,17 +1,40 @@
-macro_rules! p_to_cs {
-    ($path:expr) => {{
-        std::ffi::CString::new($path.as_ref().as_os_str().as_encoded_bytes())
-            .expect("Failed to create `CString` from path")
-            .into_raw()
-    }};
+macro_rules! pcstr_path {
+    ($path:expr) => {
+        windows::core::PCSTR::from_raw(
+            std::ffi::CString::new($path.as_ref().as_os_str().as_encoded_bytes())
+                .expect("Failed to create `CString` from path")
+                .into_raw()
+                .cast(),
+        )
+    };
 }
 
-macro_rules! s_to_cs {
-    ($str:expr) => {{
+macro_rules! pcstr {
+    ($str:expr) => {
+        windows::core::PCSTR::from_raw(
+            std::ffi::CString::new($str)
+                .expect("Failed to create `CString` from string")
+                .into_raw()
+                .cast(),
+        )
+    };
+    () => {
+        windows::core::PCSTR::from_raw(std::ptr::null())
+    };
+}
+
+macro_rules! cstr {
+    ($str:expr) => {
         std::ffi::CString::new($str)
             .expect("Failed to create `CString` from string")
             .into_raw()
-    }};
+    };
+}
+
+macro_rules! ok_or_empty_err {
+    ($x:expr) => {
+        $x.ok_or(windows::core::Error::empty())
+    };
 }
 
 macro_rules! call_vmethod {
@@ -23,5 +46,7 @@ macro_rules! call_vmethod {
 }
 
 pub(crate) use call_vmethod;
-pub(crate) use p_to_cs;
-pub(crate) use s_to_cs;
+pub(crate) use cstr;
+pub(crate) use ok_or_empty_err;
+pub(crate) use pcstr;
+pub(crate) use pcstr_path;

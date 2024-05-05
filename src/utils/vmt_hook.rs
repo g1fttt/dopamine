@@ -1,42 +1,43 @@
-use winapi::um::memoryapi::VirtualProtect;
-use winapi::um::winnt::PAGE_EXECUTE_READWRITE;
+use windows::Win32::System::Memory::{
+    VirtualProtect, PAGE_EXECUTE_READWRITE, PAGE_PROTECTION_FLAGS,
+};
 
 use std::ffi::c_void;
 use std::{mem, ptr};
 
 pub struct VMTHook {
-    base: *mut c_void,
     original: *mut c_void,
     ptr_to_target: *mut *mut c_void,
 }
 
 impl VMTHook {
-    pub fn from_base<T>(base: &T) -> Self {
+    pub unsafe fn new<T>(base: &T, idx: usize) -> Self {
+        let base = base as *const T as *mut c_void;
+        let vtable = *base.cast::<*mut *mut c_void>();
+        let ptr_to_target = vtable.add(idx);
+
         Self {
-            base: base as *const T as _,
-            original: ptr::null_mut(),
-            ptr_to_target: ptr::null_mut(),
+            ptr_to_target,
+            original: *ptr_to_target,
         }
     }
 
-    pub unsafe fn init_and_hook(&mut self, idx: usize, hook: *const ()) {
-        let vtable = *self.base.cast::<*mut *mut c_void>();
-        self.ptr_to_target = vtable.add(idx);
-        self.original = *self.ptr_to_target;
-
-        let mut old = 0;
-        if VirtualProtect(self.ptr_to_target as _, 4, PAGE_EXECUTE_READWRITE, &mut old) != 0 {
+    pub unsafe fn hook(&self, hook: *const ()) -> windows::core::Result<()> {
+        let mut old = PAGE_PROTECTION_FLAGS::default();
+        if VirtualProtect(self.ptr_to_target as _, 4, PAGE_EXECUTE_READWRITE, &mut old).is_ok() {
             *self.ptr_to_target = hook as _;
-            VirtualProtect(self.ptr_to_target as _, 4, old, ptr::null_mut());
+            VirtualProtect(self.ptr_to_target as _, 4, old, ptr::null_mut())?;
         }
+        Ok(())
     }
 
-    pub unsafe fn unhook(&self) {
-        let mut old = 0;
-        if VirtualProtect(self.ptr_to_target as _, 4, PAGE_EXECUTE_READWRITE, &mut old) != 0 {
+    pub unsafe fn unhook(&self) -> windows::core::Result<()> {
+        let mut old = PAGE_PROTECTION_FLAGS::default();
+        if VirtualProtect(self.ptr_to_target as _, 4, PAGE_EXECUTE_READWRITE, &mut old).is_ok() {
             *self.ptr_to_target = self.original;
-            VirtualProtect(self.ptr_to_target as _, 4, old, ptr::null_mut());
+            VirtualProtect(self.ptr_to_target as _, 4, old, ptr::null_mut())?;
         }
+        Ok(())
     }
 
     pub fn original<T>(&self) -> &T {

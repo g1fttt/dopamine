@@ -7,14 +7,13 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-winapi = { version = "0.3.9", features = [
-    "minwindef",
-    "winnt",
-    "libloaderapi",
-    "processthreadsapi",
-    "handleapi",
-    "memoryapi",
-    "windef",
-    "winuser",
-    "utilapiset",
+windows = { version = "0.56.0", features = [
+    "Win32_System_Memory",
+    "Win32_System_LibraryLoader",
+    "Win32_System_Threading",
+    "Win32_Security",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_System_Diagnostics_Debug",
+    "Win32_System_SystemServices",
 ] }

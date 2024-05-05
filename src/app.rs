@@ -1,17 +1,15 @@
 use crate::game::Entity;
 use crate::hooks::Hooks;
 use crate::interfaces::Interfaces;
-use crate::macros::s_to_cs;
+use crate::macros::pcstr;
 
-use winapi::ctypes::c_void;
-use winapi::shared::minwindef::HMODULE;
-use winapi::um::handleapi::CloseHandle;
-use winapi::um::libloaderapi::{DisableThreadLibraryCalls, FreeLibraryAndExitThread};
-use winapi::um::processthreadsapi::CreateThread;
-use winapi::um::utilapiset::Beep;
-use winapi::um::winuser::FindWindowA;
+use windows::Win32::Foundation::{CloseHandle, HMODULE};
+use windows::Win32::System::Diagnostics::Debug::Beep;
+use windows::Win32::System::LibraryLoader::{DisableThreadLibraryCalls, FreeLibraryAndExitThread};
+use windows::Win32::System::Threading::{CreateThread, THREAD_CREATION_FLAGS};
+use windows::Win32::UI::WindowsAndMessaging::FindWindowA;
 
-use std::ptr;
+use std::ffi::c_void;
 use std::sync::{Mutex, MutexGuard, OnceLock};
 
 pub struct App {
@@ -22,40 +20,47 @@ pub struct App {
 }
 
 impl App {
-    pub fn create_and_setup(module: HMODULE) {
-        unsafe { Self::get_or_init(Some(module)).lock().unwrap().setup() };
+    pub fn init_and_setup(module: HMODULE) -> windows::core::Result<()> {
+        unsafe {
+            Self::get_or_init(Some(module))
+                .lock()
+                .expect("Failed to lock `App` mutex")
+                .setup()
+        }
     }
 
-    unsafe fn setup(&mut self) {
-        DisableThreadLibraryCalls(self.module);
-        self.hooks.hook_all();
-        Beep(750, 200);
+    unsafe fn setup(&mut self) -> windows::core::Result<()> {
+        DisableThreadLibraryCalls(self.module)?;
+
+        self.hooks.hook_all()?;
+
+        Beep(750, 200)
     }
 
-    pub unsafe fn unload(&mut self) {
-        self.hooks.unhook_all();
+    pub unsafe fn unload(&mut self) -> windows::core::Result<()> {
+        self.hooks.unhook_all()?;
 
         let handle = CreateThread(
-            ptr::null_mut(),
+            None,
             0,
-            Some(reset_state),
-            self as *const App as _,
-            0,
-            ptr::null_mut(),
-        );
-        if !handle.is_null() {
-            CloseHandle(handle);
+            Some(free_library),
+            Some(self as *const App as _),
+            THREAD_CREATION_FLAGS::default(),
+            None,
+        )?;
+
+        if !handle.is_invalid() {
+            CloseHandle(handle)?;
         }
+        Ok(())
     }
 }
 
-unsafe extern "system" fn reset_state(app: *mut c_void) -> u32 {
-    Beep(1500, 200);
+unsafe extern "system" fn free_library(app: *mut c_void) -> u32 {
+    Beep(1500, 200).expect("Failed to make beep sound upon unhooking");
 
     let app = app.cast::<App>().as_ref().unwrap();
     FreeLibraryAndExitThread(app.module, 0);
-
-    unreachable!()
 }
 
 impl App {
@@ -72,14 +77,14 @@ impl App {
 
     #[inline(always)]
     pub fn get() -> &'static Mutex<Self> {
-        Self::get_or_init(None)
+        unsafe { Self::get_or_init(None) }
     }
 
-    fn get_or_init(module: Option<HMODULE>) -> &'static Mutex<Self> {
+    unsafe fn get_or_init(module: Option<HMODULE>) -> &'static Mutex<Self> {
         static APP: OnceLock<Mutex<App>> = OnceLock::new();
         APP.get_or_init(|| {
-            let interfaces = unsafe { Interfaces::find() };
-            let window = unsafe { FindWindowA(s_to_cs!("Valve001"), ptr::null_mut()) };
+            let interfaces = Interfaces::find().expect("Failed to find interfaces");
+            let window = FindWindowA(pcstr!("Valve001"), pcstr!());
 
             Mutex::new(App {
                 module: module.unwrap(),

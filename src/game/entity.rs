@@ -19,6 +19,6 @@ impl Entity {
 
     #[inline(always)]
     pub fn is_on_ground(&self) -> bool {
-        self.flags & Self::ON_GROUND != 0
+        (self.flags & Self::ON_GROUND) != 0
     }
 }
