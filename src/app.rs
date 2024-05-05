@@ -1,13 +1,11 @@
 use crate::game::Entity;
 use crate::hooks::Hooks;
 use crate::interfaces::Interfaces;
-use crate::pcstr;
 
 use windows::Win32::Foundation::{CloseHandle, HMODULE};
 use windows::Win32::System::Diagnostics::Debug::Beep;
 use windows::Win32::System::LibraryLoader::{DisableThreadLibraryCalls, FreeLibraryAndExitThread};
 use windows::Win32::System::Threading::{CreateThread, THREAD_CREATION_FLAGS};
-use windows::Win32::UI::WindowsAndMessaging::FindWindowA;
 
 use std::ffi::c_void;
 use std::sync::{Mutex, MutexGuard, OnceLock};
@@ -84,11 +82,10 @@ impl App {
         static APP: OnceLock<Mutex<App>> = OnceLock::new();
         APP.get_or_init(|| {
             let interfaces = Interfaces::find().expect("Failed to find interfaces");
-            let window = FindWindowA(pcstr!("Valve001"), pcstr!());
 
             Mutex::new(App {
                 module: module.unwrap(),
-                hooks: Hooks::create(&interfaces, window),
+                hooks: Hooks::create(&interfaces),
                 interfaces,
                 local_player: None,
             })

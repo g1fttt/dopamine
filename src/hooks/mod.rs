@@ -3,10 +3,13 @@ mod client_mode;
 mod winapi;
 
 use crate::interfaces::Interfaces;
+use crate::pcstr;
 use crate::utils::VMTHook;
 
 use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::WindowsAndMessaging::{SetWindowLongPtrW, GWLP_WNDPROC, WNDPROC};
+use windows::Win32::UI::WindowsAndMessaging::{
+    FindWindowA, SetWindowLongPtrW, GWLP_WNDPROC, WNDPROC,
+};
 
 use std::mem;
 
@@ -19,9 +22,9 @@ pub struct Hooks {
 }
 
 impl Hooks {
-    pub unsafe fn create(interfaces: &Interfaces, window: HWND) -> Self {
+    pub unsafe fn create(interfaces: &Interfaces) -> Self {
         Self {
-            window,
+            window: FindWindowA(pcstr!("Valve001"), pcstr!()),
             wnd_proc: None,
             create_move: VMTHook::new(interfaces.client_mode, 21),
             level_init_post_entity: VMTHook::new(interfaces.client, 6),
