@@ -7,14 +7,14 @@ use std::ffi::{c_char, c_void};
 use std::path::Path;
 use std::{mem, ptr};
 
-pub struct Interfaces {
-    pub client: &'static Client,
-    pub client_mode: &'static ClientMode,
-    pub entity_list: &'static EntityList,
-    pub engine: &'static Engine,
+pub struct Interfaces<'a> {
+    pub client: &'a Client,
+    pub client_mode: &'a ClientMode,
+    pub entity_list: &'a EntityList,
+    pub engine: &'a Engine,
 }
 
-impl Interfaces {
+impl Interfaces<'_> {
     pub unsafe fn find() -> windows::core::Result<Self> {
         let client = find_interface("client.dll", "VClient017")?;
         Ok(Self {

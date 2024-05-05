@@ -7,18 +7,18 @@ pub enum SendPropKind {
 }
 
 #[repr(C)]
-pub struct RecvProp {
+pub struct RecvProp<'a> {
     pub name: *const c_char,
     pub kind: SendPropKind,
     pad1: [u8; 29],
-    pub table: Option<&'static RecvTable>,
+    pub table: Option<&'a RecvTable<'a>>,
     pub offset: i32,
     pad2: [u8; 12],
 }
 
 #[repr(C)]
-pub struct RecvTable {
-    pub props: *const RecvProp,
+pub struct RecvTable<'a> {
+    pub props: *const RecvProp<'a>,
     pub len: i32,
     pad: [u8; 4],
     pub name: *const c_char,

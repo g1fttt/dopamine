@@ -3,9 +3,9 @@ use crate::game::RecvTable;
 use std::ffi::c_char;
 
 #[repr(C)]
-pub struct ClientClass {
+pub struct ClientClass<'a> {
     pad: [u8; 8],
     pub name: *const c_char,
-    pub recv_table: &'static RecvTable,
-    pub next: Option<&'static ClientClass>,
+    pub recv_table: &'a RecvTable<'a>,
+    pub next: Option<&'a ClientClass<'a>>,
 }
