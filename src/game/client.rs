@@ -1,8 +1,14 @@
 use crate::call_vmethod;
-use crate::game::Entity;
+use crate::game::{ClientClass, Entity};
 
 #[repr(C)]
 pub struct Client;
+
+impl Client {
+    pub fn all_classes(&self) -> *const ClientClass {
+        call_vmethod!(self, *const ClientClass, 8, (&Self), (self))
+    }
+}
 
 #[repr(C)]
 pub struct ClientMode;

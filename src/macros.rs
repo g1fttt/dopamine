@@ -52,3 +52,19 @@ macro_rules! call_vmethod {
             .add($idx)) $args_raw }
     };
 }
+
+#[macro_export]
+macro_rules! netvar_fn {
+    ($ret_type:ty, $name:ident, $class_name:literal, $prop_name:literal) => {
+        pub fn $name(&self) -> $ret_type {
+            let offset = $crate::App::netvar_offset($class_name, $prop_name).expect(std::concat!(
+                "Failed to find ",
+                $class_name,
+                "->",
+                $prop_name,
+                " netvar"
+            ));
+            unsafe { *(self as *const Self).byte_add(offset).cast() }
+        }
+    };
+}

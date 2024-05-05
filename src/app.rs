@@ -1,6 +1,7 @@
 use crate::game::Entity;
 use crate::hooks::Hooks;
 use crate::interfaces::Interfaces;
+use crate::netvar_manager::NetvarManager;
 
 use windows::Win32::Foundation::{CloseHandle, HMODULE};
 use windows::Win32::System::Diagnostics::Debug::Beep;
@@ -8,23 +9,19 @@ use windows::Win32::System::LibraryLoader::{DisableThreadLibraryCalls, FreeLibra
 use windows::Win32::System::Threading::{CreateThread, THREAD_CREATION_FLAGS};
 
 use std::ffi::c_void;
-use std::sync::{Mutex, MutexGuard, OnceLock};
+use std::sync::OnceLock;
 
 pub struct App {
     module: HMODULE,
     pub hooks: Hooks,
+    pub netvar_manager: NetvarManager,
     pub interfaces: Interfaces,
     pub local_player: Option<&'static Entity>,
 }
 
 impl App {
     pub fn init_and_setup(module: HMODULE) -> windows::core::Result<()> {
-        unsafe {
-            Self::get_or_init(Some(module))
-                .lock()
-                .expect("Failed to lock `App` mutex")
-                .setup()
-        }
+        unsafe { Self::get_mut_or_init(Some(module)).setup() }
     }
 
     unsafe fn setup(&mut self) -> windows::core::Result<()> {
@@ -62,33 +59,42 @@ unsafe extern "system" fn free_library(app: *mut c_void) -> u32 {
 }
 
 impl App {
-    /// Attempts to acquire `App` lock guard, then `f` closure is called.
-    ///
-    /// If the attempt was successful, `Some(T)` is returned. Otherwise, `None` is returned.
+    pub fn netvar_offset(class_name: &str, prop_name: &str) -> Option<usize> {
+        Self::with(move |app| {
+            app.netvar_manager
+                .offsets
+                .get(&(class_name, prop_name))
+                .cloned()
+        })
+        .unwrap_or_default()
+    }
+}
+
+impl App {
     pub fn with<T, F>(mut f: F) -> Option<T>
     where
-        F: FnMut(&mut MutexGuard<Self>) -> T,
+        F: FnMut(&mut Self) -> T,
     {
-        let guard = &mut Self::get().try_lock().ok()?;
-        Some(f(guard))
+        Some(f(Self::get_mut()))
     }
 
     #[inline(always)]
-    pub fn get() -> &'static Mutex<Self> {
-        unsafe { Self::get_or_init(None) }
+    pub fn get_mut() -> &'static mut Self {
+        unsafe { Self::get_mut_or_init(None) }
     }
 
-    unsafe fn get_or_init(module: Option<HMODULE>) -> &'static Mutex<Self> {
-        static APP: OnceLock<Mutex<App>> = OnceLock::new();
-        APP.get_or_init(|| {
+    unsafe fn get_mut_or_init(module: Option<HMODULE>) -> &'static mut Self {
+        static mut APP: OnceLock<App> = OnceLock::new();
+        APP.get_mut_or_init(|| {
             let interfaces = Interfaces::find().expect("Failed to find interfaces");
 
-            Mutex::new(App {
+            App {
                 module: module.unwrap(),
                 hooks: Hooks::create(&interfaces),
+                netvar_manager: NetvarManager::precache(&interfaces),
                 interfaces,
                 local_player: None,
-            })
+            }
         })
     }
 }

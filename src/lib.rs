@@ -1,4 +1,5 @@
 #![allow(clippy::missing_transmute_annotations)]
+#![feature(once_cell_get_mut)]
 
 mod app;
 mod game;
@@ -6,6 +7,7 @@ mod hacks;
 mod hooks;
 mod interfaces;
 mod macros;
+mod netvar_manager;
 mod utils;
 
 use windows::Win32::Foundation::{BOOL, HMODULE, TRUE};
@@ -22,7 +24,7 @@ extern "system" fn DllMain(module: HMODULE, reason: u32, _reserved: *mut c_void)
         DLL_PROCESS_ATTACH => {
             App::init_and_setup(module).expect("Failed to create and setup application")
         }
-        DLL_PROCESS_DETACH => mem::drop(App::get()),
+        DLL_PROCESS_DETACH => mem::drop(App::get_mut()),
         _ => (),
     }
     TRUE
