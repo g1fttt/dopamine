@@ -14,15 +14,16 @@ impl NetvarManager {
         let mut this = Self::default();
 
         let mut client_class = interfaces.client.all_classes();
-        while !client_class.is_null() {
-            this.walk_table((*client_class).name, (*client_class).recv_table, None);
-            client_class = (*client_class).next;
+        while let Some(cc) = client_class {
+            this.walk_table(cc.name, cc.recv_table);
+            client_class = cc.next;
         }
+
         this.offsets.shrink_to_fit();
         this
     }
 
-    unsafe fn walk_table(&mut self, name: *const c_char, table: &RecvTable, offset: Option<usize>) {
+    unsafe fn walk_table(&mut self, name: *const c_char, table: &RecvTable) {
         for i in 0..table.len as usize {
             let prop = &*table.props.add(i);
             if (*prop.name as u8).is_ascii_digit() {
@@ -34,18 +35,18 @@ impl NetvarManager {
                 continue;
             }
 
-            let final_offset = prop.offset as usize + offset.unwrap_or_default();
-            if prop.kind == SendPropKind::NumSendPropKinds
-                && !prop.table.is_null()
-                && *(*prop.table).name == b'D' as c_char
+            if let Some(t) = prop.table
+                && *t.name == b'D' as c_char
+                && prop.kind == SendPropKind::NumSendPropKinds
             {
-                self.walk_table(name, &*prop.table, Some(final_offset));
+                self.walk_table(name, t);
             }
 
             let class_name = CStr::from_ptr(name).to_str().unwrap_unchecked();
             let prop_name = prop_name.to_str().unwrap_unchecked();
 
-            self.offsets.insert((class_name, prop_name), final_offset);
+            self.offsets
+                .insert((class_name, prop_name), prop.offset as usize);
         }
     }
 }

@@ -5,8 +5,8 @@ use crate::game::{ClientClass, Entity};
 pub struct Client;
 
 impl Client {
-    pub fn all_classes(&self) -> *const ClientClass {
-        call_vmethod!(self, *const ClientClass, 8, (&Self), (self))
+    pub fn all_classes(&self) -> Option<&ClientClass> {
+        unsafe { call_vmethod!(self, *const ClientClass, 8, (&Self), (self)).as_ref() }
     }
 }
 

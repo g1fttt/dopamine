@@ -7,5 +7,5 @@ pub struct ClientClass {
     pad: [u8; 8],
     pub name: *const c_char,
     pub recv_table: &'static RecvTable,
-    pub next: *const ClientClass,
+    pub next: Option<&'static ClientClass>,
 }

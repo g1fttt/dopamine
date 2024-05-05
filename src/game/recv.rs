@@ -11,7 +11,7 @@ pub struct RecvProp {
     pub name: *const c_char,
     pub kind: SendPropKind,
     pad1: [u8; 29],
-    pub table: *const RecvTable,
+    pub table: Option<&'static RecvTable>,
     pub offset: i32,
     pad2: [u8; 12],
 }
