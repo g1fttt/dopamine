@@ -2,6 +2,7 @@
 #![feature(once_cell_get_mut, let_chains)]
 
 mod app;
+mod config;
 mod game;
 mod hacks;
 mod hooks;
@@ -14,7 +15,6 @@ use windows::Win32::Foundation::{BOOL, HMODULE, TRUE};
 use windows::Win32::System::SystemServices::{DLL_PROCESS_ATTACH, DLL_PROCESS_DETACH};
 
 use std::ffi::c_void;
-use std::mem;
 
 use app::App;
 
@@ -24,7 +24,7 @@ extern "system" fn DllMain(module: HMODULE, reason: u32, _reserved: *mut c_void)
         DLL_PROCESS_ATTACH => {
             App::init_and_setup(module).expect("Failed to create and setup application")
         }
-        DLL_PROCESS_DETACH => mem::drop(App::get_mut()),
+        DLL_PROCESS_DETACH => App::make_final_config_save(),
         _ => (),
     }
     TRUE

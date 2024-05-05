@@ -1,3 +1,4 @@
+use crate::config::Config;
 use crate::game::Entity;
 use crate::hooks::Hooks;
 use crate::interfaces::Interfaces;
@@ -13,9 +14,10 @@ use std::sync::OnceLock;
 
 pub struct App {
     module: HMODULE,
+    pub config: Config,
     pub hooks: Hooks,
     pub netvar_manager: NetvarManager,
-    pub interfaces: Interfaces,
+    pub interfaces: Interfaces<'static>,
     pub local_player: Option<&'static Entity>,
 }
 
@@ -30,6 +32,14 @@ impl App {
         self.hooks.hook_all()?;
 
         Beep(750, 200)
+    }
+
+    pub fn make_final_config_save() {
+        Self::with(|app| {
+            app.config
+                .save_to(Config::PATH)
+                .expect("Failed to write config");
+        });
     }
 
     pub unsafe fn unload(&mut self) -> windows::core::Result<()> {
@@ -89,6 +99,7 @@ impl App {
 
             App {
                 module: module.unwrap(),
+                config: Config::create_and_load_from(Config::PATH),
                 hooks: Hooks::create(&interfaces),
                 netvar_manager: NetvarManager::precache(&interfaces),
                 interfaces,
@@ -97,6 +108,3 @@ impl App {
         })
     }
 }
-
-unsafe impl Sync for App {}
-unsafe impl Send for App {}

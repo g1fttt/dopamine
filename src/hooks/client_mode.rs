@@ -15,7 +15,7 @@ pub extern "thiscall" fn create_move(
         let original: &CreateMoveFn = app.hooks.create_move.original();
         let result = original(this, input_sample_frame_time, cmd);
 
-        misc::bunnyhop(app.local_player, cmd);
+        misc::bunnyhop(&app.config.misc.bunnyhop, app.local_player, cmd);
 
         result
     })
