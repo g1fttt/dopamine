@@ -9,8 +9,8 @@ use windows::Win32::System::Diagnostics::Debug::Beep;
 use windows::Win32::System::LibraryLoader::{DisableThreadLibraryCalls, FreeLibraryAndExitThread};
 use windows::Win32::System::Threading::{CreateThread, THREAD_CREATION_FLAGS};
 
+use std::cell::OnceCell;
 use std::ffi::c_void;
-use std::sync::OnceLock;
 
 pub struct App {
     module: HMODULE,
@@ -80,20 +80,27 @@ impl App {
 }
 
 impl App {
-    pub fn with<T, F>(mut f: F) -> T
+    pub fn with_mut<T, F>(mut f: F) -> T
     where
         F: FnMut(&mut Self) -> T,
     {
         f(Self::get_mut())
     }
 
+    pub fn with<T, F>(mut f: F) -> T
+    where
+        F: FnMut(&Self) -> T,
+    {
+        f(Self::get_mut())
+    }
+
     #[inline(always)]
-    pub fn get_mut() -> &'static mut Self {
+    fn get_mut() -> &'static mut Self {
         unsafe { Self::get_mut_or_init(None) }
     }
 
     unsafe fn get_mut_or_init(module: Option<HMODULE>) -> &'static mut Self {
-        static mut APP: OnceLock<App> = OnceLock::new();
+        static mut APP: OnceCell<App> = OnceCell::new();
         APP.get_mut_or_init(|| {
             let interfaces = Interfaces::find().expect("Failed to find interfaces");
 

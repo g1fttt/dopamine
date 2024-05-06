@@ -6,7 +6,7 @@ pub struct Client;
 
 impl Client {
     pub fn all_classes(&self) -> Option<&ClientClass> {
-        unsafe { call_vmethod!(self, *const ClientClass, 8, (&Self), (self)).as_ref() }
+        call_vmethod!(self, Option<&ClientClass>, 8, (&Self), (self))
     }
 }
 
@@ -18,6 +18,6 @@ pub struct EntityList;
 
 impl EntityList {
     pub fn get_entity_by_index(&self, idx: i32) -> Option<&Entity> {
-        unsafe { call_vmethod!(self, *const Entity, 3, (&Self, i32), (self, idx)).as_ref() }
+        call_vmethod!(self, Option<&Entity>, 3, (&Self, i32), (self, idx))
     }
 }

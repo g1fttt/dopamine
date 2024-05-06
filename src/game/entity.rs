@@ -1,4 +1,4 @@
-use crate::netvar_fn;
+use crate::declare_netvar;
 
 #[repr(C)]
 pub struct UserCommand {
@@ -20,5 +20,5 @@ impl Entity {
         (self.flags() & Self::ON_GROUND) != 0
     }
 
-    netvar_fn!(i32, flags, "CBasePlayer", "m_fFlags");
+    declare_netvar!(i32, flags, "CBasePlayer", "m_fFlags");
 }

@@ -45,6 +45,13 @@ macro_rules! ok_or_empty_err {
 }
 
 #[macro_export]
+macro_rules! empty_err {
+    () => {
+        windows::core::Error::empty()
+    };
+}
+
+#[macro_export]
 macro_rules! call_vmethod {
     ($base:expr, $ret_type:ty, $idx:literal, $args:tt, $args_raw:tt) => {
         #[allow(unused_unsafe, clippy::useless_transmute)]
@@ -54,7 +61,7 @@ macro_rules! call_vmethod {
 }
 
 #[macro_export]
-macro_rules! netvar_fn {
+macro_rules! declare_netvar {
     ($ret_type:ty, $name:ident, $class_name:literal, $prop_name:literal) => {
         pub fn $name(&self) -> $ret_type {
             let offset = $crate::App::netvar_offset($class_name, $prop_name).expect(std::concat!(

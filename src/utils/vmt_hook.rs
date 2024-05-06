@@ -1,3 +1,5 @@
+use crate::empty_err;
+
 use windows::Win32::System::Memory::{
     VirtualProtect, PAGE_EXECUTE_READWRITE, PAGE_PROTECTION_FLAGS,
 };
@@ -26,18 +28,20 @@ impl VMTHook {
         let mut old = PAGE_PROTECTION_FLAGS::default();
         if VirtualProtect(self.ptr_to_target as _, 4, PAGE_EXECUTE_READWRITE, &mut old).is_ok() {
             *self.ptr_to_target = hook as _;
-            VirtualProtect(self.ptr_to_target as _, 4, old, ptr::null_mut())?;
+            VirtualProtect(self.ptr_to_target as _, 4, old, ptr::null_mut())
+        } else {
+            Err(empty_err!())
         }
-        Ok(())
     }
 
     pub unsafe fn unhook(&self) -> windows::core::Result<()> {
         let mut old = PAGE_PROTECTION_FLAGS::default();
         if VirtualProtect(self.ptr_to_target as _, 4, PAGE_EXECUTE_READWRITE, &mut old).is_ok() {
             *self.ptr_to_target = self.original;
-            VirtualProtect(self.ptr_to_target as _, 4, old, ptr::null_mut())?;
+            VirtualProtect(self.ptr_to_target as _, 4, old, ptr::null_mut())
+        } else {
+            Err(empty_err!())
         }
-        Ok(())
     }
 
     pub fn original<T>(&self) -> &T {

@@ -10,7 +10,7 @@ pub unsafe extern "stdcall" fn wnd_proc(
     wparam: WPARAM,
     lparam: LPARAM,
 ) -> LRESULT {
-    App::with(move |app| {
+    App::with_mut(move |app| {
         if msg == WM_KEYUP && wparam.0 == VK_END.0 as _ {
             app.unload().expect("Failed to unload application");
         }
