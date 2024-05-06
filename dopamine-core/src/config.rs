@@ -11,6 +11,7 @@ impl Config {
         P: AsRef<Path>,
     {
         let mut this = Config::default();
+        // We defaulted config just now, so it doesn't matter if config file isn't exist
         this.load_from(path).ok();
         this
     }
@@ -43,7 +44,7 @@ pub struct BunnyhopConfig {
 impl Default for BunnyhopConfig {
     fn default() -> Self {
         Self {
-            enabled: false,
+            enabled: bool::default(),
             chance: 100,
         }
     }

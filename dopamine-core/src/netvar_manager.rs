@@ -10,12 +10,12 @@ pub struct NetvarManager {
 }
 
 impl NetvarManager {
-    pub unsafe fn precache(interfaces: &Interfaces) -> Self {
+    pub fn precache(interfaces: &Interfaces) -> Self {
         let mut this = Self::default();
 
         let mut client_class = interfaces.client.all_classes();
         while let Some(cc) = client_class {
-            this.walk_table(cc.name, cc.recv_table);
+            unsafe { this.walk_table(cc.name, cc.recv_table) };
             client_class = cc.next;
         }
 
