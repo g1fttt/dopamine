@@ -4,9 +4,12 @@ version.workspace = true
 edition.workspace = true
 
 [lib]
+name = "dopamine"
 crate-type = ["cdylib"]
 
 [dependencies]
+dopamine-proc-macro = { path = "../dopamine-proc-macro" }
+
 fastrand = "2.1.0"
 serde = { version = "1.0.200", features = ["derive"] }
 toml = "0.8.12"

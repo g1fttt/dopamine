@@ -1,5 +1,7 @@
 [workspace]
-members = ["dopamine-core"]
+members = ["dopamine-core", "dopamine-proc-macro"]
+default-members = ["dopamine-core"]
+resolver = "2"
 
 [workspace.package]
 version = "0.1.0"

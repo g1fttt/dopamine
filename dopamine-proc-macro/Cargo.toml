@@ -1,0 +1,12 @@
+[package]
+name = "dopamine-proc-macro"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "*"
+syn = { version = "2.0.60", features = ["full"] }
+darling = "0.20.8"

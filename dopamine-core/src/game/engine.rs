@@ -1,10 +1,9 @@
-use crate::call_vmethod;
+use dopamine_proc_macro::virtual_method;
 
 #[repr(C)]
 pub struct Engine;
 
 impl Engine {
-    pub fn local_player_index(&self) -> i32 {
-        call_vmethod!(self, i32, 12, (&Self), (self))
-    }
+    #[virtual_method(index = 12)]
+    fn local_player_index(&self) -> i32;
 }
