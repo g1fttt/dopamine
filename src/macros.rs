@@ -45,9 +45,9 @@ macro_rules! ok_or_empty_err {
 }
 
 #[macro_export]
-macro_rules! empty_err {
+macro_rules! get_last_err {
     () => {
-        windows::core::Error::empty()
+        windows::core::Error::from_win32()
     };
 }
 

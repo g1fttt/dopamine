@@ -1,4 +1,4 @@
-use crate::empty_err;
+use crate::get_last_err;
 
 use windows::Win32::System::Memory::{
     VirtualProtect, PAGE_EXECUTE_READWRITE, PAGE_PROTECTION_FLAGS,
@@ -30,7 +30,7 @@ impl VMTHook {
             *self.ptr_to_target = hook as _;
             VirtualProtect(self.ptr_to_target as _, 4, old, ptr::null_mut())
         } else {
-            Err(empty_err!())
+            Err(get_last_err!())
         }
     }
 
@@ -40,7 +40,7 @@ impl VMTHook {
             *self.ptr_to_target = self.original;
             VirtualProtect(self.ptr_to_target as _, 4, old, ptr::null_mut())
         } else {
-            Err(empty_err!())
+            Err(get_last_err!())
         }
     }
 
