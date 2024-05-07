@@ -1,7 +1,8 @@
-use proc_macro::TokenStream;
-use quote::quote;
-
 use darling::FromMeta;
+use proc_macro::TokenStream;
+use quote::{quote, quote_spanned};
+
+use syn::spanned::Spanned;
 use syn::{parse_macro_input, TraitItemFn};
 
 #[derive(FromMeta)]
@@ -16,12 +17,15 @@ pub fn macro_impl(attr_args: TokenStream, item: TokenStream) -> TokenStream {
         Err(err) => return err,
     };
 
-    let fn_sign = item.sig;
+    let fn_sign = item.clone().sig;
     let fn_ident = fn_sign.ident;
     let fn_output = fn_sign.output;
 
     let Some((class_name, prop_name)) = attr_args.path.split_once("->") else {
-        panic!("Test #1");
+        return quote_spanned! {
+            item.span() => compile_error!("Netvar must be declared using `->`: `Class->prop`"),
+        }
+        .into();
     };
 
     quote! {
