@@ -1,5 +1,7 @@
 use proc_macro::TokenStream;
-use quote::quote;
+use quote::{quote, quote_spanned};
+
+use syn::spanned::Spanned;
 use syn::{parse_macro_input, FnArg, TraitItemFn};
 
 use darling::ast::NestedMeta;
@@ -10,7 +12,6 @@ struct VirtualMethodArgs {
     index: usize,
 }
 
-// FIXME: Return error instead of calling `panic!`
 #[proc_macro_attribute]
 pub fn virtual_method(args: TokenStream, item: TokenStream) -> TokenStream {
     let attr_args = match NestedMeta::parse_meta_list(args.into()) {
@@ -25,17 +26,25 @@ pub fn virtual_method(args: TokenStream, item: TokenStream) -> TokenStream {
 
     let item = parse_macro_input!(item as TraitItemFn);
 
-    if item.default.is_some() {
-        panic!("Virtual methods cannot be declared with default body");
+    if let Some(default) = item.default {
+        return quote_spanned! {
+            default.span() => compile_error!("Virtual methods cannot be declared with default body");
+        }
+        .into();
     }
 
-    let fn_args = item.sig.inputs;
+    let fn_sign = item.sig;
+    let fn_args = fn_sign.inputs;
 
-    if !fn_args
+    if fn_args
         .first()
-        .is_some_and(|arg| matches!(arg, FnArg::Receiver(_)))
+        .is_some_and(|arg| !matches!(arg, FnArg::Receiver(_)))
+        || fn_args.is_empty()
     {
-        panic!("Virtual methods cannot be static");
+        return quote_spanned! {
+            fn_sign.paren_token.span => compile_error!("Virtual methods cannot be static");
+        }
+        .into();
     }
 
     let mut fn_args_names = Vec::new();
@@ -49,8 +58,8 @@ pub fn virtual_method(args: TokenStream, item: TokenStream) -> TokenStream {
         fn_args_types.push(arg.ty.clone());
     }
 
-    let fn_ident = item.sig.ident;
-    let fn_ret_type = item.sig.output;
+    let fn_ident = fn_sign.ident;
+    let fn_ret_type = fn_sign.output;
 
     let vtable_index = attr_args.index;
 
