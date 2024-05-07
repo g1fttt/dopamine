@@ -51,15 +51,6 @@ macro_rules! get_last_err {
     };
 }
 
-// #[macro_export]
-// macro_rules! call_vmethod {
-//     ($base:expr, $ret_type:ty, $idx:literal, $args:tt, $args_raw:tt) => {
-//         #[allow(unused_unsafe, clippy::useless_transmute)]
-//         unsafe { (*(*std::mem::transmute::<_, *const *const extern "thiscall" fn $args -> $ret_type>($base))
-//             .add($idx)) $args_raw }
-//     };
-// }
-
 #[macro_export]
 macro_rules! declare_netvar {
     ($ret_type:ty, $name:ident, $class_name:literal, $prop_name:literal) => {
