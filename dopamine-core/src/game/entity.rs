@@ -1,4 +1,4 @@
-use crate::declare_netvar;
+use dopamine_macros::netvar;
 
 #[repr(C)]
 pub struct UserCommand {
@@ -20,5 +20,6 @@ impl Entity {
         (self.flags() & Self::ON_GROUND) != 0
     }
 
-    declare_netvar!(i32, flags, "CBasePlayer", "m_fFlags");
+    #[netvar(path = "CBasePlayer->m_fFlags")]
+    fn flags(&self) -> i32;
 }
