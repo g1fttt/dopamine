@@ -16,7 +16,7 @@ pub struct App {
     module: HMODULE,
     pub config: Config,
     pub hooks: Hooks,
-    pub netvar_manager: NetvarManager,
+    pub netvar_manager: NetvarManager<'static>,
     pub interfaces: Interfaces<'static>,
     pub local_player: Option<&'static Entity>,
 }

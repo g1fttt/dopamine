@@ -5,11 +5,11 @@ use std::collections::HashMap;
 use std::ffi::{c_char, CStr};
 
 #[derive(Default)]
-pub struct NetvarManager {
-    pub offsets: HashMap<(&'static str, &'static str), usize>,
+pub struct NetvarManager<'a> {
+    pub offsets: HashMap<(&'a str, &'a str), usize>,
 }
 
-impl NetvarManager {
+impl NetvarManager<'_> {
     pub fn precache(interfaces: &Interfaces) -> Self {
         let mut this = Self::default();
 
@@ -23,7 +23,7 @@ impl NetvarManager {
         this
     }
 
-    unsafe fn walk_table(&mut self, name: *const c_char, table: &RecvTable) {
+    unsafe fn walk_table(&mut self, class_name: *const c_char, table: &RecvTable) {
         for i in 0..table.len as usize {
             let prop = &*table.props.add(i);
             if (*prop.name as u8).is_ascii_digit() {
@@ -39,10 +39,10 @@ impl NetvarManager {
                 && *t.name == b'D' as c_char
                 && prop.kind == SendPropKind::NumSendPropKinds
             {
-                self.walk_table(name, t);
+                self.walk_table(class_name, t);
             }
 
-            let class_name = CStr::from_ptr(name).to_str().unwrap_unchecked();
+            let class_name = CStr::from_ptr(class_name).to_str().unwrap_unchecked();
             let prop_name = prop_name.to_str().unwrap_unchecked();
 
             self.offsets
