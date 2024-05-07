@@ -8,7 +8,7 @@ name = "dopamine"
 crate-type = ["cdylib"]
 
 [dependencies]
-dopamine-proc-macro = { path = "../dopamine-proc-macro" }
+dopamine-macros = { path = "../dopamine-macros" }
 
 fastrand = "2.1.0"
 serde = { version = "1.0.200", features = ["derive"] }

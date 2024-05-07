@@ -1,6 +1,6 @@
 use crate::game::{ClientClass, Entity};
 
-use dopamine_proc_macro::virtual_method;
+use dopamine_macros::virtual_method;
 
 #[repr(C)]
 pub struct Client;

@@ -1,5 +1,5 @@
 [workspace]
-members = ["dopamine-core", "dopamine-proc-macro"]
+members = ["dopamine-core", "dopamine-macros"]
 default-members = ["dopamine-core"]
 resolver = "2"
 
