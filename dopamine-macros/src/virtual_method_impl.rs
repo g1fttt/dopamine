@@ -6,6 +6,7 @@ use syn::{parse_macro_input, FnArg, TraitItemFn};
 #[derive(FromMeta)]
 struct AttrArgs {
     index: usize,
+    private: Option<bool>,
 }
 
 pub fn macro_impl(attr_args: TokenStream, item: TokenStream) -> TokenStream {
@@ -30,12 +31,18 @@ pub fn macro_impl(attr_args: TokenStream, item: TokenStream) -> TokenStream {
     }
 
     let fn_ident = fn_sign.ident;
+    let fn_generics = fn_sign.generics;
     let fn_output = fn_sign.output;
 
     let vtable_index = attr_args.index;
+    let pub_token = match attr_args.private {
+        None | Some(false) => Some(quote! { pub }),
+        _ => None,
+    };
 
     quote! {
-        pub fn #fn_ident(#fn_args) #fn_output {
+        #[allow(clippy::too_many_arguments)]
+        #pub_token fn #fn_ident #fn_generics(#fn_args) #fn_output {
             #[allow(clippy::useless_transmute)]
             unsafe {
                 (*(*std::mem::transmute::<_, *const *const extern "thiscall" fn (&Self, #(#fn_args_types),*) #fn_output>(self))
