@@ -14,7 +14,6 @@ mod game;
 mod hooks;
 mod interfaces;
 mod macros;
-mod material_creator;
 mod netvar_manager;
 mod patterns;
 mod utils;

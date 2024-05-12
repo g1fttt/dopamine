@@ -1,5 +1,5 @@
+use super::KeyValues;
 use crate::cstr;
-use crate::game::KeyValues;
 
 use derive_builder::Builder;
 use dopamine_macros::virtual_method;
@@ -37,24 +37,28 @@ pub struct MaterialSystem;
 
 impl MaterialSystem {
     pub fn create_material(&self, name: &str, kv: &KeyValues) -> Option<&Material> {
-        self.create_material_raw(cstr!(name), kv)
+        self.create_material_private(cstr!(name), kv)
     }
 
     pub fn find_texture(&self, name: &str, group: &str) -> Option<&Texture> {
-        self.find_texture_raw(cstr!(name), cstr!(group), true, 0)
+        self.find_texture_private(cstr!(name), cstr!(group), true, 0)
     }
 
     pub fn create_named_rt(&self, name: &str, dimensions: Vec2<i32>) -> Option<&Texture> {
-        self.create_named_rt_ex_raw(cstr!(name), dimensions.0, dimensions.1, 1, 0, 1, 0x200C, 1)
+        self.create_named_rt_ex_private(cstr!(name), dimensions.0, dimensions.1, 1, 0, 1, 0x200C, 1)
     }
 }
 
 impl MaterialSystem {
     #[virtual_method(index = 70, private)]
-    fn create_material_raw<'a>(&self, name: *const c_char, kv: &KeyValues) -> Option<&'a Material>;
+    fn create_material_private<'a>(
+        &self,
+        name: *const c_char,
+        kv: &KeyValues,
+    ) -> Option<&'a Material>;
 
     #[virtual_method(index = 79, private)]
-    fn find_texture_raw(
+    fn find_texture_private(
         &self,
         name: *const c_char,
         group: *const c_char,
@@ -63,7 +67,7 @@ impl MaterialSystem {
     ) -> Option<&Texture>;
 
     #[virtual_method(index = 85, private)]
-    fn create_named_rt_ex_raw(
+    fn create_named_rt_ex_private(
         &self,
         name: *const c_char,
         width: i32,
@@ -99,12 +103,13 @@ pub enum StencilCmpFn {
 pub struct RenderContext;
 
 impl RenderContext {
-    pub fn set_viewport(&self, pos: Vec2<i32>, dimensions: Vec2<i32>) {
-        self.set_viewport_raw(pos.0, pos.1, dimensions.0, dimensions.1);
+    pub fn push_rt_and_set_viewport(&self, rt: &Texture, dimensions: Vec2<i32>) {
+        self.push_rt_and_viewport(rt);
+        self.set_viewport((0, 0), dimensions);
     }
 
     pub fn clear_color_3ub(&self, (r, g, b): (u8, u8, u8)) {
-        self.clear_color_3ub_raw(r, g, b);
+        self.clear_color_3ub_private(r, g, b);
     }
 
     pub fn with_pix_event(&self, name: &str, f: impl Fn()) {
@@ -116,7 +121,11 @@ impl RenderContext {
     }
 
     fn begin_pix_event(&self, name: &str) {
-        self.begin_pix_event_raw(0xFFF5940F, cstr!(name));
+        self.begin_pix_event_private(0xFFF5940F, cstr!(name));
+    }
+
+    fn set_viewport(&self, pos: Vec2<i32>, dimensions: Vec2<i32>) {
+        self.set_viewport_private(pos.0, pos.1, dimensions.0, dimensions.1);
     }
 }
 
@@ -125,19 +134,19 @@ impl RenderContext {
     fn set_render_target(&self, texture: &Texture);
 
     #[virtual_method(index = 12, private)]
-    fn clear_buffers_raw(&self, clear_color: bool, clear_depth: bool, clear_stencil: bool);
+    fn clear_buffers(&self, clear_color: bool, clear_depth: bool, clear_stencil: bool);
 
     #[virtual_method(index = 38, private)]
-    fn set_viewport_raw(&self, x: i32, y: i32, width: i32, height: i32);
+    fn set_viewport_private(&self, x: i32, y: i32, width: i32, height: i32);
 
     #[virtual_method(index = 72, private)]
-    fn clear_color_3ub_raw(&self, r: u8, g: u8, b: u8);
+    fn clear_color_3ub_private(&self, r: u8, g: u8, b: u8);
 
-    #[virtual_method(index = 74)]
+    #[virtual_method(index = 74, private)]
     fn override_depth_enable(&self, enable: bool, depth_enable: bool);
 
     #[virtual_method(index = 103, private)]
-    fn draw_screen_space_rect_raw(
+    fn draw_screen_space_rect_private(
         &self,
         material: &Material,
         x: i32,
@@ -186,7 +195,7 @@ impl RenderContext {
     fn set_stencil_write_mask(&self, mask: u32);
 
     #[virtual_method(index = 140, private)]
-    fn begin_pix_event_raw(&self, color: u32, name: *const c_char);
+    fn begin_pix_event_private(&self, color: u32, name: *const c_char);
 
     #[virtual_method(index = 141, private)]
     fn end_pix_event(&self);
@@ -206,7 +215,7 @@ pub struct ScreenSpaceRect<'a> {
 impl ScreenSpaceRectBuilder<'_> {
     pub fn build_and_draw(self, render_ctx: &RenderContext) {
         let rect = self.build().expect("Failed to build ScreenSpaceRect");
-        render_ctx.draw_screen_space_rect_raw(
+        render_ctx.draw_screen_space_rect_private(
             rect.material,
             rect.pos.0,
             rect.pos.1,
@@ -237,10 +246,25 @@ pub struct ClearBuffers {
 impl ClearBuffersBuilder {
     pub fn build_and_clear(self, render_ctx: &RenderContext) {
         let buffers = self.build().expect("Failed to build ClearBuffers");
-        render_ctx.clear_buffers_raw(
+        render_ctx.clear_buffers(
             buffers.clear_color,
             buffers.clear_depth,
             buffers.clear_stencil,
         );
+    }
+}
+
+#[derive(Builder)]
+#[builder(pattern = "owned")]
+pub struct OverrideDepth {
+    enable: bool,
+    #[builder(default)]
+    depth_enable: bool,
+}
+
+impl OverrideDepthBuilder {
+    pub fn build_and_override(self, render_ctx: &RenderContext) {
+        let overrides = self.build().expect("Failed to build OverrideDepth");
+        render_ctx.override_depth_enable(overrides.enable, overrides.depth_enable);
     }
 }

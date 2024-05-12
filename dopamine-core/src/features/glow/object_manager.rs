@@ -1,13 +1,13 @@
 use crate::config::{Color, Glow};
 use crate::game::material_system::{
-    ClearBuffersBuilder, Material, MaterialSystem, RenderContext, ScreenSpaceRectBuilder,
-    StencilCmpFn, StencilOp, Texture, Vec2,
+    ClearBuffersBuilder, Material, MaterialSystem, OverrideDepthBuilder, RenderContext,
+    ScreenSpaceRectBuilder, StencilCmpFn, StencilOp, Texture,
 };
 use crate::game::render_view::ViewSetup;
 use crate::game::Entity;
 
+use crate::features::shared::MaterialCreator;
 use crate::interfaces::Interfaces;
-use crate::material_creator::MaterialCreator;
 
 pub struct GlowObjectManager<'a> {
     rt_quarter_size_1: &'a Texture,
@@ -123,7 +123,7 @@ impl GlowObjectManager<'_> {
         view: &ViewSetup,
         render_ctx: &RenderContext,
     ) {
-        push_rt_and_set_viewport(render_ctx, self.rt_glow_buf_1, view.dimensions());
+        render_ctx.push_rt_and_set_viewport(self.rt_glow_buf_1, view.dimensions());
 
         let orig_color = interfaces.render_view.color_modulation();
         let orig_alpha = interfaces.render_view.blend();
@@ -167,7 +167,7 @@ impl GlowObjectManager<'_> {
     }
 
     fn blur_glow_effects(&self, view: &ViewSetup, render_ctx: &RenderContext) {
-        push_rt_and_set_viewport(render_ctx, self.rt_glow_buf_2, view.dimensions());
+        render_ctx.push_rt_and_set_viewport(self.rt_glow_buf_2, view.dimensions());
         {
             let (view_width, view_height) = view.dimensions();
 
@@ -196,7 +196,9 @@ impl GlowObjectManager<'_> {
     ) {
         interfaces.model_render.forced_material_override(None);
 
-        render_ctx.override_depth_enable(true, false);
+        OverrideDepthBuilder::default()
+            .enable(true)
+            .build_and_override(render_ctx);
 
         StencilState::default().set(render_ctx);
 
@@ -224,7 +226,9 @@ impl GlowObjectManager<'_> {
             drew_anything = true;
         }
 
-        render_ctx.override_depth_enable(false, false);
+        OverrideDepthBuilder::default()
+            .enable(false)
+            .build_and_override(render_ctx);
 
         StencilState::default().set(render_ctx);
 
@@ -301,11 +305,6 @@ impl<'a> Object<'a> {
             attachment = ent.move_peer();
         }
     }
-}
-
-fn push_rt_and_set_viewport(render_ctx: &RenderContext, rt: &Texture, dimensions: Vec2<i32>) {
-    render_ctx.push_rt_and_viewport(rt);
-    render_ctx.set_viewport((0, 0), dimensions);
 }
 
 struct StencilState {
