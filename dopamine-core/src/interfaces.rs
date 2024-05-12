@@ -3,12 +3,11 @@ use crate::game::engine::{Engine, ModelRender};
 use crate::game::material_system::MaterialSystem;
 use crate::game::render_view::RenderView;
 
-use crate::{cstr, ok_or_empty_err, pcstr, pcstr_path};
+use crate::{cstr, ok_or_empty_err, pcstr};
 
 use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
 
 use std::ffi::{c_char, c_void};
-use std::path::Path;
 use std::{mem, ptr};
 
 pub struct Interfaces<'a> {
@@ -37,16 +36,15 @@ impl Interfaces<'_> {
     }
 }
 
-unsafe fn find_interface<T, P>(module_path: P, interface_name: &str) -> windows::core::Result<&T>
-where
-    P: AsRef<Path>,
-{
-    let module = GetModuleHandleA(pcstr_path!(module_path))?;
+unsafe fn find_interface<'a, T>(
+    module_name: &str,
+    interface_name: &str,
+) -> windows::core::Result<&'a T> {
+    let module = GetModuleHandleA(pcstr!(module_name))?;
 
     let create_interface = GetProcAddress(module, pcstr!("CreateInterface"));
-
-    type CreateInterfaceFn<T> = extern "C" fn(*const c_char, *mut i32) -> *mut T;
-    let create_interface = mem::transmute::<_, CreateInterfaceFn<T>>(create_interface);
+    let create_interface: extern "C" fn(*const c_char, *mut i32) -> *mut T =
+        mem::transmute(create_interface);
 
     ok_or_empty_err!(create_interface(cstr!(interface_name), ptr::null_mut()).as_ref())
 }

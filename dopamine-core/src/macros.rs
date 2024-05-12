@@ -1,16 +1,4 @@
 #[macro_export]
-macro_rules! pcstr_path {
-    ($path:expr) => {
-        windows::core::PCSTR::from_raw(
-            std::ffi::CString::new($path.as_ref().as_os_str().as_encoded_bytes())
-                .expect("Failed to create `CString` from path | `pcstr_path!`")
-                .into_raw()
-                .cast(),
-        )
-    };
-}
-
-#[macro_export]
 macro_rules! pcstr {
     ($str:literal) => {
         windows::core::PCSTR::from_raw(std::concat!($str, '\0').as_ptr())
