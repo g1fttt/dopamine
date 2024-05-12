@@ -9,8 +9,7 @@ use windows::Win32::System::ProcessStatus::{GetModuleInformation, MODULEINFO};
 use windows::Win32::System::Threading::GetCurrentProcess;
 
 use std::ffi::c_char;
-use std::mem::{self, transmute as t};
-use std::slice;
+use std::{mem, slice};
 
 pub struct Patterns {
     pub key_values_new:
@@ -22,12 +21,12 @@ pub struct Patterns {
 
 impl Patterns {
     pub unsafe fn find() -> windows::core::Result<Self> {
-        let key_values_new = t(find_pattern("StudioRender.dll", "55 8B EC 56 8B F1 6A")?);
-        let key_values_set_string = t(find_pattern(
+        let key_values_new = find_pattern("StudioRender.dll", "55 8B EC 56 8B F1 6A")?;
+        let key_values_set_string = find_pattern(
             "client.dll",
             "55 8B EC 57 6A 01 FF 75 08 E8 ? ? ? ? 8B F8 85 FF 74 60",
-        )?);
-        let is_local_player = t(find_pattern("client.dll", "33 C0 39 0D ? ? ? ? 0F")?);
+        )?;
+        let is_local_player = find_pattern("client.dll", "33 C0 39 0D ? ? ? ? 0F")?;
 
         Ok(Self {
             key_values_new,
@@ -37,7 +36,7 @@ impl Patterns {
     }
 }
 
-unsafe fn find_pattern(module_name: &str, pattern: &str) -> windows::core::Result<*mut u8> {
+unsafe fn find_pattern<T>(module_name: &str, pattern: &str) -> windows::core::Result<T> {
     let (base, size) = module_data(module_name)?;
     let bytes = slice::from_raw_parts(base, size);
     let offset = regex_from_str(pattern)
@@ -45,7 +44,7 @@ unsafe fn find_pattern(module_name: &str, pattern: &str) -> windows::core::Resul
         .and_then(|re| re.find(bytes))
         .map(|mat| mat.start())
         .ok_or(get_last_err!())?;
-    Ok(base.add(offset))
+    Ok(mem::transmute_copy(&&*base.add(offset)))
 }
 
 fn regex_from_str(s: &str) -> Result<Regex, Error> {
