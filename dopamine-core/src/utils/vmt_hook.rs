@@ -25,26 +25,24 @@ impl VMTHook {
     }
 
     pub unsafe fn hook(&self, hook: *const ()) -> windows::core::Result<()> {
-        let mut old = PAGE_PROTECTION_FLAGS::default();
-        if VirtualProtect(self.ptr_to_target as _, 4, PAGE_EXECUTE_READWRITE, &mut old).is_ok() {
-            *self.ptr_to_target = hook as _;
-            VirtualProtect(self.ptr_to_target as _, 4, old, ptr::null_mut())
-        } else {
-            Err(get_last_err!())
-        }
+        self.replace_target(hook)
     }
 
     pub unsafe fn unhook(&self) -> windows::core::Result<()> {
+        self.replace_target(self.original.cast())
+    }
+
+    unsafe fn replace_target(&self, fn_addr: *const ()) -> windows::core::Result<()> {
         let mut old = PAGE_PROTECTION_FLAGS::default();
         if VirtualProtect(self.ptr_to_target as _, 4, PAGE_EXECUTE_READWRITE, &mut old).is_ok() {
-            *self.ptr_to_target = self.original;
+            *self.ptr_to_target = fn_addr as _;
             VirtualProtect(self.ptr_to_target as _, 4, old, ptr::null_mut())
         } else {
             Err(get_last_err!())
         }
     }
 
-    pub fn original<T>(&self) -> &T {
-        unsafe { mem::transmute(&self.original) }
+    pub fn original<T>(&self) -> T {
+        unsafe { mem::transmute_copy(&self.original) }
     }
 }
