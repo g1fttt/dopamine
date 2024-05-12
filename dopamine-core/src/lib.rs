@@ -9,8 +9,8 @@
 
 mod app;
 mod config;
+mod features;
 mod game;
-mod hacks;
 mod hooks;
 mod interfaces;
 mod macros;

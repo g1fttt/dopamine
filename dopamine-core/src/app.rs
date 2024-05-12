@@ -1,6 +1,6 @@
 use crate::config::Config;
+use crate::features::glow::GlowObjectManager;
 use crate::game::Entity;
-use crate::hacks::glow::GlowObjectManager;
 use crate::hooks::Hooks;
 use crate::interfaces::Interfaces;
 use crate::material_creator::MaterialCreator;

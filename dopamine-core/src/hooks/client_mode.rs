@@ -3,7 +3,7 @@ use crate::game::render_view::ViewSetup;
 use crate::game::UserCommand;
 
 use crate::app::App;
-use crate::hacks::{glow, misc};
+use crate::features::{glow, misc};
 
 type CreateMoveFn = extern "thiscall" fn(&mut ClientMode, f32, &mut UserCommand) -> bool;
 
