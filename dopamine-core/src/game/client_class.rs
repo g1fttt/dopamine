@@ -1,4 +1,4 @@
-use crate::game::RecvTable;
+use super::RecvTable;
 
 use std::ffi::c_char;
 

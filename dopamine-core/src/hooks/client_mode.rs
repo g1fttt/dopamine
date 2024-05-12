@@ -13,7 +13,7 @@ pub extern "thiscall" fn create_move(
     cmd: &mut UserCommand,
 ) -> bool {
     App::with(move |app| {
-        let original: &CreateMoveFn = app.hooks.create_move.original();
+        let original: CreateMoveFn = app.hooks.create_move.original();
         let result = original(this, input_sample_frame_time, cmd);
 
         misc::bunnyhop(&app.config.misc.bunnyhop, app.local_player, cmd);
@@ -29,7 +29,7 @@ pub extern "thiscall" fn do_post_screen_space_effects(
     view: &ViewSetup,
 ) -> bool {
     App::with_mut(move |app| {
-        let original: &DoPostScreenSpaceEffects = app.hooks.do_post_screen_space_effects.original();
+        let original: DoPostScreenSpaceEffects = app.hooks.do_post_screen_space_effects.original();
         let result = original(this, view);
 
         if app.interfaces.engine.is_in_game() {

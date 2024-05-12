@@ -23,12 +23,12 @@ impl Entity {
     }
 
     pub fn move_child(&self) -> Option<&Self> {
-        let handle = unsafe { *(self as *const Self as *const u8).add(0x184).cast::<i32>() };
+        let handle = unsafe { *(self as *const Self).byte_add(0x184).cast::<i32>() };
         App::interfaces().entity_list.get_entity_from_handle(handle)
     }
 
     pub fn move_peer(&self) -> Option<&Self> {
-        let handle = unsafe { *(self as *const Self as *const u8).add(0x188).cast::<i32>() };
+        let handle = unsafe { *(self as *const Self).byte_add(0x188).cast::<i32>() };
         App::interfaces().entity_list.get_entity_from_handle(handle)
     }
 
@@ -77,7 +77,7 @@ struct RenderableEntity;
 
 impl RenderableEntity {
     fn draw_model(&self) -> i32 {
-        self.draw_model_raw(1 /* StudioRender */)
+        self.draw_model_private(1 /* StudioRender */)
     }
 }
 
@@ -86,5 +86,5 @@ impl RenderableEntity {
     fn should_draw(&self) -> bool;
 
     #[virtual_method(index = 10, private)]
-    fn draw_model_raw(&self, flags: i32) -> i32;
+    fn draw_model_private(&self, flags: i32) -> i32;
 }

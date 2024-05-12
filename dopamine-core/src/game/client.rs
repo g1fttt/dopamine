@@ -1,4 +1,4 @@
-use crate::game::{ClientClass, Entity};
+use super::{ClientClass, Entity};
 
 use dopamine_macros::virtual_method;
 

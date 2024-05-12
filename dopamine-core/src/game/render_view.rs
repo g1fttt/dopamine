@@ -11,12 +11,12 @@ pub struct RenderView;
 
 impl RenderView {
     pub fn set_color_modulation(&self, (r, g, b): ColorModulation) {
-        self.set_color_modulation_raw([r, g, b].as_ptr());
+        self.set_color_modulation_private([r, g, b].as_ptr());
     }
 
     pub fn color_modulation(&self) -> ColorModulation {
         let mut out: [MaybeUninit<f32>; 3] = MaybeUninit::uninit_array();
-        self.color_modulation_raw(out.as_mut_ptr().cast());
+        self.color_modulation_private(out.as_mut_ptr().cast());
         unsafe { MaybeUninit::array_assume_init(out) }.into()
     }
 }
@@ -29,10 +29,10 @@ impl RenderView {
     fn blend(&self) -> f32;
 
     #[virtual_method(index = 6, private)]
-    fn set_color_modulation_raw(&self, color: *const f32);
+    fn set_color_modulation_private(&self, color: *const f32);
 
     #[virtual_method(index = 7, private)]
-    fn color_modulation_raw(&self, color: *mut f32);
+    fn color_modulation_private(&self, color: *mut f32);
 }
 
 #[repr(C)]

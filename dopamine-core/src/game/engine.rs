@@ -1,4 +1,4 @@
-use crate::game::material_system::Material;
+use super::material_system::Material;
 
 use dopamine_macros::virtual_method;
 
@@ -26,13 +26,13 @@ pub struct ModelRender;
 
 impl ModelRender {
     pub fn forced_material_override(&self, new_material: Option<&Material>) {
-        self.forced_material_override_ex(new_material, MaterialOverrideKind::Normal);
+        self.forced_material_override_private(new_material, MaterialOverrideKind::Normal);
     }
 }
 
 impl ModelRender {
     #[virtual_method(index = 1, private)]
-    fn forced_material_override_ex(
+    fn forced_material_override_private(
         &self,
         new_material: Option<&Material>,
         override_kind: MaterialOverrideKind,
