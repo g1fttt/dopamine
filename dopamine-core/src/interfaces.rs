@@ -1,4 +1,8 @@
-use crate::game::{Client, ClientMode, Engine, EntityList};
+use crate::game::client::{Client, ClientMode, EntityList};
+use crate::game::engine::{Engine, ModelRender};
+use crate::game::material_system::MaterialSystem;
+use crate::game::render_view::RenderView;
+
 use crate::{cstr, ok_or_empty_err, pcstr, pcstr_path};
 
 use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
@@ -12,16 +16,23 @@ pub struct Interfaces<'a> {
     pub client_mode: &'a ClientMode,
     pub entity_list: &'a EntityList,
     pub engine: &'a Engine,
+    pub render_view: &'a RenderView,
+    pub material_system: &'a MaterialSystem,
+    pub model_render: &'a ModelRender,
 }
 
 impl Interfaces<'_> {
     pub unsafe fn find() -> windows::core::Result<Self> {
         let client = find_interface("client.dll", "VClient017")?;
+
         Ok(Self {
             client,
             client_mode: ok_or_empty_err!(client_mode_from_client(client))?,
             entity_list: find_interface("client.dll", "VClientEntityList003")?,
             engine: find_interface("engine.dll", "VEngineClient013")?,
+            render_view: find_interface("engine.dll", "VEngineRenderView014")?,
+            material_system: find_interface("MaterialSystem.dll", "VMaterialSystem080")?,
+            model_render: find_interface("engine.dll", "VEngineModel016")?,
         })
     }
 }

@@ -16,7 +16,10 @@ use std::mem;
 pub struct Hooks {
     window: HWND,
     pub wnd_proc: WNDPROC,
+
     pub create_move: VMTHook,
+    pub do_post_screen_space_effects: VMTHook,
+
     pub level_init_post_entity: VMTHook,
     pub level_shutdown: VMTHook,
 }
@@ -26,7 +29,10 @@ impl Hooks {
         Self {
             window: FindWindowA(pcstr!("Valve001"), pcstr!()),
             wnd_proc: None,
+
             create_move: VMTHook::new(interfaces.client_mode, 21),
+            do_post_screen_space_effects: VMTHook::new(interfaces.client_mode, 39),
+
             level_init_post_entity: VMTHook::new(interfaces.client, 6),
             level_shutdown: VMTHook::new(interfaces.client, 7),
         }
@@ -43,6 +49,8 @@ impl Hooks {
         };
 
         self.create_move.hook(client_mode::create_move as _)?;
+        self.do_post_screen_space_effects
+            .hook(client_mode::do_post_screen_space_effects as _)?;
 
         self.level_init_post_entity
             .hook(client::level_init_post_entity as _)?;
@@ -53,6 +61,7 @@ impl Hooks {
 
     pub unsafe fn unhook_all(&self) -> windows::core::Result<()> {
         self.create_move.unhook()?;
+        self.do_post_screen_space_effects.unhook()?;
 
         self.level_init_post_entity.unhook()?;
         self.level_shutdown.unhook()?;

@@ -1,5 +1,5 @@
+use crate::game::client::Client;
 use crate::game::{RecvTable, SendPropKind};
-use crate::interfaces::Interfaces;
 
 use std::collections::HashMap;
 use std::ffi::{c_char, CStr};
@@ -10,10 +10,10 @@ pub struct NetvarManager<'a> {
 }
 
 impl NetvarManager<'_> {
-    pub fn precache(interfaces: &Interfaces) -> Self {
+    pub fn precache(client: &Client) -> Self {
         let mut this = Self::default();
 
-        let mut client_class = interfaces.client.all_classes();
+        let mut client_class = client.all_classes();
         while let Some(cc) = client_class {
             unsafe { this.walk_table(cc.name, cc.recv_table) };
             client_class = cc.next;

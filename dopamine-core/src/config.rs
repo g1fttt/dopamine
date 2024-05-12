@@ -1,3 +1,5 @@
+use crate::game::render_view::ColorModulation;
+
 use serde::{Deserialize, Serialize};
 
 use std::path::Path;
@@ -30,7 +32,9 @@ impl Config {
         P: AsRef<Path>,
     {
         let raw = fs::read_to_string(path)?;
-        *self = toml::from_str(&raw).expect("Failed to deserialize config file");
+        if let Ok(toml) = toml::from_str(&raw) {
+            *self = toml;
+        }
         Ok(())
     }
 }
@@ -55,7 +59,31 @@ pub struct MiscConfig {
     pub bunnyhop: BunnyhopConfig,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct Glow {
+    pub enabled: bool,
+    pub color: ColorModulation,
+    pub alpha: f32,
+}
+
+impl Default for Glow {
+    fn default() -> Self {
+        Self {
+            enabled: bool::default(),
+            color: (1.0, 1.0, 1.0),
+            alpha: 1.0,
+        }
+    }
+}
+
+#[derive(Default, Serialize, Deserialize)]
+pub struct GlowConfig {
+    pub enemies: Glow,
+    pub allies: Glow,
+}
+
 #[derive(Default, Serialize, Deserialize)]
 pub struct Config {
     pub misc: MiscConfig,
+    pub glow: GlowConfig,
 }

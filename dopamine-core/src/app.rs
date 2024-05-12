@@ -1,8 +1,11 @@
 use crate::config::Config;
 use crate::game::Entity;
+use crate::hacks::glow::GlowObjectManager;
 use crate::hooks::Hooks;
 use crate::interfaces::Interfaces;
+use crate::material_creator::MaterialCreator;
 use crate::netvar_manager::NetvarManager;
+use crate::patterns::Patterns;
 
 use windows::Win32::Foundation::{CloseHandle, HMODULE};
 use windows::Win32::System::Diagnostics::Debug::Beep;
@@ -17,24 +20,29 @@ pub struct App {
     pub config: Config,
     pub hooks: Hooks,
     pub netvar_manager: NetvarManager<'static>,
-    pub interfaces: Interfaces<'static>,
     pub local_player: Option<&'static Entity>,
+    pub glow_object_manager: GlowObjectManager<'static>,
+    pub material_creator: MaterialCreator,
+    pub interfaces: Interfaces<'static>,
+    pub patterns: Patterns,
 }
 
 impl App {
-    pub fn init_and_setup(module: HMODULE) -> windows::core::Result<()> {
+    pub fn on_process_attach(module: HMODULE) -> windows::core::Result<()> {
         unsafe { Self::get_mut_or_init(Some(module)).setup() }
     }
 
     unsafe fn setup(&mut self) -> windows::core::Result<()> {
         DisableThreadLibraryCalls(self.module)?;
 
+        self.glow_object_manager
+            .setup_materials(self.interfaces.material_system, &mut self.material_creator);
         self.hooks.hook_all()?;
 
         Beep(750, 200)
     }
 
-    pub fn make_final_config_save() {
+    pub fn on_process_detach() {
         Self::with(|app| {
             app.config
                 .save_to(Config::PATH)
@@ -77,6 +85,14 @@ impl App {
                 .cloned()
         })
     }
+
+    pub fn interfaces() -> &'static Interfaces<'static> {
+        &App::get().interfaces
+    }
+
+    pub fn patterns() -> &'static Patterns {
+        &App::get().patterns
+    }
 }
 
 impl App {
@@ -91,7 +107,7 @@ impl App {
     where
         F: FnMut(&Self) -> T,
     {
-        f(Self::get_mut())
+        f(Self::get())
     }
 
     #[inline(always)]
@@ -99,18 +115,28 @@ impl App {
         unsafe { Self::get_mut_or_init(None) }
     }
 
+    #[inline(always)]
+    fn get() -> &'static Self {
+        Self::get_mut()
+    }
+
     unsafe fn get_mut_or_init(module: Option<HMODULE>) -> &'static mut Self {
         static mut APP: OnceCell<App> = OnceCell::new();
+
         APP.get_mut_or_init(|| {
             let interfaces = Interfaces::find().expect("Failed to find interfaces");
+            let patterns = Patterns::find().expect("Failed to find patterns");
 
             App {
                 module: module.unwrap(),
                 config: Config::create_and_load_from(Config::PATH),
                 hooks: Hooks::create(&interfaces),
-                netvar_manager: NetvarManager::precache(&interfaces),
-                interfaces,
+                netvar_manager: NetvarManager::precache(interfaces.client),
                 local_player: None,
+                glow_object_manager: GlowObjectManager::new(interfaces.material_system),
+                material_creator: MaterialCreator::default(),
+                interfaces,
+                patterns,
             }
         })
     }

@@ -1,5 +1,11 @@
-#![allow(clippy::missing_transmute_annotations)]
-#![feature(once_cell_get_mut, let_chains)]
+#![allow(clippy::missing_transmute_annotations, dead_code)]
+#![feature(
+    once_cell_get_mut,
+    let_chains,
+    new_uninit,
+    maybe_uninit_uninit_array,
+    maybe_uninit_array_assume_init
+)]
 
 mod app;
 mod config;
@@ -8,7 +14,9 @@ mod hacks;
 mod hooks;
 mod interfaces;
 mod macros;
+mod material_creator;
 mod netvar_manager;
+mod patterns;
 mod utils;
 
 use windows::Win32::Foundation::{BOOL, HMODULE, TRUE};
@@ -22,9 +30,9 @@ use app::App;
 extern "system" fn DllMain(module: HMODULE, reason: u32, _reserved: *mut c_void) -> BOOL {
     match reason {
         DLL_PROCESS_ATTACH => {
-            App::init_and_setup(module).expect("Failed to create and setup application")
+            App::on_process_attach(module).expect("Failed to create and setup application")
         }
-        DLL_PROCESS_DETACH => App::make_final_config_save(),
+        DLL_PROCESS_DETACH => App::on_process_detach(),
         _ => (),
     }
     TRUE
