@@ -32,9 +32,7 @@ impl Config {
         P: AsRef<Path>,
     {
         let raw = fs::read_to_string(path)?;
-        if let Ok(toml) = toml::from_str(&raw) {
-            *self = toml;
-        }
+        *self = toml::from_str(&raw).expect("Failed to deserialize config file");
         Ok(())
     }
 }
