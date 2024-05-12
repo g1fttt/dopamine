@@ -1,3 +1,5 @@
+use super::material_system::Vec2;
+
 use dopamine_macros::virtual_method;
 
 use std::mem::MaybeUninit;
@@ -36,7 +38,13 @@ impl RenderView {
 #[repr(C)]
 pub struct ViewSetup {
     pad1: [u8; 16],
-    pub width: i32,
+    width: i32,
     pad2: [u8; 4],
-    pub height: i32,
+    height: i32,
+}
+
+impl ViewSetup {
+    pub fn dimensions(&self) -> Vec2<i32> {
+        (self.width, self.height)
+    }
 }

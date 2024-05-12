@@ -125,7 +125,7 @@ impl GlowObjectManager<'_> {
         view: &ViewSetup,
         render_ctx: &RenderContext,
     ) {
-        push_rt_and_set_viewport(render_ctx, self.rt_glow_buf_1, (view.width, view.height));
+        push_rt_and_set_viewport(render_ctx, self.rt_glow_buf_1, view.dimensions());
 
         let orig_color = interfaces.render_view.color_modulation();
         let orig_alpha = interfaces.render_view.blend();
@@ -163,17 +163,18 @@ impl GlowObjectManager<'_> {
         render_ctx.pop_rt_and_viewport();
     }
 
-    // TODO: Downsample blur
     fn blur_glow_effects(&self, view: &ViewSetup, render_ctx: &RenderContext) {
-        push_rt_and_set_viewport(render_ctx, self.rt_glow_buf_2, (view.width, view.height));
+        push_rt_and_set_viewport(render_ctx, self.rt_glow_buf_2, view.dimensions());
         {
+            let (view_width, view_height) = view.dimensions();
+
             let blur_screen_space_rect = ScreenSpaceRectBuilder::default()
                 .material(self.glow_blur_x_material.unwrap())
                 .pos((0, 0))
-                .dimensions((view.width, view.height))
+                .dimensions(view.dimensions())
                 .texture_x0_y0((0.0, 0.0))
-                .texture_x1_y1((view.width as f32 - 1.0, view.height as f32 - 1.0))
-                .texture_dimensions((view.width, view.height));
+                .texture_x1_y1((view_width as f32 / 1.0, view_height as f32 / 1.0))
+                .texture_dimensions(view.dimensions());
             blur_screen_space_rect.draw(render_ctx);
 
             render_ctx.set_render_target(self.rt_glow_buf_1);
@@ -251,14 +252,16 @@ impl GlowObjectManager<'_> {
 
         const GLOW_DOWNSAMPLE: f32 = 4.0;
 
+        let (view_width, view_height) = view.dimensions();
+
         ScreenSpaceRectBuilder::default()
             .material(self.halo_material.unwrap())
             .pos((0, 0))
-            .dimensions((view.width, view.height))
+            .dimensions(view.dimensions())
             .texture_x0_y0((0.0, -0.5))
             .texture_x1_y1((
-                view.width as f32 / GLOW_DOWNSAMPLE - 1.0,
-                view.height as f32 / GLOW_DOWNSAMPLE - 1.0,
+                view_width as f32 / GLOW_DOWNSAMPLE - 1.0,
+                view_height as f32 / GLOW_DOWNSAMPLE - 1.0,
             ))
             .texture_dimensions(self.rt_quarter_size_1.dimensions())
             .draw(render_ctx);
