@@ -99,11 +99,6 @@ pub enum StencilCmpFn {
 pub struct RenderContext;
 
 impl RenderContext {
-    // FIXME: Builder pattern would be a better option
-    pub fn clear_buffers(&self, clear_color: bool, clear_depth: bool) {
-        self.clear_buffers_raw(clear_color, clear_depth, false);
-    }
-
     pub fn set_viewport(&self, pos: Vec2<i32>, dimensions: Vec2<i32>) {
         self.set_viewport_raw(pos.0, pos.1, dimensions.0, dimensions.1);
     }
@@ -190,7 +185,7 @@ impl RenderContext {
 }
 
 #[derive(Builder)]
-#[builder(pattern = "owned", build_fn(skip))]
+#[builder(pattern = "owned", derive(Clone))]
 pub struct ScreenSpaceRect<'a> {
     material: &'a Material,
     pos: Vec2<i32>,
@@ -201,22 +196,43 @@ pub struct ScreenSpaceRect<'a> {
 }
 
 impl ScreenSpaceRectBuilder<'_> {
-    pub fn draw(&self, render_ctx: &RenderContext) {
+    pub fn build_and_draw(self, render_ctx: &RenderContext) {
+        let rect = self.build().expect("Failed to build ScreenSpaceRect");
         render_ctx.draw_screen_space_rect_raw(
-            self.material.unwrap(),
-            self.pos.unwrap_or_default().0,
-            self.pos.unwrap_or_default().1,
-            self.dimensions.unwrap_or_default().0,
-            self.dimensions.unwrap_or_default().1,
-            self.texture_x0_y0.unwrap_or_default().0,
-            self.texture_x0_y0.unwrap_or_default().1,
-            self.texture_x1_y1.unwrap_or_default().0,
-            self.texture_x1_y1.unwrap_or_default().1,
-            self.texture_dimensions.unwrap_or_default().0,
-            self.texture_dimensions.unwrap_or_default().1,
+            rect.material,
+            rect.pos.0,
+            rect.pos.1,
+            rect.dimensions.0,
+            rect.dimensions.1,
+            rect.texture_x0_y0.0,
+            rect.texture_x0_y0.1,
+            rect.texture_x1_y1.0,
+            rect.texture_x1_y1.1,
+            rect.texture_dimensions.0,
+            rect.texture_dimensions.1,
             ptr::null_mut(),
             1,
             1,
+        );
+    }
+}
+
+#[derive(Builder)]
+#[builder(pattern = "owned")]
+pub struct ClearBuffers {
+    clear_color: bool,
+    clear_depth: bool,
+    #[builder(default)]
+    clear_stencil: bool,
+}
+
+impl ClearBuffersBuilder {
+    pub fn build_and_clear(self, render_ctx: &RenderContext) {
+        let buffers = self.build().expect("Failed to build ClearBuffers");
+        render_ctx.clear_buffers_raw(
+            buffers.clear_color,
+            buffers.clear_depth,
+            buffers.clear_stencil,
         );
     }
 }

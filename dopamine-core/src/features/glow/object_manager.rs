@@ -1,9 +1,9 @@
-use crate::config::Glow;
+use crate::config::{Color, Glow};
 use crate::game::material_system::{
-    Material, MaterialSystem, RenderContext, ScreenSpaceRectBuilder, StencilCmpFn, StencilOp,
-    Texture, Vec2,
+    ClearBuffersBuilder, Material, MaterialSystem, RenderContext, ScreenSpaceRectBuilder,
+    StencilCmpFn, StencilOp, Texture, Vec2,
 };
-use crate::game::render_view::{ColorModulation, ViewSetup};
+use crate::game::render_view::ViewSetup;
 use crate::game::Entity;
 
 use crate::interfaces::Interfaces;
@@ -131,7 +131,10 @@ impl GlowObjectManager<'_> {
         let orig_alpha = interfaces.render_view.blend();
 
         render_ctx.clear_color_3ub((0, 0, 0));
-        render_ctx.clear_buffers(true, false);
+        ClearBuffersBuilder::default()
+            .clear_color(true)
+            .clear_depth(false)
+            .build_and_clear(render_ctx);
 
         interfaces
             .model_render
@@ -148,8 +151,10 @@ impl GlowObjectManager<'_> {
                 continue;
             }
 
-            interfaces.render_view.set_color_modulation(obj.color);
-            interfaces.render_view.set_blend(obj.alpha);
+            interfaces
+                .render_view
+                .set_color_modulation(obj.color.color_modulation());
+            interfaces.render_view.set_blend(obj.color.alpha());
 
             obj.draw_model();
         }
@@ -175,12 +180,12 @@ impl GlowObjectManager<'_> {
                 .texture_x0_y0((0.0, 0.0))
                 .texture_x1_y1((view_width as f32 / 1.0, view_height as f32 / 1.0))
                 .texture_dimensions(view.dimensions());
-            blur_screen_space_rect.draw(render_ctx);
+            blur_screen_space_rect.clone().build_and_draw(render_ctx);
 
             render_ctx.set_render_target(self.rt_glow_buf_1);
             blur_screen_space_rect
                 .material(self.glow_blur_y_material.unwrap())
-                .draw(render_ctx);
+                .build_and_draw(render_ctx);
         }
         render_ctx.pop_rt_and_viewport();
     }
@@ -264,17 +269,15 @@ impl GlowObjectManager<'_> {
                 view_height as f32 / GLOW_DOWNSAMPLE - 1.0,
             ))
             .texture_dimensions(self.rt_quarter_size_1.dimensions())
-            .draw(render_ctx);
+            .build_and_draw(render_ctx);
 
         StencilState::default().set(render_ctx);
     }
 }
 
-#[derive(Default)]
 pub struct Object<'a> {
     entity: Option<&'a Entity>,
-    color: ColorModulation,
-    alpha: f32,
+    color: Color,
 }
 
 impl<'a> Object<'a> {
@@ -282,7 +285,6 @@ impl<'a> Object<'a> {
         Self {
             entity: Some(entity),
             color: config.color,
-            alpha: config.alpha,
         }
     }
 

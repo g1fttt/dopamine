@@ -134,7 +134,7 @@ impl App {
                 netvar_manager: NetvarManager::precache(interfaces.client),
                 local_player: None,
                 glow_object_manager: GlowObjectManager::new(interfaces.material_system),
-                material_creator: MaterialCreator::default(),
+                material_creator: MaterialCreator::new(),
                 interfaces,
                 patterns,
             }

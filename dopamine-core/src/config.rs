@@ -57,19 +57,32 @@ pub struct MiscConfig {
     pub bunnyhop: BunnyhopConfig,
 }
 
+#[derive(Clone, Copy, Serialize, Deserialize)]
+pub struct Color(f32, f32, f32, f32);
+
+impl Color {
+    const WHITE: Self = Self(1.0, 1.0, 1.0, 1.0);
+
+    pub fn color_modulation(&self) -> ColorModulation {
+        (self.0, self.1, self.2)
+    }
+
+    pub fn alpha(&self) -> f32 {
+        self.3
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct Glow {
     pub enabled: bool,
-    pub color: ColorModulation,
-    pub alpha: f32,
+    pub color: Color,
 }
 
 impl Default for Glow {
     fn default() -> Self {
         Self {
             enabled: bool::default(),
-            color: (1.0, 1.0, 1.0),
-            alpha: 1.0,
+            color: Color::WHITE,
         }
     }
 }

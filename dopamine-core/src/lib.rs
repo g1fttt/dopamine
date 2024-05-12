@@ -1,4 +1,4 @@
-#![allow(clippy::missing_transmute_annotations, dead_code)]
+#![allow(clippy::missing_transmute_annotations)]
 #![feature(
     once_cell_get_mut,
     let_chains,

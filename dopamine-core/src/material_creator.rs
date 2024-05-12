@@ -1,13 +1,16 @@
 use crate::game::material_system::{Material, MaterialSystem};
 use crate::game::KeyValues;
 
-#[derive(Default)]
 pub struct MaterialCreator {
     #[allow(clippy::vec_box)] // We need a pointer indenpendent of vector reallocation
     kvs: Vec<Box<KeyValues>>,
 }
 
 impl MaterialCreator {
+    pub fn new() -> Self {
+        Self { kvs: Vec::new() }
+    }
+
     pub fn shader(&mut self, shader: &str) -> IntermediateMaterial {
         self.kvs.push(KeyValues::new_boxed(shader));
         IntermediateMaterial::new(self.kvs.last_mut().unwrap())
