@@ -112,11 +112,9 @@ impl GlowObjectManager<'_> {
     pub fn draw_glow_effects(&self, interfaces: &Interfaces, view: &ViewSetup) {
         let render_ctx = interfaces.material_system.render_ctx();
 
-        render_ctx.begin_pix_event("ApplyEntityGlowEffects");
-        {
+        render_ctx.with_pix_event("ApplyEntityGlowEffects", || {
             self.apply_entity_glow_effects(interfaces, view, render_ctx);
-        }
-        render_ctx.end_pix_event();
+        });
     }
 
     fn draw_glow_models(
@@ -238,11 +236,9 @@ impl GlowObjectManager<'_> {
             return;
         }
 
-        render_ctx.begin_pix_event("DrawGlowModels");
-        {
+        render_ctx.with_pix_event("DrawGlowModels", || {
             self.draw_glow_models(interfaces, view, render_ctx);
-        }
-        render_ctx.end_pix_event();
+        });
 
         self.blur_glow_effects(view, render_ctx);
 

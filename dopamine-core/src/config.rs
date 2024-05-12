@@ -5,6 +5,12 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::{fs, io};
 
+#[derive(Default, Serialize, Deserialize)]
+pub struct Config {
+    pub misc: MiscConfig,
+    pub glow: GlowConfig,
+}
+
 impl Config {
     pub const PATH: &'static str = "dopamine.toml";
 
@@ -91,10 +97,4 @@ impl Default for Glow {
 pub struct GlowConfig {
     pub enemies: Glow,
     pub allies: Glow,
-}
-
-#[derive(Default, Serialize, Deserialize)]
-pub struct Config {
-    pub misc: MiscConfig,
-    pub glow: GlowConfig,
 }

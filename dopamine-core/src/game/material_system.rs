@@ -107,7 +107,15 @@ impl RenderContext {
         self.clear_color_3ub_raw(r, g, b);
     }
 
-    pub fn begin_pix_event(&self, name: &str) {
+    pub fn with_pix_event(&self, name: &str, f: impl Fn()) {
+        self.begin_pix_event(name);
+        {
+            f();
+        }
+        self.end_pix_event();
+    }
+
+    fn begin_pix_event(&self, name: &str) {
         self.begin_pix_event_raw(0xFFF5940F, cstr!(name));
     }
 }
@@ -180,7 +188,7 @@ impl RenderContext {
     #[virtual_method(index = 140, private)]
     fn begin_pix_event_raw(&self, color: u32, name: *const c_char);
 
-    #[virtual_method(index = 141)]
+    #[virtual_method(index = 141, private)]
     fn end_pix_event(&self);
 }
 
