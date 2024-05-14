@@ -2,14 +2,14 @@ mod object_manager;
 
 pub use object_manager::*;
 
-use crate::config::GlowConfig;
+use crate::config::GlowGroupConfig;
 use crate::game::Entity;
 use crate::interfaces::Interfaces;
 
 use std::mem;
 
 pub fn manage_players<'a>(
-    config: &GlowConfig,
+    config: &GlowGroupConfig,
     interfaces: &'a Interfaces,
     object_manager: &mut GlowObjectManager,
     local_player: Option<&Entity>,

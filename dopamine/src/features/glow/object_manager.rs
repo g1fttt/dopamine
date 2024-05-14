@@ -1,4 +1,4 @@
-use crate::config::{Color, Glow};
+use crate::config::{Color, GlowConfig};
 use crate::game::material_system::{
     ClearBuffersBuilder, Material, MaterialSystem, OverrideDepthBuilder, RenderContext,
     ScreenSpaceRectBuilder, StencilCmpFn, StencilOp, Texture,
@@ -281,7 +281,7 @@ pub struct Object<'a> {
 }
 
 impl<'a> Object<'a> {
-    pub fn new(entity: &'a Entity, config: &Glow) -> Self {
+    pub fn new(entity: &'a Entity, config: &GlowConfig) -> Self {
         Self {
             entity: Some(entity),
             color: config.color,

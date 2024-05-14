@@ -7,8 +7,8 @@ use std::{fs, io};
 
 #[derive(Default, Serialize, Deserialize)]
 pub struct Config {
-    pub misc: MiscConfig,
-    pub glow: GlowConfig,
+    pub misc: MiscGroupConfig,
+    pub glow: GlowGroupConfig,
 }
 
 impl Config {
@@ -59,7 +59,7 @@ impl Default for BunnyhopConfig {
 }
 
 #[derive(Default, Serialize, Deserialize)]
-pub struct MiscConfig {
+pub struct MiscGroupConfig {
     pub bunnyhop: BunnyhopConfig,
 }
 
@@ -79,12 +79,12 @@ impl Color {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Glow {
+pub struct GlowConfig {
     pub enabled: bool,
     pub color: Color,
 }
 
-impl Default for Glow {
+impl Default for GlowConfig {
     fn default() -> Self {
         Self {
             enabled: bool::default(),
@@ -94,7 +94,7 @@ impl Default for Glow {
 }
 
 #[derive(Default, Serialize, Deserialize)]
-pub struct GlowConfig {
-    pub enemies: Glow,
-    pub allies: Glow,
+pub struct GlowGroupConfig {
+    pub enemies: GlowConfig,
+    pub allies: GlowConfig,
 }
