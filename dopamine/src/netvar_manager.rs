@@ -4,23 +4,25 @@ use crate::game::{RecvTable, SendPropKind};
 use std::collections::HashMap;
 use std::ffi::{c_char, CStr};
 
-#[derive(Default)]
 pub struct NetvarManager<'a> {
     pub offsets: HashMap<(&'a str, &'a str), usize>,
 }
 
 impl NetvarManager<'_> {
-    pub fn precache(client: &Client) -> Self {
-        let mut this = Self::default();
+    pub fn new() -> Self {
+        Self {
+            offsets: HashMap::new(),
+        }
+    }
 
+    pub fn precache(&mut self, client: &Client) {
         let mut client_class = client.all_classes();
+
         while let Some(cc) = client_class {
-            unsafe { this.walk_table(cc.name, cc.recv_table) };
+            unsafe { self.walk_table(cc.name, cc.recv_table) };
             client_class = cc.next;
         }
-
-        this.offsets.shrink_to_fit();
-        this
+        self.offsets.shrink_to_fit();
     }
 
     unsafe fn walk_table(&mut self, class_name: *const c_char, table: &RecvTable) {

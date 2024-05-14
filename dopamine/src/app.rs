@@ -35,6 +35,7 @@ impl App {
     unsafe fn setup(&mut self) -> windows::core::Result<()> {
         DisableThreadLibraryCalls(self.module)?;
 
+        self.netvar_manager.precache(self.interfaces.client);
         self.glow_object_manager
             .setup_materials(self.interfaces.material_system, &mut self.material_creator);
         self.hooks.hook_all()?;
@@ -131,7 +132,7 @@ impl App {
                 module: module.unwrap(),
                 config: Config::create_and_load_from(Config::PATH),
                 hooks: Hooks::create(&interfaces),
-                netvar_manager: NetvarManager::precache(interfaces.client),
+                netvar_manager: NetvarManager::new(),
                 local_player: None,
                 glow_object_manager: GlowObjectManager::new(interfaces.material_system),
                 material_creator: MaterialCreator::new(),
