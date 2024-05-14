@@ -33,9 +33,9 @@ pub fn manage_players<'a>(
             unsafe { mem::transmute_copy(&object_manager) };
 
         if config.enemies.enabled && is_enemy {
-            object_manager.register_object(Object::new(entity, &config.enemies));
+            object_manager.register_object((entity, &config.enemies).into());
         } else if config.allies.enabled && !is_enemy {
-            object_manager.register_object(Object::new(entity, &config.allies));
+            object_manager.register_object((entity, &config.allies).into());
         }
     }
 }

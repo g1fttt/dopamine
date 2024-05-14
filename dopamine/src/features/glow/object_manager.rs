@@ -244,7 +244,9 @@ impl GlowObjectManager<'_> {
             self.draw_glow_models(interfaces, view, render_ctx);
         });
 
-        self.blur_glow_effects(view, render_ctx);
+        render_ctx.with_pix_event("BlurGlowEffects", || {
+            self.blur_glow_effects(view, render_ctx);
+        });
 
         StencilState {
             enable: true,
@@ -304,6 +306,12 @@ impl<'a> Object<'a> {
             }
             attachment = ent.move_peer();
         }
+    }
+}
+
+impl<'a> From<(&'a Entity, &GlowConfig)> for Object<'a> {
+    fn from(val: (&'a Entity, &GlowConfig)) -> Self {
+        Object::new(val.0, val.1)
     }
 }
 
