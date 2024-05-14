@@ -1,6 +1,6 @@
 [workspace]
-members = ["dopamine-core", "dopamine-macros"]
-default-members = ["dopamine-core"]
+members = ["dopamine", "dopamine-macros"]
+default-members = ["dopamine"]
 resolver = "2"
 
 [workspace.package]

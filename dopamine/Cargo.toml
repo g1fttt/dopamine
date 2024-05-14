@@ -1,10 +1,9 @@
 [package]
-name = "dopamine-core"
+name = "dopamine"
 version.workspace = true
 edition.workspace = true
 
 [lib]
-name = "dopamine"
 crate-type = ["cdylib"]
 
 [dependencies]
