@@ -43,9 +43,8 @@ pub fn macro_impl(attr_args: TokenStream, item: TokenStream) -> TokenStream {
     quote! {
         #[allow(clippy::too_many_arguments)]
         #pub_token fn #fn_ident #fn_generics(#fn_args) #fn_output {
-            #[allow(clippy::useless_transmute)]
             unsafe {
-                (*(*std::mem::transmute::<_, *const *const extern "thiscall" fn (&Self, #(#fn_args_types),*) #fn_output>(self))
+                (*(*(self as *const Self as *const *const extern "thiscall" fn(&Self, #(#fn_args_types),*) #fn_output))
                     .add(#vtable_index))(self, #(#fn_args_names),*)
             }
         }
