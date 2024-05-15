@@ -1,4 +1,4 @@
-use crate::config::{Color, GlowConfig};
+use crate::config::GlowConfig;
 use crate::game::material_system::{
     ClearBuffersBuilder, Material, MaterialSystem, OverrideDepthBuilder, RenderContext,
     ScreenSpaceRectBuilder, StencilCmpFn, StencilOp, Texture,
@@ -8,6 +8,7 @@ use crate::game::Entity;
 
 use crate::features::shared::MaterialCreator;
 use crate::interfaces::Interfaces;
+use crate::utils::Color;
 
 pub struct GlowObjectManager<'a> {
     rt_quarter_size_1: &'a Texture,

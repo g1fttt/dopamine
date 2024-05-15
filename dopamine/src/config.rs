@@ -1,4 +1,4 @@
-use crate::game::render_view::ColorModulation;
+use crate::utils::Color;
 
 use serde::{Deserialize, Serialize};
 
@@ -61,21 +61,6 @@ impl Default for BunnyhopConfig {
 #[derive(Default, Serialize, Deserialize)]
 pub struct MiscGroupConfig {
     pub bunnyhop: BunnyhopConfig,
-}
-
-#[derive(Clone, Copy, Serialize, Deserialize)]
-pub struct Color(f32, f32, f32, f32);
-
-impl Color {
-    const WHITE: Self = Self(1.0, 1.0, 1.0, 1.0);
-
-    pub fn color_modulation(&self) -> ColorModulation {
-        (self.0, self.1, self.2)
-    }
-
-    pub fn alpha(&self) -> f32 {
-        self.3
-    }
 }
 
 #[derive(Serialize, Deserialize)]
