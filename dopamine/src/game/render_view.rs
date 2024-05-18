@@ -1,23 +1,26 @@
 use super::material_system::Vec2;
+use crate::utils::Color;
 
 use dopamine_macros::virtual_method;
 
 use std::mem::MaybeUninit;
 
-pub type ColorModulation = (f32, f32, f32);
-
 #[repr(C)]
 pub struct RenderView;
 
 impl RenderView {
-    pub fn set_color_modulation(&self, (r, g, b): ColorModulation) {
-        self.set_color_modulation_private([r, g, b].as_ptr());
+    pub fn set_color(&self, color: Color) {
+        self.set_color_private(&color as *const Color as _);
     }
 
-    pub fn color_modulation(&self) -> ColorModulation {
+    pub fn color(&self) -> Color {
         let mut out: [MaybeUninit<f32>; 3] = MaybeUninit::uninit_array();
-        self.color_modulation_private(out.as_mut_ptr().cast());
-        unsafe { MaybeUninit::array_assume_init(out) }.into()
+        self.color_private(out.as_mut_ptr().cast());
+
+        unsafe {
+            let rgb = MaybeUninit::array_assume_init(out);
+            Color::rgb(rgb[0], rgb[1], rgb[2])
+        }
     }
 }
 
@@ -29,10 +32,10 @@ impl RenderView {
     fn blend(&self) -> f32;
 
     #[virtual_method(index = 6, private)]
-    fn set_color_modulation_private(&self, color: *const f32);
+    fn set_color_private(&self, color: *const f32);
 
     #[virtual_method(index = 7, private)]
-    fn color_modulation_private(&self, color: *mut f32);
+    fn color_private(&self, color: *mut f32);
 }
 
 #[repr(C)]

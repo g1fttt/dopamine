@@ -9,6 +9,7 @@ crate-type = ["cdylib"]
 [dependencies]
 dopamine-macros = { path = "../dopamine-macros" }
 
+num-traits = "0.2.19"
 derive_builder = "0.20.0"
 regex = "1.10.4"
 fastrand = "2.1.0"
@@ -24,4 +25,6 @@ windows = { version = "0.56.0", features = [
     "Win32_System_Diagnostics_Debug",
     "Win32_System_SystemServices",
     "Win32_System_ProcessStatus",
+    "Win32_Graphics_Direct3D9",
+    "Win32_Graphics_Gdi",
 ] }

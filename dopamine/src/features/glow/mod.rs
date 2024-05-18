@@ -9,7 +9,7 @@ use crate::interfaces::Interfaces;
 use std::mem;
 
 pub fn manage_players<'a>(
-    config: &GlowGroupConfig,
+    config: &'a GlowGroupConfig,
     interfaces: &'a Interfaces,
     object_manager: &mut GlowObjectManager,
     local_player: Option<&Entity>,

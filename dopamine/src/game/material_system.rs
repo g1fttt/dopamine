@@ -1,5 +1,6 @@
 use super::KeyValues;
 use crate::cstr;
+use crate::utils::Color;
 
 use derive_builder::Builder;
 use dopamine_macros::virtual_method;
@@ -108,8 +109,9 @@ impl RenderContext {
         self.set_viewport((0, 0), dimensions);
     }
 
-    pub fn clear_color_3ub(&self, (r, g, b): (u8, u8, u8)) {
-        self.clear_color_3ub_private(r, g, b);
+    pub fn clear_color_3u8(&self, color: Color<u8>) {
+        let color = color.mul_255_if_supports();
+        self.clear_color_3u8_private(color.r, color.g, color.b);
     }
 
     pub fn with_pix_event(&self, name: &str, f: impl Fn()) {
@@ -140,7 +142,7 @@ impl RenderContext {
     fn set_viewport_private(&self, x: i32, y: i32, width: i32, height: i32);
 
     #[virtual_method(index = 72, private)]
-    fn clear_color_3ub_private(&self, r: u8, g: u8, b: u8);
+    fn clear_color_3u8_private(&self, r: u8, g: u8, b: u8);
 
     #[virtual_method(index = 74, private)]
     fn override_depth_enable(&self, enable: bool, depth_enable: bool);

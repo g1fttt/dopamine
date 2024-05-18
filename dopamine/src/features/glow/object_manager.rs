@@ -126,10 +126,10 @@ impl GlowObjectManager<'_> {
     ) {
         render_ctx.push_rt_and_set_viewport(self.rt_glow_buf_1, view.dimensions());
 
-        let orig_color = interfaces.render_view.color_modulation();
+        let orig_color = interfaces.render_view.color();
         let orig_alpha = interfaces.render_view.blend();
 
-        render_ctx.clear_color_3ub((0, 0, 0));
+        render_ctx.clear_color_3u8(Color::black());
         ClearBuffersBuilder::default()
             .clear_color(true)
             .clear_depth(false)
@@ -150,16 +150,14 @@ impl GlowObjectManager<'_> {
                 continue;
             }
 
-            interfaces
-                .render_view
-                .set_color_modulation(obj.color.color_modulation());
-            interfaces.render_view.set_blend(obj.color.alpha());
+            interfaces.render_view.set_color(obj.color.clone());
+            interfaces.render_view.set_blend(obj.color.a);
 
             obj.draw_model();
         }
 
         interfaces.model_render.forced_material_override(None);
-        interfaces.render_view.set_color_modulation(orig_color);
+        interfaces.render_view.set_color(orig_color);
         interfaces.render_view.set_blend(orig_alpha);
 
         StencilState::default().set(render_ctx);
@@ -280,14 +278,14 @@ impl GlowObjectManager<'_> {
 
 pub struct Object<'a> {
     entity: Option<&'a Entity>,
-    color: Color,
+    color: &'a Color,
 }
 
 impl<'a> Object<'a> {
-    pub fn new(entity: &'a Entity, config: &GlowConfig) -> Self {
+    pub fn new(entity: &'a Entity, config: &'a GlowConfig) -> Self {
         Self {
             entity: Some(entity),
-            color: config.color,
+            color: &config.color,
         }
     }
 
@@ -310,8 +308,8 @@ impl<'a> Object<'a> {
     }
 }
 
-impl<'a> From<(&'a Entity, &GlowConfig)> for Object<'a> {
-    fn from(val: (&'a Entity, &GlowConfig)) -> Self {
+impl<'a> From<(&'a Entity, &'a GlowConfig)> for Object<'a> {
+    fn from(val: (&'a Entity, &'a GlowConfig)) -> Self {
         Object::new(val.0, val.1)
     }
 }

@@ -73,7 +73,7 @@ impl Default for GlowConfig {
     fn default() -> Self {
         Self {
             enabled: bool::default(),
-            color: Color::WHITE,
+            color: Color::white(),
         }
     }
 }
