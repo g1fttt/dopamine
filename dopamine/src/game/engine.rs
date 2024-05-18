@@ -17,24 +17,15 @@ impl Engine {
 }
 
 #[repr(C)]
-enum MaterialOverrideKind {
-    Normal,
-}
-
-#[repr(C)]
 pub struct ModelRender;
 
 impl ModelRender {
     pub fn forced_material_override(&self, new_material: Option<&Material>) {
-        self.forced_material_override_private(new_material, MaterialOverrideKind::Normal);
+        self.forced_material_override_private(new_material, 0 /* Normal */);
     }
 }
 
 impl ModelRender {
     #[virtual_method(index = 1, private)]
-    fn forced_material_override_private(
-        &self,
-        new_material: Option<&Material>,
-        override_kind: MaterialOverrideKind,
-    );
+    fn forced_material_override_private(&self, new_material: Option<&Material>, override_kind: i32);
 }

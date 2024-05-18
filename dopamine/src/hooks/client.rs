@@ -1,10 +1,9 @@
 use crate::app::App;
+use crate::game::client::Client;
 
-use std::ffi::c_void;
+type LevelInitPostEntityFn = extern "thiscall" fn(&Client);
 
-type LevelInitPostEntityFn = extern "thiscall" fn(*mut c_void);
-
-pub extern "thiscall" fn level_init_post_entity(this: *mut c_void) {
+pub(super) extern "thiscall" fn level_init_post_entity(this: &Client) {
     App::with_mut(move |app| {
         let original: LevelInitPostEntityFn = app.hooks.level_init_post_entity.original();
         original(this);
@@ -16,9 +15,9 @@ pub extern "thiscall" fn level_init_post_entity(this: *mut c_void) {
     });
 }
 
-type LevelShutdownFn = extern "thiscall" fn(*mut c_void);
+type LevelShutdownFn = extern "thiscall" fn(&Client);
 
-pub extern "thiscall" fn level_shutdown(this: *mut c_void) {
+pub(super) extern "thiscall" fn level_shutdown(this: &Client) {
     App::with_mut(move |app| {
         let original: LevelShutdownFn = app.hooks.level_shutdown.original();
         original(this);

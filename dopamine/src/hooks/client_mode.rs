@@ -5,10 +5,10 @@ use crate::game::UserCommand;
 use crate::app::App;
 use crate::features::{glow, misc};
 
-type CreateMoveFn = extern "thiscall" fn(&mut ClientMode, f32, &mut UserCommand) -> bool;
+type CreateMoveFn = extern "thiscall" fn(&ClientMode, f32, &mut UserCommand) -> bool;
 
-pub extern "thiscall" fn create_move(
-    this: &mut ClientMode,
+pub(super) extern "thiscall" fn create_move(
+    this: &ClientMode,
     input_sample_frame_time: f32,
     cmd: &mut UserCommand,
 ) -> bool {
@@ -22,10 +22,10 @@ pub extern "thiscall" fn create_move(
     })
 }
 
-type DoPostScreenSpaceEffects = extern "thiscall" fn(&mut ClientMode, &ViewSetup) -> bool;
+type DoPostScreenSpaceEffects = extern "thiscall" fn(&ClientMode, &ViewSetup) -> bool;
 
-pub extern "thiscall" fn do_post_screen_space_effects(
-    this: &mut ClientMode,
+pub(super) extern "thiscall" fn do_post_screen_space_effects(
+    this: &ClientMode,
     view: &ViewSetup,
 ) -> bool {
     App::with_mut(move |app| {

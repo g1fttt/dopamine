@@ -131,7 +131,7 @@ impl App {
             App {
                 module: module.unwrap(),
                 config: Config::create_and_load_from(Config::PATH),
-                hooks: Hooks::create(&interfaces),
+                hooks: Hooks::create(&interfaces, &patterns),
                 netvar_manager: NetvarManager::new(),
                 local_player: None,
                 glow_object_manager: GlowObjectManager::new(interfaces.material_system),

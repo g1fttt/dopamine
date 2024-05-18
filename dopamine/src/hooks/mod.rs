@@ -1,8 +1,10 @@
 mod client;
 mod client_mode;
+mod d3d9;
 mod winapi;
 
 use crate::interfaces::Interfaces;
+use crate::patterns::Patterns;
 use crate::pcstr;
 use crate::utils::VMTHook;
 
@@ -11,21 +13,32 @@ use windows::Win32::UI::WindowsAndMessaging::{
     FindWindowA, SetWindowLongPtrW, GWLP_WNDPROC, WNDPROC,
 };
 
+use d3d9::{PresentFn, ResetFn};
+
+use std::ffi::c_void;
 use std::mem;
 
 pub struct Hooks {
     window: HWND,
-    pub wnd_proc: WNDPROC,
+    pub(self) wnd_proc: WNDPROC,
 
-    pub create_move: VMTHook,
-    pub do_post_screen_space_effects: VMTHook,
+    pub(self) create_move: VMTHook,
+    pub(self) do_post_screen_space_effects: VMTHook,
 
-    pub level_init_post_entity: VMTHook,
-    pub level_shutdown: VMTHook,
+    pub(self) level_init_post_entity: VMTHook,
+    pub(self) level_shutdown: VMTHook,
+
+    reset_raw: *mut c_void,
+    present_raw: *mut c_void,
+    pub(self) reset: ResetFn,
+    pub(self) present: PresentFn,
 }
 
 impl Hooks {
-    pub unsafe fn create(interfaces: &Interfaces) -> Self {
+    pub unsafe fn create(interfaces: &Interfaces, patterns: &Patterns) -> Self {
+        let reset = **patterns.d3d9_reset.cast::<*const ResetFn>();
+        let present = **patterns.d3d9_present.cast::<*const PresentFn>();
+
         Self {
             window: FindWindowA(pcstr!("Valve001"), pcstr!()),
             wnd_proc: None,
@@ -35,6 +48,11 @@ impl Hooks {
 
             level_init_post_entity: VMTHook::new(interfaces.client, 6),
             level_shutdown: VMTHook::new(interfaces.client, 7),
+
+            reset_raw: patterns.d3d9_reset,
+            present_raw: patterns.d3d9_present,
+            reset,
+            present,
         }
     }
 
@@ -56,10 +74,16 @@ impl Hooks {
             .hook(client::level_init_post_entity as _)?;
         self.level_shutdown.hook(client::level_shutdown as _)?;
 
+        **self.reset_raw.cast::<*mut ResetFn>() = d3d9::reset;
+        **self.present_raw.cast::<*mut PresentFn>() = d3d9::present;
+
         Ok(())
     }
 
     pub unsafe fn unhook_all(&self) -> windows::core::Result<()> {
+        **self.reset_raw.cast::<*mut ResetFn>() = self.reset;
+        **self.present_raw.cast::<*mut PresentFn>() = self.present;
+
         self.create_move.unhook()?;
         self.do_post_screen_space_effects.unhook()?;
 
