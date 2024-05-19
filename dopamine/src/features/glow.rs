@@ -3,9 +3,13 @@ use crate::game::material_system::{
     ScreenSpaceRectBuilder, StencilCmpFn, StencilOp, Texture,
 };
 use crate::game::render_view::ViewSetup;
+use crate::game::{Entity, KeyValues};
+
+use super::shared::RenderableObject;
+use super::shared::StencilState;
 
 use crate::app::App;
-use crate::features::shared::{MaterialCreator, RenderableObject};
+use crate::config::{GlowConfig, GlowGroupConfig};
 use crate::interfaces::Interfaces;
 use crate::utils::Color;
 
@@ -13,10 +17,10 @@ pub struct GlowObjectManager<'a> {
     rt_quarter_size_1: &'a Texture,
     rt_glow_buf_1: &'a Texture,
     rt_glow_buf_2: &'a Texture,
-    glow_material: Option<&'a Material>,
-    halo_material: Option<&'a Material>,
-    glow_blur_x_material: Option<&'a Material>,
-    glow_blur_y_material: Option<&'a Material>,
+    glow_material: &'a Material,
+    halo_material: &'a Material,
+    glow_blur_x_material: &'a Material,
+    glow_blur_y_material: &'a Material,
 }
 
 impl<'a> GlowObjectManager<'a> {
@@ -38,62 +42,64 @@ impl<'a> GlowObjectManager<'a> {
             .create_named_rt("_rt_GlowBuf2", rt_full_frame.dimensions())
             .unwrap();
 
+        let kv = KeyValues::new_leaked("UnlitGeneric");
+        {
+            kv.set("$BaseTexture", "white");
+            kv.set("$IgnoreZ", "1");
+            kv.set("$Model", "1");
+            kv.set("$LinearWrite", "1");
+        }
+        let glow_material = material_system
+            .create_material("_GlowMaterial", kv)
+            .unwrap();
+
+        let kv = KeyValues::new_leaked("screenspace_general");
+        {
+            kv.set("$PixShader", "haloaddoutline_ps20");
+            kv.set("$Alpha_Blend_Color_Overlay", "1");
+            kv.set("$BaseTexture", "_rt_GlowBuf1");
+            kv.set("$C0_X", "1");
+            kv.set("$IgnoreZ", "1");
+            kv.set("$LinearRead_BaseTexture", "1");
+            kv.set("$LinearWrite", "1");
+        }
+        let halo_material = material_system
+            .create_material("_HaloMaterial", kv)
+            .unwrap();
+
+        let kv = KeyValues::new_leaked("BlurFilterX");
+        {
+            kv.set("$BaseTexture", "_rt_GlowBuf1");
+            kv.set("$IgnoreZ", "1");
+            kv.set("$Translucent", "1");
+            kv.set("$AlphaTest", "1");
+        }
+        let glow_blur_x_material = material_system.create_material("_GlowBlurX", kv).unwrap();
+
+        let kv = KeyValues::new_leaked("BlurFilterY");
+        {
+            kv.set("$BaseTexture", "_rt_GlowBuf2");
+            kv.set("$BloomAmount", "1");
+            kv.set("$IgnoreZ", "1");
+            kv.set("$Translucent", "1");
+            kv.set("$AlphaTest", "1");
+        }
+        let glow_blur_y_material = material_system.create_material("_GlowBlurY", kv).unwrap();
+
         Self {
             rt_quarter_size_1,
             rt_glow_buf_1,
             rt_glow_buf_2,
-            glow_material: None,
-            halo_material: None,
-            glow_blur_x_material: None,
-            glow_blur_y_material: None,
+            glow_material,
+            halo_material,
+            glow_blur_x_material,
+            glow_blur_y_material,
         }
-    }
-
-    pub fn setup_materials(
-        &mut self,
-        material_system: &'a MaterialSystem,
-        material_creator: &mut MaterialCreator,
-    ) {
-        self.glow_material = material_creator
-            .shader("UnlitGeneric")
-            .string("$BaseTexture", "white")
-            .string("$IgnoreZ", "1")
-            .string("$Model", "1")
-            .string("$LinearWrite", "1")
-            .bind("_GlowMaterial", material_system);
-
-        self.halo_material = material_creator
-            .shader("screenspace_general")
-            .string("$PixShader", "haloaddoutline_ps20")
-            .string("$Alpha_Blend_Color_Overlay", "1")
-            .string("$BaseTexture", "_rt_GlowBuf1")
-            .string("$C0_X", "1")
-            .string("$IgnoreZ", "1")
-            .string("$LinearRead_BaseTexture", "1")
-            .string("$LinearWrite", "1")
-            .bind("_HaloMaterial", material_system);
-
-        self.glow_blur_x_material = material_creator
-            .shader("BlurFilterX")
-            .string("$BaseTexture", "_rt_GlowBuf1")
-            .string("$IgnoreZ", "1")
-            .string("$Translucent", "1")
-            .string("$AlphaTest", "1")
-            .bind("_GlowBlurX", material_system);
-
-        self.glow_blur_y_material = material_creator
-            .shader("BlurFilterY")
-            .string("$BaseTexture", "_rt_GlowBuf2")
-            .string("$BloomAmount", "1")
-            .string("$IgnoreZ", "1")
-            .string("$Translucent", "1")
-            .string("$AlphaTest", "1")
-            .bind("_GlowBlurY", material_system);
     }
 }
 
 impl GlowObjectManager<'_> {
-    pub fn draw_glow_effects(&self, objects: &[RenderableObject], app: &App, view: &ViewSetup) {
+    pub fn draw_glow_effects(&self, objects: &mut [RenderableObject], app: &App, view: &ViewSetup) {
         let render_ctx = app.interfaces.material_system.render_ctx();
 
         render_ctx.with_pix_event("ApplyEntityGlowEffects", move || {
@@ -103,7 +109,7 @@ impl GlowObjectManager<'_> {
 
     fn draw_glow_models(
         &self,
-        objects: &[RenderableObject],
+        objects: &mut [RenderableObject],
         interfaces: &Interfaces,
         app: &App,
         view: &ViewSetup,
@@ -122,7 +128,7 @@ impl GlowObjectManager<'_> {
 
         interfaces
             .model_render
-            .forced_material_override(self.glow_material);
+            .forced_material_override(Some(self.glow_material));
 
         StencilState {
             test_mask: 0xFF,
@@ -131,16 +137,20 @@ impl GlowObjectManager<'_> {
         .set(render_ctx);
 
         for obj in objects {
-            if !obj.should_draw() {
+            if !obj.should_draw_model() {
                 continue;
             }
 
-            let color = determine_glow_color(obj, app);
+            let config = determine_glow_config(obj, app.local_player, &app.config.glow);
+            if !config.enabled {
+                continue;
+            }
 
-            interfaces.render_view.set_color(color);
-            interfaces.render_view.set_blend(color.a);
+            interfaces.render_view.set_color(&config.color);
+            interfaces.render_view.set_blend(config.color.a);
 
             obj.draw_model();
+            obj.draw_attachments();
         }
 
         interfaces.model_render.forced_material_override(None);
@@ -158,7 +168,7 @@ impl GlowObjectManager<'_> {
             let (view_width, view_height) = view.dimensions();
 
             let blur_screen_space_rect = ScreenSpaceRectBuilder::default()
-                .material(self.glow_blur_x_material.unwrap())
+                .material(self.glow_blur_x_material)
                 .pos((0, 0))
                 .dimensions(view.dimensions())
                 .texture_x0_y0((0.0, 0.0))
@@ -168,7 +178,7 @@ impl GlowObjectManager<'_> {
 
             render_ctx.set_render_target(self.rt_glow_buf_1);
             blur_screen_space_rect
-                .material(self.glow_blur_y_material.unwrap())
+                .material(self.glow_blur_y_material)
                 .build_and_draw(render_ctx);
         }
         render_ctx.pop_rt_and_viewport();
@@ -176,7 +186,7 @@ impl GlowObjectManager<'_> {
 
     fn apply_entity_glow_effects(
         &self,
-        objects: &[RenderableObject],
+        objects: &mut [RenderableObject],
         interfaces: &Interfaces,
         app: &App,
         view: &ViewSetup,
@@ -193,24 +203,29 @@ impl GlowObjectManager<'_> {
         let saved_blend = interfaces.render_view.blend();
         interfaces.render_view.set_blend(0.0);
 
+        StencilState {
+            enable: true,
+            z_fail_op: StencilOp::Replace,
+            pass_op: StencilOp::Replace,
+            ref_value: 1,
+            ..Default::default()
+        }
+        .set(render_ctx);
+
         let mut drew_anything = false;
 
-        for obj in objects {
-            if !obj.should_draw() {
+        for obj in objects.iter_mut() {
+            if !obj.should_draw_model() {
                 continue;
             }
 
-            StencilState {
-                enable: true,
-                z_fail_op: StencilOp::Replace,
-                pass_op: StencilOp::Replace,
-                ref_value: 1,
-                ..Default::default()
+            // Draw regular player model over glowing one
+            // if we didn't drew it before (chams)
+            if !obj.model_was_drawn {
+                obj.draw_model();
+                obj.draw_attachments();
+                obj.model_was_drawn = true;
             }
-            .set(render_ctx);
-
-            obj.draw_model();
-
             drew_anything = true;
         }
 
@@ -250,7 +265,7 @@ impl GlowObjectManager<'_> {
         let (view_width, view_height) = view.dimensions();
 
         ScreenSpaceRectBuilder::default()
-            .material(self.halo_material.unwrap())
+            .material(self.halo_material)
             .pos((0, 0))
             .dimensions(view.dimensions())
             .texture_x0_y0((0.0, -0.5))
@@ -265,52 +280,16 @@ impl GlowObjectManager<'_> {
     }
 }
 
-fn determine_glow_color<'a>(obj: &RenderableObject, app: &'a App) -> &'a Color {
-    let config = &app.config.glow;
-    if let Some(lp) = app.local_player
+fn determine_glow_config<'a>(
+    obj: &RenderableObject,
+    local_player: Option<&Entity>,
+    config: &'a GlowGroupConfig,
+) -> &'a GlowConfig {
+    if let Some(lp) = local_player
         && lp.team() != obj.entity.team()
     {
-        &config.enemies.color
+        &config.enemies
     } else {
-        &config.allies.color
-    }
-}
-
-struct StencilState {
-    enable: bool,
-    fail_op: StencilOp,
-    z_fail_op: StencilOp,
-    pass_op: StencilOp,
-    cmp_fn: StencilCmpFn,
-    ref_value: i32,
-    test_mask: u32,
-    write_mask: u32,
-}
-
-impl StencilState {
-    fn set(&self, render_ctx: &RenderContext) {
-        render_ctx.set_stencil_enable(self.enable);
-        render_ctx.set_stencil_fail_op(self.fail_op);
-        render_ctx.set_stencil_z_fail_op(self.z_fail_op);
-        render_ctx.set_stencil_pass_op(self.pass_op);
-        render_ctx.set_stencil_cmp_fn(self.cmp_fn);
-        render_ctx.set_stencil_ref_value(self.ref_value);
-        render_ctx.set_stencil_test_mask(self.test_mask);
-        render_ctx.set_stencil_write_mask(self.write_mask);
-    }
-}
-
-impl Default for StencilState {
-    fn default() -> Self {
-        Self {
-            enable: false,
-            fail_op: StencilOp::default(),
-            z_fail_op: StencilOp::default(),
-            pass_op: StencilOp::default(),
-            cmp_fn: StencilCmpFn::default(),
-            ref_value: 0,
-            test_mask: 0xFFFFFFFF,
-            write_mask: 0xFFFFFFFF,
-        }
+        &config.allies
     }
 }

@@ -1,4 +1,5 @@
-use crate::{cstr, App};
+use crate::cstr;
+use crate::patterns::Patterns;
 
 #[repr(C)]
 pub struct KeyValues {
@@ -6,13 +7,18 @@ pub struct KeyValues {
 }
 
 impl KeyValues {
-    pub fn new_boxed(shader: &str) -> Box<Self> {
+    fn new_boxed(shader: &str) -> Box<Self> {
         let mut this = Box::new_uninit();
-        (App::patterns().key_values_new)(this.as_mut_ptr(), cstr!(shader));
+        (Patterns::get().key_values_new)(this.as_mut_ptr(), cstr!(shader));
         unsafe { this.assume_init() }
     }
 
-    pub fn set_string(&mut self, key: &str, value: &str) {
-        (App::patterns().key_values_set_string)(self, cstr!(key), cstr!(value));
+    // FIXME: It's better to store it somewhere and then free on unload
+    pub fn new_leaked(shader: &str) -> &mut Self {
+        Box::leak(Self::new_boxed(shader))
+    }
+
+    pub fn set(&mut self, key: &str, value: &str) {
+        (Patterns::get().key_values_set_string)(self, cstr!(key), cstr!(value));
     }
 }

@@ -1,11 +1,11 @@
 use crate::config::Config;
-use crate::features::glow::GlowObjectManager;
-use crate::features::shared::MaterialCreator;
 use crate::game::Entity;
 use crate::hooks::Hooks;
 use crate::interfaces::Interfaces;
 use crate::netvar_manager::NetvarManager;
-use crate::patterns::Patterns;
+
+use crate::features::chams::Chams;
+use crate::features::glow::GlowObjectManager;
 
 use windows::Win32::Foundation::{CloseHandle, HMODULE};
 use windows::Win32::System::Diagnostics::Debug::Beep;
@@ -19,12 +19,14 @@ pub struct App {
     module: HMODULE,
     pub config: Config,
     pub hooks: Hooks,
-    pub netvar_manager: NetvarManager<'static>,
-    pub local_player: Option<&'static Entity>,
+
     pub glow_object_manager: GlowObjectManager<'static>,
-    pub material_creator: MaterialCreator,
+    pub chams: Chams<'static>,
+
+    pub local_player: Option<&'static Entity>,
+
+    pub netvar_manager: NetvarManager<'static>,
     pub interfaces: Interfaces<'static>,
-    pub patterns: Patterns,
 }
 
 impl App {
@@ -36,8 +38,6 @@ impl App {
         DisableThreadLibraryCalls(self.module)?;
 
         self.netvar_manager.precache(self.interfaces.client);
-        self.glow_object_manager
-            .setup_materials(self.interfaces.material_system, &mut self.material_creator);
         self.hooks.hook_all()?;
 
         Beep(750, 200)
@@ -78,6 +78,7 @@ unsafe extern "system" fn free_library(app: *mut c_void) -> u32 {
 }
 
 impl App {
+    // FIXME: Get rid of it and use LazyLock for netvar precaching
     pub fn netvar_offset(class_name: &str, prop_name: &str) -> Option<usize> {
         Self::with(move |app| {
             app.netvar_manager
@@ -87,12 +88,9 @@ impl App {
         })
     }
 
+    // FIXME: Use LazyLock. Like i did with Patterns
     pub fn interfaces() -> &'static Interfaces<'static> {
         &App::get().interfaces
-    }
-
-    pub fn patterns() -> &'static Patterns {
-        &App::get().patterns
     }
 }
 
@@ -126,18 +124,19 @@ impl App {
 
         APP.get_mut_or_init(|| {
             let interfaces = Interfaces::find().expect("Failed to find interfaces");
-            let patterns = Patterns::find().expect("Failed to find patterns");
 
             App {
                 module: module.unwrap(),
                 config: Config::create_and_load_from(Config::PATH),
-                hooks: Hooks::create(&interfaces, &patterns),
-                netvar_manager: NetvarManager::new(),
+                hooks: Hooks::create(&interfaces),
+
                 local_player: None,
+
                 glow_object_manager: GlowObjectManager::new(interfaces.material_system),
-                material_creator: MaterialCreator::new(),
+                chams: Chams::new(interfaces.material_system),
+
+                netvar_manager: NetvarManager::new(),
                 interfaces,
-                patterns,
             }
         })
     }

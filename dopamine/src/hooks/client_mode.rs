@@ -37,16 +37,19 @@ pub(super) extern "thiscall" fn do_post_screen_space_effects(
         let interfaces = &app.interfaces;
 
         // TODO: Separate struct for this
-        let players_iter = (1..interfaces.engine.max_clients())
+        let mut renderable_objects: Vec<_> = (1..interfaces.engine.max_clients())
             .filter_map(move |i| interfaces.entity_list.get_entity_by_index(i))
-            .filter(|ent| !ent.is_local_player());
+            .filter(|ent| !ent.is_local_player())
+            .map(RenderableObject::new)
+            .collect();
 
-        let glow_objects: Vec<_> = players_iter.map(RenderableObject::new).collect();
+        app.chams.capture_current_entity(interfaces.entity_list);
+        app.chams.draw(&mut renderable_objects, app);
+        app.chams.cache_renderable_objects(&renderable_objects);
 
-        if interfaces.engine.is_in_game() {
-            app.glow_object_manager
-                .draw_glow_effects(&glow_objects, app, view);
-        }
+        app.glow_object_manager
+            .draw_glow_effects(&mut renderable_objects, app, view);
+
         result
     })
 }

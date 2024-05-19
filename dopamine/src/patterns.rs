@@ -9,6 +9,7 @@ use windows::Win32::System::ProcessStatus::{GetModuleInformation, MODULEINFO};
 use windows::Win32::System::Threading::GetCurrentProcess;
 
 use std::ffi::{c_char, c_void};
+use std::sync::LazyLock;
 use std::{mem, slice};
 
 pub struct Patterns {
@@ -23,7 +24,7 @@ pub struct Patterns {
 
 impl Patterns {
     #[rustfmt::skip]
-    pub unsafe fn find() -> windows::core::Result<Self> {
+    unsafe fn find() -> windows::core::Result<Self> {
         let key_values_new = find_pattern("StudioRender.dll", "55 8B EC 56 8B F1 6A")?;
         let key_values_set_string = find_pattern("client.dll", "55 8B EC 57 6A 01 FF 75 08 E8 ? ? ? ? 8B F8 85 FF 74 60")?;
 
@@ -44,7 +45,16 @@ impl Patterns {
             d3d9_present,
         })
     }
+
+    pub fn get() -> &'static Self {
+        static PATTERNS: LazyLock<Patterns> =
+            LazyLock::new(|| unsafe { Patterns::find().expect("Failed to find patterns") });
+        &PATTERNS
+    }
 }
+
+unsafe impl Send for Patterns {}
+unsafe impl Sync for Patterns {}
 
 unsafe fn find_pattern<T>(module_name: &str, pattern: &str) -> windows::core::Result<T> {
     let (base, size) = module_data(module_name)?;

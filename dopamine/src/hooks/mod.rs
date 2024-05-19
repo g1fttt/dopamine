@@ -38,7 +38,9 @@ pub struct Hooks {
 }
 
 impl Hooks {
-    pub unsafe fn create(interfaces: &Interfaces, patterns: &Patterns) -> Self {
+    pub unsafe fn create(interfaces: &Interfaces) -> Self {
+        let patterns = Patterns::get();
+
         let reset = **patterns.d3d9_reset.cast::<*const ResetFn>();
         let present = **patterns.d3d9_present.cast::<*const PresentFn>();
 

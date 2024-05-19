@@ -1,5 +1,4 @@
 use super::material_system::Material;
-use super::Entity;
 
 use dopamine_macros::virtual_method;
 
@@ -12,15 +11,30 @@ impl Engine {
 
     #[virtual_method(index = 21)]
     fn max_clients(&self) -> i32;
-
-    #[virtual_method(index = 26)]
-    fn is_in_game(&self) -> bool;
 }
 
+/*
+struct ModelRenderInfo {
+    Vector3 origin; // 0
+    QAngle angles; // 12
+    void* renderable; // 24
+    const void* model; // 28
+    const Matrix3x4* modelToWorld; // 32
+    const Matrix3x4* lightningOffset; // 36
+    const Vector3* lightningOrigin; // 40
+    int flags; // 44
+    int entityIndex;
+    int skin;
+    int body;
+    int hitboxset;
+    ModelRenderInstance instance;
+};
+*/
+
 #[repr(C)]
-pub struct ModelRenderInfo<'a> {
-    pad: [u8; 24],
-    pub renderable: &'a Entity,
+pub struct ModelRenderInfo {
+    pad: [u8; 44],
+    pub entity_index: i32,
 }
 
 #[repr(C)]

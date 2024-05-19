@@ -9,6 +9,7 @@ use std::{fs, io};
 pub struct Config {
     pub misc: MiscGroupConfig,
     pub glow: GlowGroupConfig,
+    pub chams: ChamsGroupConfig,
 }
 
 impl Config {
@@ -82,4 +83,36 @@ impl Default for GlowConfig {
 pub struct GlowGroupConfig {
     pub enemies: GlowConfig,
     pub allies: GlowConfig,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+pub enum ChamsKind {
+    #[default]
+    Regular,
+    Flat,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ChamsConfig {
+    pub enabled: bool,
+    pub kind: ChamsKind,
+    pub color: Color,
+}
+
+impl Default for ChamsConfig {
+    fn default() -> Self {
+        Self {
+            enabled: bool::default(),
+            kind: ChamsKind::default(),
+            color: Color::white(),
+        }
+    }
+}
+
+#[derive(Default, Serialize, Deserialize)]
+pub struct ChamsGroupConfig {
+    pub enemies_visible: ChamsConfig,
+    pub enemies_occluded: ChamsConfig,
+    pub allies_visible: ChamsConfig,
+    pub allies_occluded: ChamsConfig,
 }

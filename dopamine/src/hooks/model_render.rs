@@ -7,13 +7,22 @@ type DrawModelExecuteFn =
     extern "thiscall" fn(&ModelRender, *mut c_void, &ModelRenderInfo, *mut c_void);
 
 pub(super) extern "thiscall" fn draw_model_execute(
-    this: &ModelRender,
+    this: &'static ModelRender,
     state: *mut c_void,
-    info: &ModelRenderInfo,
+    info: &'static ModelRenderInfo,
     custom_bone_to_world: *mut c_void,
 ) {
-    App::with(move |app| {
+    App::with_mut(move |app| {
         let original: DrawModelExecuteFn = app.hooks.draw_model_execute.original();
-        original(this, state, info, custom_bone_to_world);
+
+        let chams = &mut app.chams;
+
+        chams.capture_state(info);
+
+        if chams.should_process_dme() {
+            original(this, state, info, custom_bone_to_world);
+        } else {
+            chams.reset_state();
+        }
     });
 }

@@ -11,7 +11,17 @@ use std::ptr;
 pub type Vec2<T> = (T, T);
 
 #[repr(C)]
+pub enum MaterialFlag {
+    IgnoreZ = 1 << 15,
+}
+
+#[repr(C)]
 pub struct Material;
+
+impl Material {
+    #[virtual_method(index = 29)]
+    fn set_flag(&self, flag: MaterialFlag, state: bool);
+}
 
 #[repr(C)]
 pub struct Texture;
@@ -114,7 +124,7 @@ impl RenderContext {
         self.clear_color_3u8_private(color.r, color.g, color.b);
     }
 
-    pub fn with_pix_event(&self, name: &str, f: impl Fn()) {
+    pub fn with_pix_event(&self, name: &str, mut f: impl FnMut()) {
         self.begin_pix_event(name);
         {
             f();

@@ -1,3 +1,4 @@
+use crate::patterns::Patterns;
 use crate::App;
 
 use dopamine_macros::{netvar, virtual_method};
@@ -33,7 +34,7 @@ impl Entity {
     }
 
     pub fn is_local_player(&self) -> bool {
-        (App::patterns().is_local_player)(self)
+        (Patterns::get().is_local_player)(self)
     }
 
     pub fn is_dormant(&self) -> bool {
