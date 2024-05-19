@@ -45,8 +45,7 @@ impl<'a> Chams<'a> {
         }
     }
 
-    pub fn draw(&self, objects: &mut [RenderableObject<'a>], app: &App) {
-        let interfaces = &app.interfaces;
+    pub fn draw(&self, objects: &mut [RenderableObject<'a>], interfaces: &Interfaces, app: &App) {
         let render_ctx = interfaces.material_system.render_ctx();
 
         StencilState {
@@ -63,18 +62,19 @@ impl<'a> Chams<'a> {
                 continue;
             }
 
-            let (config_visible, config_occluded) =
+            let (config_occluded, config_visible) =
                 determine_chams_config(obj, app.local_player, &app.config.chams);
-            if !config_visible.enabled && !config_occluded.enabled {
-                continue;
+
+            if config_occluded.enabled {
+                self.apply_chams(obj, config_occluded, interfaces, true);
             }
 
-            self.apply_chams(obj, config_occluded, interfaces, true);
-            self.apply_chams(obj, config_visible, interfaces, false);
+            if config_visible.enabled {
+                self.apply_chams(obj, config_visible, interfaces, false);
+            }
 
-            obj.model_was_drawn = true;
+            obj.model_was_drawn = config_occluded.enabled || config_visible.enabled;
         }
-
         StencilState::default().set(render_ctx);
     }
 
@@ -147,8 +147,8 @@ fn determine_chams_config<'a>(
     if let Some(lp) = local_player
         && lp.team() != obj.entity.team()
     {
-        (&config.enemies_visible, &config.enemies_occluded)
+        (&config.enemies_occluded, &config.enemies_visible)
     } else {
-        (&config.allies_visible, &config.allies_occluded)
+        (&config.allies_occluded, &config.allies_visible)
     }
 }
