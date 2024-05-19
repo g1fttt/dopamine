@@ -1,6 +1,6 @@
 use crate::game::material_system::{
-    ClearBuffersBuilder, Material, MaterialSystem, OverrideDepthBuilder, RenderContext,
-    ScreenSpaceRectBuilder, StencilCmpFn, StencilOp, Texture,
+    ClearBuffersBuilder, Material, OverrideDepthBuilder, RenderContext, ScreenSpaceRectBuilder,
+    StencilCmpFn, StencilOp, Texture,
 };
 use crate::game::render_view::ViewSetup;
 use crate::game::{Entity, KeyValues};
@@ -24,7 +24,9 @@ pub struct GlowObjectManager<'a> {
 }
 
 impl<'a> GlowObjectManager<'a> {
-    pub fn new(material_system: &'a MaterialSystem) -> Self {
+    pub fn new() -> Self {
+        let material_system = Interfaces::get().material_system;
+
         let rt_quarter_size_1 = material_system
             .find_texture("_rt_SmallFB1", "RenderTargets")
             .unwrap();
@@ -100,10 +102,11 @@ impl<'a> GlowObjectManager<'a> {
 
 impl GlowObjectManager<'_> {
     pub fn draw_glow_effects(&self, objects: &mut [RenderableObject], app: &App, view: &ViewSetup) {
-        let render_ctx = app.interfaces.material_system.render_ctx();
+        let interfaces = Interfaces::get();
+        let render_ctx = interfaces.material_system.render_ctx();
 
         render_ctx.with_pix_event("ApplyEntityGlowEffects", move || {
-            self.apply_entity_glow_effects(objects, &app.interfaces, app, view, render_ctx);
+            self.apply_entity_glow_effects(objects, interfaces, app, view, render_ctx);
         });
     }
 

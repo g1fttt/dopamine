@@ -1,5 +1,5 @@
+use crate::interfaces::Interfaces;
 use crate::patterns::Patterns;
-use crate::App;
 
 use dopamine_macros::{netvar, virtual_method};
 
@@ -25,12 +25,12 @@ impl Entity {
 
     pub fn move_child(&self) -> Option<&Self> {
         let handle = unsafe { *(self as *const Self).byte_add(0x184).cast::<i32>() };
-        App::interfaces().entity_list.get_entity_from_handle(handle)
+        Interfaces::get().entity_list.get_entity_from_handle(handle)
     }
 
     pub fn move_peer(&self) -> Option<&Self> {
         let handle = unsafe { *(self as *const Self).byte_add(0x188).cast::<i32>() };
-        App::interfaces().entity_list.get_entity_from_handle(handle)
+        Interfaces::get().entity_list.get_entity_from_handle(handle)
     }
 
     pub fn is_local_player(&self) -> bool {

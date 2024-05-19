@@ -30,7 +30,10 @@ pub fn macro_impl(attr_args: TokenStream, item: TokenStream) -> TokenStream {
 
     quote! {
         pub fn #fn_ident(&self) #fn_output {
-            let offset = crate::App::netvar_offset(#class_name, #prop_name)
+            let offset = crate::netvar_manager::NetvarManager::get()
+                .offsets
+                .get(&(#class_name, #prop_name))
+                .cloned()
                 .expect("Failed to find netvar");
             unsafe { *(self as *const Self).byte_add(offset).cast() }
         }

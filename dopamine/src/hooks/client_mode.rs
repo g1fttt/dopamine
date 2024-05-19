@@ -5,7 +5,8 @@ use crate::game::UserCommand;
 use crate::features::misc;
 use crate::features::shared::RenderableObject;
 
-use crate::app::App;
+use crate::interfaces::Interfaces;
+use crate::App;
 
 type CreateMoveFn = extern "thiscall" fn(&ClientMode, f32, &mut UserCommand) -> bool;
 
@@ -34,7 +35,7 @@ pub(super) extern "thiscall" fn do_post_screen_space_effects(
         let original: DoPostScreenSpaceEffects = app.hooks.do_post_screen_space_effects.original();
         let result = original(this, view);
 
-        let interfaces = &app.interfaces;
+        let interfaces = Interfaces::get();
 
         // TODO: Separate struct for this
         let mut renderable_objects: Vec<_> = (1..interfaces.engine.max_clients())

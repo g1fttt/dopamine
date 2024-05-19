@@ -1,8 +1,6 @@
 use crate::config::Config;
 use crate::game::Entity;
 use crate::hooks::Hooks;
-use crate::interfaces::Interfaces;
-use crate::netvar_manager::NetvarManager;
 
 use crate::features::chams::Chams;
 use crate::features::glow::GlowObjectManager;
@@ -24,9 +22,6 @@ pub struct App {
     pub chams: Chams<'static>,
 
     pub local_player: Option<&'static Entity>,
-
-    pub netvar_manager: NetvarManager<'static>,
-    pub interfaces: Interfaces<'static>,
 }
 
 impl App {
@@ -37,7 +32,6 @@ impl App {
     unsafe fn setup(&mut self) -> windows::core::Result<()> {
         DisableThreadLibraryCalls(self.module)?;
 
-        self.netvar_manager.precache(self.interfaces.client);
         self.hooks.hook_all()?;
 
         Beep(750, 200)
@@ -78,23 +72,6 @@ unsafe extern "system" fn free_library(app: *mut c_void) -> u32 {
 }
 
 impl App {
-    // FIXME: Get rid of it and use LazyLock for netvar precaching
-    pub fn netvar_offset(class_name: &str, prop_name: &str) -> Option<usize> {
-        Self::with(move |app| {
-            app.netvar_manager
-                .offsets
-                .get(&(class_name, prop_name))
-                .cloned()
-        })
-    }
-
-    // FIXME: Use LazyLock. Like i did with Patterns
-    pub fn interfaces() -> &'static Interfaces<'static> {
-        &App::get().interfaces
-    }
-}
-
-impl App {
     pub fn with_mut<T, F>(mut f: F) -> T
     where
         F: FnMut(&mut Self) -> T,
@@ -122,22 +99,15 @@ impl App {
     unsafe fn get_mut_or_init(module: Option<HMODULE>) -> &'static mut Self {
         static mut APP: OnceCell<App> = OnceCell::new();
 
-        APP.get_mut_or_init(|| {
-            let interfaces = Interfaces::find().expect("Failed to find interfaces");
+        APP.get_mut_or_init(|| App {
+            module: module.unwrap(),
+            config: Config::create_and_load_from(Config::PATH),
+            hooks: Hooks::create(),
 
-            App {
-                module: module.unwrap(),
-                config: Config::create_and_load_from(Config::PATH),
-                hooks: Hooks::create(&interfaces),
+            local_player: None,
 
-                local_player: None,
-
-                glow_object_manager: GlowObjectManager::new(interfaces.material_system),
-                chams: Chams::new(interfaces.material_system),
-
-                netvar_manager: NetvarManager::new(),
-                interfaces,
-            }
+            glow_object_manager: GlowObjectManager::new(),
+            chams: Chams::new(),
         })
     }
 }

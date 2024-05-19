@@ -8,6 +8,7 @@ use crate::{cstr, ok_or_empty_err, pcstr};
 use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
 
 use std::ffi::{c_char, c_void};
+use std::sync::LazyLock;
 use std::{mem, ptr};
 
 pub struct Interfaces<'a> {
@@ -21,7 +22,13 @@ pub struct Interfaces<'a> {
 }
 
 impl Interfaces<'_> {
-    pub unsafe fn find() -> windows::core::Result<Self> {
+    pub fn get() -> &'static Self {
+        static INTERFACES: LazyLock<Interfaces> =
+            LazyLock::new(|| unsafe { Interfaces::find().expect("Failed to find interfaces") });
+        &INTERFACES
+    }
+
+    unsafe fn find() -> windows::core::Result<Self> {
         let client = find_interface("client.dll", "VClient017")?;
 
         Ok(Self {

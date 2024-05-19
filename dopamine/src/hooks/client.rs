@@ -1,5 +1,6 @@
 use crate::app::App;
 use crate::game::client::Client;
+use crate::interfaces::Interfaces;
 
 type LevelInitPostEntityFn = extern "thiscall" fn(&Client);
 
@@ -8,10 +9,10 @@ pub(super) extern "thiscall" fn level_init_post_entity(this: &Client) {
         let original: LevelInitPostEntityFn = app.hooks.level_init_post_entity.original();
         original(this);
 
-        app.local_player = app
-            .interfaces
+        let interfaces = Interfaces::get();
+        app.local_player = interfaces
             .entity_list
-            .get_entity_by_index(app.interfaces.engine.local_player_index());
+            .get_entity_by_index(interfaces.engine.local_player_index());
     });
 }
 

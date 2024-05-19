@@ -1,12 +1,14 @@
 use crate::game::client::EntityList;
 use crate::game::engine::ModelRenderInfo;
-use crate::game::material_system::{Material, MaterialFlag, MaterialSystem, StencilOp};
+use crate::game::material_system::{Material, MaterialFlag, StencilOp};
 use crate::game::{Entity, KeyValues};
 
 use super::shared::{RenderableObject, StencilState};
 use crate::config::{ChamsConfig, ChamsGroupConfig, ChamsKind};
 use crate::interfaces::Interfaces;
 use crate::App;
+
+use std::ptr;
 
 pub struct Chams<'a> {
     flat_material: &'a Material,
@@ -18,7 +20,9 @@ pub struct Chams<'a> {
 }
 
 impl<'a> Chams<'a> {
-    pub fn new(material_system: &'a MaterialSystem) -> Self {
+    pub fn new() -> Self {
+        let material_system = Interfaces::get().material_system;
+
         let kv = KeyValues::new_leaked("UnlitGeneric");
         {
             kv.set("$BaseTexture", "white");
@@ -115,7 +119,7 @@ impl<'a> Chams<'a> {
         let current_renderable = self
             .renderable_objects
             .iter()
-            .find(move |&obj| std::ptr::addr_eq(obj.entity, current_entity));
+            .find(move |&obj| ptr::addr_eq(obj.entity, current_entity));
         match current_renderable {
             Some(obj) => !obj.model_was_drawn,
             None => true,

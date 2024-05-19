@@ -23,6 +23,12 @@ pub struct Patterns {
 }
 
 impl Patterns {
+    pub fn get() -> &'static Self {
+        static PATTERNS: LazyLock<Patterns> =
+            LazyLock::new(|| unsafe { Patterns::find().expect("Failed to find patterns") });
+        &PATTERNS
+    }
+
     #[rustfmt::skip]
     unsafe fn find() -> windows::core::Result<Self> {
         let key_values_new = find_pattern("StudioRender.dll", "55 8B EC 56 8B F1 6A")?;
@@ -44,12 +50,6 @@ impl Patterns {
             d3d9_reset,
             d3d9_present,
         })
-    }
-
-    pub fn get() -> &'static Self {
-        static PATTERNS: LazyLock<Patterns> =
-            LazyLock::new(|| unsafe { Patterns::find().expect("Failed to find patterns") });
-        &PATTERNS
     }
 }
 

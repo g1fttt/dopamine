@@ -1,28 +1,38 @@
-use crate::game::client::Client;
 use crate::game::{RecvTable, SendPropKind};
+use crate::interfaces::Interfaces;
 
 use std::collections::HashMap;
 use std::ffi::{c_char, CStr};
+use std::sync::LazyLock;
 
 pub struct NetvarManager<'a> {
     pub offsets: HashMap<(&'a str, &'a str), usize>,
 }
 
 impl NetvarManager<'_> {
-    pub fn new() -> Self {
+    pub fn get() -> &'static Self {
+        static NETVAR_MANAGER: LazyLock<NetvarManager> = LazyLock::new(NetvarManager::precache);
+        &NETVAR_MANAGER
+    }
+
+    fn new() -> Self {
         Self {
             offsets: HashMap::new(),
         }
     }
 
-    pub fn precache(&mut self, client: &Client) {
-        let mut client_class = client.all_classes();
+    fn precache() -> Self {
+        let mut this = Self::new();
+
+        let mut client_class = Interfaces::get().client.all_classes();
 
         while let Some(cc) = client_class {
-            unsafe { self.walk_table(cc.name, cc.recv_table) };
+            unsafe { this.walk_table(cc.name, cc.recv_table) };
             client_class = cc.next;
         }
-        self.offsets.shrink_to_fit();
+
+        this.offsets.shrink_to_fit();
+        this
     }
 
     unsafe fn walk_table(&mut self, class_name: *const c_char, table: &RecvTable) {
