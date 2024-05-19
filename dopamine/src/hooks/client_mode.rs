@@ -2,8 +2,10 @@ use crate::game::client::ClientMode;
 use crate::game::render_view::ViewSetup;
 use crate::game::UserCommand;
 
+use crate::features::misc;
+use crate::features::shared::RenderableObject;
+
 use crate::app::App;
-use crate::features::{glow, misc};
 
 type CreateMoveFn = extern "thiscall" fn(&ClientMode, f32, &mut UserCommand) -> bool;
 
@@ -32,18 +34,18 @@ pub(super) extern "thiscall" fn do_post_screen_space_effects(
         let original: DoPostScreenSpaceEffects = app.hooks.do_post_screen_space_effects.original();
         let result = original(this, view);
 
-        if app.interfaces.engine.is_in_game() {
-            let glow_object_manager = &mut app.glow_object_manager;
+        let interfaces = &app.interfaces;
 
-            glow::manage_players(
-                &app.config.glow,
-                &app.interfaces,
-                glow_object_manager,
-                app.local_player,
-            );
+        // TODO: Separate struct for this
+        let players_iter = (1..interfaces.engine.max_clients())
+            .filter_map(move |i| interfaces.entity_list.get_entity_by_index(i))
+            .filter(|ent| !ent.is_local_player());
 
-            glow_object_manager.draw_glow_effects(&app.interfaces, view);
-            glow_object_manager.clear_objects();
+        let glow_objects: Vec<_> = players_iter.map(RenderableObject::new).collect();
+
+        if interfaces.engine.is_in_game() {
+            app.glow_object_manager
+                .draw_glow_effects(&glow_objects, app, view);
         }
         result
     })

@@ -1,4 +1,5 @@
 use super::material_system::Material;
+use super::Entity;
 
 use dopamine_macros::virtual_method;
 
@@ -14,6 +15,12 @@ impl Engine {
 
     #[virtual_method(index = 26)]
     fn is_in_game(&self) -> bool;
+}
+
+#[repr(C)]
+pub struct ModelRenderInfo<'a> {
+    pad: [u8; 24],
+    pub renderable: &'a Entity,
 }
 
 #[repr(C)]

@@ -9,8 +9,8 @@ use std::mem::MaybeUninit;
 pub struct RenderView;
 
 impl RenderView {
-    pub fn set_color(&self, color: Color) {
-        self.set_color_private(&color as *const Color as _);
+    pub fn set_color(&self, color: &Color) {
+        self.set_color_private(color as *const Color as _);
     }
 
     pub fn color(&self) -> Color {

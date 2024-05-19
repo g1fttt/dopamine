@@ -1,12 +1,11 @@
-use crate::config::GlowConfig;
 use crate::game::material_system::{
     ClearBuffersBuilder, Material, MaterialSystem, OverrideDepthBuilder, RenderContext,
     ScreenSpaceRectBuilder, StencilCmpFn, StencilOp, Texture,
 };
 use crate::game::render_view::ViewSetup;
-use crate::game::Entity;
 
-use crate::features::shared::MaterialCreator;
+use crate::app::App;
+use crate::features::shared::{MaterialCreator, RenderableObject};
 use crate::interfaces::Interfaces;
 use crate::utils::Color;
 
@@ -18,7 +17,6 @@ pub struct GlowObjectManager<'a> {
     halo_material: Option<&'a Material>,
     glow_blur_x_material: Option<&'a Material>,
     glow_blur_y_material: Option<&'a Material>,
-    objects: Vec<Object<'a>>,
 }
 
 impl<'a> GlowObjectManager<'a> {
@@ -48,7 +46,6 @@ impl<'a> GlowObjectManager<'a> {
             halo_material: None,
             glow_blur_x_material: None,
             glow_blur_y_material: None,
-            objects: Vec::new(),
         }
     }
 
@@ -93,34 +90,22 @@ impl<'a> GlowObjectManager<'a> {
             .string("$AlphaTest", "1")
             .bind("_GlowBlurY", material_system);
     }
-
-    pub fn register_object(&mut self, obj: Object<'a>) {
-        self.objects.push(obj)
-    }
-
-    pub fn clear_objects(&mut self) {
-        self.objects.clear();
-    }
-
-    pub fn has_glow_effect(&self, entity: &Entity) -> bool {
-        self.objects
-            .iter()
-            .any(move |obj| obj.entity.is_some_and(|ent| std::ptr::addr_eq(ent, entity)))
-    }
 }
 
 impl GlowObjectManager<'_> {
-    pub fn draw_glow_effects(&self, interfaces: &Interfaces, view: &ViewSetup) {
-        let render_ctx = interfaces.material_system.render_ctx();
+    pub fn draw_glow_effects(&self, objects: &[RenderableObject], app: &App, view: &ViewSetup) {
+        let render_ctx = app.interfaces.material_system.render_ctx();
 
-        render_ctx.with_pix_event("ApplyEntityGlowEffects", || {
-            self.apply_entity_glow_effects(interfaces, view, render_ctx);
+        render_ctx.with_pix_event("ApplyEntityGlowEffects", move || {
+            self.apply_entity_glow_effects(objects, &app.interfaces, app, view, render_ctx);
         });
     }
 
     fn draw_glow_models(
         &self,
+        objects: &[RenderableObject],
         interfaces: &Interfaces,
+        app: &App,
         view: &ViewSetup,
         render_ctx: &RenderContext,
     ) {
@@ -145,19 +130,21 @@ impl GlowObjectManager<'_> {
         }
         .set(render_ctx);
 
-        for obj in &self.objects {
+        for obj in objects {
             if !obj.should_draw() {
                 continue;
             }
 
-            interfaces.render_view.set_color(obj.color.clone());
-            interfaces.render_view.set_blend(obj.color.a);
+            let color = determine_glow_color(obj, app);
+
+            interfaces.render_view.set_color(color);
+            interfaces.render_view.set_blend(color.a);
 
             obj.draw_model();
         }
 
         interfaces.model_render.forced_material_override(None);
-        interfaces.render_view.set_color(orig_color);
+        interfaces.render_view.set_color(&orig_color);
         interfaces.render_view.set_blend(orig_alpha);
 
         StencilState::default().set(render_ctx);
@@ -189,7 +176,9 @@ impl GlowObjectManager<'_> {
 
     fn apply_entity_glow_effects(
         &self,
+        objects: &[RenderableObject],
         interfaces: &Interfaces,
+        app: &App,
         view: &ViewSetup,
         render_ctx: &RenderContext,
     ) {
@@ -206,7 +195,7 @@ impl GlowObjectManager<'_> {
 
         let mut drew_anything = false;
 
-        for obj in &self.objects {
+        for obj in objects {
             if !obj.should_draw() {
                 continue;
             }
@@ -239,11 +228,11 @@ impl GlowObjectManager<'_> {
             return;
         }
 
-        render_ctx.with_pix_event("DrawGlowModels", || {
-            self.draw_glow_models(interfaces, view, render_ctx);
+        render_ctx.with_pix_event("DrawGlowModels", move || {
+            self.draw_glow_models(objects, interfaces, app, view, render_ctx);
         });
 
-        render_ctx.with_pix_event("BlurGlowEffects", || {
+        render_ctx.with_pix_event("BlurGlowEffects", move || {
             self.blur_glow_effects(view, render_ctx);
         });
 
@@ -276,41 +265,14 @@ impl GlowObjectManager<'_> {
     }
 }
 
-pub struct Object<'a> {
-    entity: Option<&'a Entity>,
-    color: &'a Color,
-}
-
-impl<'a> Object<'a> {
-    pub fn new(entity: &'a Entity, config: &'a GlowConfig) -> Self {
-        Self {
-            entity: Some(entity),
-            color: &config.color,
-        }
-    }
-
-    fn should_draw(&self) -> bool {
-        self.entity
-            .is_some_and(|ent| ent.should_draw() && !ent.is_dormant())
-    }
-
-    fn draw_model(&self) {
-        let ent = self.entity.unwrap();
-        ent.draw_model();
-
-        let mut attachment = ent.move_child();
-        while let Some(att) = attachment {
-            if att.should_draw() {
-                att.draw_model();
-            }
-            attachment = ent.move_peer();
-        }
-    }
-}
-
-impl<'a> From<(&'a Entity, &'a GlowConfig)> for Object<'a> {
-    fn from(val: (&'a Entity, &'a GlowConfig)) -> Self {
-        Object::new(val.0, val.1)
+fn determine_glow_color<'a>(obj: &RenderableObject, app: &'a App) -> &'a Color {
+    let config = &app.config.glow;
+    if let Some(lp) = app.local_player
+        && lp.team() != obj.entity.team()
+    {
+        &config.enemies.color
+    } else {
+        &config.allies.color
     }
 }
 
