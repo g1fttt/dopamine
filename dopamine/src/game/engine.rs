@@ -13,24 +13,6 @@ impl Engine {
     fn max_clients(&self) -> i32;
 }
 
-/*
-struct ModelRenderInfo {
-    Vector3 origin; // 0
-    QAngle angles; // 12
-    void* renderable; // 24
-    const void* model; // 28
-    const Matrix3x4* modelToWorld; // 32
-    const Matrix3x4* lightningOffset; // 36
-    const Vector3* lightningOrigin; // 40
-    int flags; // 44
-    int entityIndex;
-    int skin;
-    int body;
-    int hitboxset;
-    ModelRenderInstance instance;
-};
-*/
-
 #[repr(C)]
 pub struct ModelRenderInfo {
     pad: [u8; 44],
