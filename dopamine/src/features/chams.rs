@@ -1,5 +1,3 @@
-use crate::game::client::EntityList;
-use crate::game::engine::ModelRenderInfo;
 use crate::game::material_system::{Material, MaterialFlag, StencilOp};
 use crate::game::{Entity, KeyValues};
 
@@ -14,8 +12,6 @@ pub struct Chams<'a> {
     flat_material: &'a Material,
     regular_material: &'a Material,
 
-    current_entity: Option<&'a Entity>,
-    info: Option<&'a ModelRenderInfo>,
     renderable_objects: Vec<RenderableObject<'a>>,
 }
 
@@ -43,8 +39,6 @@ impl<'a> Chams<'a> {
             flat_material,
             regular_material,
 
-            current_entity: None,
-            info: None,
             renderable_objects: Vec::new(),
         }
     }
@@ -111,11 +105,7 @@ impl<'a> Chams<'a> {
         self.renderable_objects = objects.to_vec();
     }
 
-    pub fn should_process_dme(&self) -> bool {
-        let Some(current_entity) = self.current_entity else {
-            return true;
-        };
-
+    pub fn should_process_dme(&self, current_entity: &Entity) -> bool {
         let current_renderable = self
             .renderable_objects
             .iter()
@@ -124,22 +114,6 @@ impl<'a> Chams<'a> {
             Some(obj) => !obj.model_was_drawn,
             None => true,
         }
-    }
-
-    pub fn capture_current_entity(&mut self, entity_list: &'a EntityList) {
-        let Some(info) = &self.info else {
-            return;
-        };
-        self.current_entity = entity_list.get_entity_by_index(info.entity_index);
-    }
-
-    pub fn capture_state(&mut self, info: &'a ModelRenderInfo) {
-        self.info.replace(info);
-    }
-
-    pub fn reset_state(&mut self) {
-        self.info = None;
-        self.current_entity = None;
     }
 }
 

@@ -1,4 +1,5 @@
 use crate::game::engine::{ModelRender, ModelRenderInfo};
+use crate::interfaces::Interfaces;
 use crate::App;
 
 use std::ffi::c_void;
@@ -7,22 +8,24 @@ type DrawModelExecuteFn =
     extern "thiscall" fn(&ModelRender, *mut c_void, &ModelRenderInfo, *mut c_void);
 
 pub(super) extern "thiscall" fn draw_model_execute(
-    this: &'static ModelRender,
+    this: &ModelRender,
     state: *mut c_void,
-    info: &'static ModelRenderInfo,
+    info: &ModelRenderInfo,
     custom_bone_to_world: *mut c_void,
 ) {
     App::with_mut(move |app| {
         let original: DrawModelExecuteFn = app.hooks.draw_model_execute.original();
 
-        let chams = &mut app.chams;
-
-        chams.capture_state(info);
-
-        if chams.should_process_dme() {
+        // FIXME: Collect not only players, but their weapons
+        //        because chams or glow overriding them
+        if let Some(current_entity) = Interfaces::get()
+            .entity_list
+            .get_entity_by_index(info.entity_index)
+            && app.chams.should_process_dme(current_entity)
+        {
             original(this, state, info, custom_bone_to_world);
         } else {
-            chams.reset_state();
+            unsafe { std::intrinsics::breakpoint() };
         }
     });
 }

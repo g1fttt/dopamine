@@ -44,7 +44,6 @@ pub(super) extern "thiscall" fn do_post_screen_space_effects(
             .map(RenderableObject::new)
             .collect();
 
-        app.chams.capture_current_entity(interfaces.entity_list);
         app.chams.draw(&mut renderable_objects, interfaces, app);
         app.chams.cache_renderable_objects(&renderable_objects);
 
