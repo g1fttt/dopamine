@@ -24,8 +24,6 @@ pub(super) extern "thiscall" fn draw_model_execute(
             && app.chams.should_process_dme(current_entity)
         {
             original(this, state, info, custom_bone_to_world);
-        } else {
-            unsafe { std::intrinsics::breakpoint() };
         }
     });
 }
