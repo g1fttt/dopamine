@@ -72,6 +72,8 @@ impl<'a> Chams<'a> {
                 self.apply_chams(obj, config_visible, interfaces, false);
             }
 
+            draw_attachments(obj, interfaces);
+
             obj.model_was_drawn = config_occluded.enabled || config_visible.enabled;
         }
         StencilState::default().set(render_ctx);
@@ -97,12 +99,6 @@ impl<'a> Chams<'a> {
             .forced_material_override(Some(material));
 
         object.draw_model();
-
-        interfaces.render_view.set_color(&Color::white());
-        interfaces.render_view.set_blend(1.0);
-        interfaces.model_render.forced_material_override(None);
-
-        object.draw_attachments();
     }
 
     pub fn cache_renderable_objects(&mut self, objects: &[RenderableObject<'a>]) {
@@ -133,4 +129,12 @@ fn determine_chams_config<'a>(
     } else {
         (&config.allies_occluded, &config.allies_visible)
     }
+}
+
+fn draw_attachments(object: &RenderableObject, interfaces: &Interfaces) {
+    interfaces.render_view.set_color(&Color::white());
+    interfaces.render_view.set_blend(1.0);
+    interfaces.model_render.forced_material_override(None);
+
+    object.draw_attachments();
 }
