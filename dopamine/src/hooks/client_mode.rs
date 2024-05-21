@@ -38,7 +38,7 @@ pub(super) extern "thiscall" fn do_post_screen_space_effects(
         let interfaces = Interfaces::get();
 
         // TODO: Separate struct for this
-        let mut renderable_objects: Vec<_> = (1..interfaces.engine.max_clients())
+        let mut renderable_objects: Vec<_> = (1..=interfaces.engine.max_clients())
             .filter_map(move |i| interfaces.entity_list.get_entity_by_index(i))
             .filter(|ent| !ent.is_local_player())
             .map(RenderableObject::new)
