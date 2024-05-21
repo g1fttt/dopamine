@@ -4,6 +4,7 @@ use crate::game::{Entity, KeyValues};
 use super::shared::{RenderableObject, StencilState};
 use crate::config::{ChamsConfig, ChamsGroupConfig, ChamsKind};
 use crate::interfaces::Interfaces;
+use crate::utils::Color;
 use crate::App;
 
 use std::ptr;
@@ -96,9 +97,12 @@ impl<'a> Chams<'a> {
             .forced_material_override(Some(material));
 
         object.draw_model();
-        object.draw_attachments();
 
+        interfaces.render_view.set_color(&Color::white());
+        interfaces.render_view.set_blend(1.0);
         interfaces.model_render.forced_material_override(None);
+
+        object.draw_attachments();
     }
 
     pub fn cache_renderable_objects(&mut self, objects: &[RenderableObject<'a>]) {
