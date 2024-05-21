@@ -23,18 +23,12 @@ impl Entity {
         (self.flags() & Self::ON_GROUND) != 0
     }
 
-    pub fn move_child(&self) -> Option<&Self> {
-        let handle = unsafe { *(self as *const Self).byte_add(0x184).cast::<i32>() };
-        Interfaces::get().entity_list.get_entity_from_handle(handle)
-    }
-
-    pub fn move_peer(&self) -> Option<&Self> {
-        let handle = unsafe { *(self as *const Self).byte_add(0x188).cast::<i32>() };
-        Interfaces::get().entity_list.get_entity_from_handle(handle)
-    }
-
     pub fn is_local_player(&self) -> bool {
         (Patterns::get().is_local_player)(self)
+    }
+
+    pub fn attachments(&self) -> EntityAttachmentIterator {
+        EntityAttachmentIterator::new(self)
     }
 
     pub fn is_dormant(&self) -> bool {
@@ -63,6 +57,46 @@ impl Entity {
 
     #[netvar(path = "CBasePlayer->m_fFlags")]
     fn flags(&self) -> i32;
+}
+
+pub struct EntityAttachmentIterator<'a> {
+    entity: &'a Entity,
+    first_pass: bool,
+}
+
+impl<'a> EntityAttachmentIterator<'a> {
+    fn new(entity: &'a Entity) -> Self {
+        Self {
+            entity,
+            first_pass: true,
+        }
+    }
+}
+
+impl<'a> Iterator for EntityAttachmentIterator<'a> {
+    type Item = &'a Entity;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.first_pass {
+            self.first_pass = false;
+            self.entity = self.entity.move_child()?;
+        } else {
+            self.entity = self.entity.move_peer()?;
+        }
+        Some(self.entity)
+    }
+}
+
+impl Entity {
+    fn move_child(&self) -> Option<&Self> {
+        let handle = unsafe { *(self as *const Self).byte_add(0x184).cast::<i32>() };
+        Interfaces::get().entity_list.get_entity_from_handle(handle)
+    }
+
+    fn move_peer(&self) -> Option<&Self> {
+        let handle = unsafe { *(self as *const Self).byte_add(0x188).cast::<i32>() };
+        Interfaces::get().entity_list.get_entity_from_handle(handle)
+    }
 }
 
 #[repr(C)]

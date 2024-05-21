@@ -23,12 +23,11 @@ impl<'a> RenderableObject<'a> {
     }
 
     pub fn draw_attachments(&self) {
-        let mut attachment = self.entity.move_child();
-        while let Some(att) = attachment {
-            if att.should_draw() {
+        self.entity
+            .attachments()
+            .filter(|&att| att.should_draw())
+            .for_each(|att| {
                 att.draw_model();
-            }
-            attachment = self.entity.move_peer();
-        }
+            });
     }
 }
