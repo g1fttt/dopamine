@@ -16,14 +16,13 @@ pub(super) extern "thiscall" fn draw_model_execute(
     App::with_mut(move |app| {
         let original: DrawModelExecuteFn = app.hooks.draw_model_execute.original();
 
-        // FIXME: Collect not only players, but their weapons
-        //        because chams or glow overriding them
         if let Some(current_entity) = Interfaces::get()
             .entity_list
             .get_entity_by_index(info.entity_index)
-            && app.chams.should_process_dme(current_entity)
+            && !app.chams.should_process_dme(current_entity)
         {
-            original(this, state, info, custom_bone_to_world);
+            return;
         }
+        original(this, state, info, custom_bone_to_world);
     });
 }
