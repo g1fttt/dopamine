@@ -2,49 +2,50 @@ use crate::game::material_system::{Material, MaterialFlag, StencilOp};
 use crate::game::{Entity, KeyValues};
 
 use super::shared::{RenderableObject, StencilState};
-use crate::config::{ChamsConfig, ChamsGroupConfig, ChamsKind};
+use crate::config::{ChamsConfigKind, ChamsGroupConfig, ChamsKind, ChamsLayer};
 use crate::interfaces::Interfaces;
 use crate::utils::Color;
-use crate::App;
+
+use enum_map::EnumMap;
 
 use std::ptr;
 
 pub struct Chams<'a> {
-    flat_material: &'a Material,
-    regular_material: &'a Material,
-
+    materials: EnumMap<ChamsKind, &'a Material>,
     renderable_objects: Vec<RenderableObject<'a>>,
 }
 
-impl<'a> Chams<'a> {
+impl Chams<'_> {
     pub fn new() -> Self {
         let material_system = Interfaces::get().material_system;
 
-        let kv = KeyValues::new_leaked("UnlitGeneric");
-        {
-            kv.set("$BaseTexture", "white");
-        }
-        let flat_material = material_system
-            .create_material("_FlatMaterial", kv)
-            .unwrap();
-
         let kv = KeyValues::new_leaked("VertexLitGeneric");
-        {
-            kv.set("$BaseTexture", "white");
-        }
         let regular_material = material_system
             .create_material("_RegularMaterial", kv)
             .unwrap();
 
-        Self {
-            flat_material,
-            regular_material,
+        let kv = KeyValues::new_leaked("UnlitGeneric");
+        let flat_material = material_system
+            .create_material("_FlatMaterial", kv)
+            .unwrap();
 
+        let materials = EnumMap::from_array([regular_material, flat_material]);
+
+        Self {
+            materials,
             renderable_objects: Vec::new(),
         }
     }
+}
 
-    pub fn draw(&self, objects: &mut [RenderableObject<'a>], interfaces: &Interfaces, app: &App) {
+impl<'a> Chams<'a> {
+    pub fn draw(
+        &self,
+        objects: &mut [RenderableObject<'a>],
+        interfaces: &Interfaces,
+        ChamsGroupConfig(config): &ChamsGroupConfig,
+        local_player: Option<&Entity>,
+    ) {
         let render_ctx = interfaces.material_system.render_ctx();
 
         StencilState {
@@ -56,49 +57,63 @@ impl<'a> Chams<'a> {
         }
         .set(render_ctx);
 
-        for obj in objects.iter_mut() {
-            if !obj.should_draw_model() {
+        for object in objects.iter_mut() {
+            if !object.should_draw_model() {
                 continue;
             }
 
-            let (config_occluded, config_visible) =
-                determine_chams_config(obj, app.local_player, &app.config.chams);
+            let is_enemy = local_player.is_some_and(|lp| lp.team() != object.entity.team());
 
-            if config_occluded.enabled {
-                self.apply_chams(obj, config_occluded, interfaces, true);
+            if is_enemy {
+                self.draw_chams(object, &config[ChamsConfigKind::Enemies], interfaces);
+            } else {
+                self.draw_chams(object, &config[ChamsConfigKind::Allies], interfaces);
             }
-
-            if config_visible.enabled {
-                self.apply_chams(obj, config_visible, interfaces, false);
-            }
-
-            draw_attachments(obj, interfaces);
-
-            obj.model_was_drawn = config_occluded.enabled || config_visible.enabled;
+            draw_player_attachments(object, interfaces);
         }
         StencilState::default().set(render_ctx);
     }
 
-    fn apply_chams(
+    fn draw_chams(
         &self,
-        object: &RenderableObject,
-        config: &ChamsConfig,
+        object: &mut RenderableObject,
+        layers: &[ChamsLayer],
         interfaces: &Interfaces,
-        ignore_z: bool,
     ) {
-        let material = match config.kind {
-            ChamsKind::Regular => self.regular_material,
-            ChamsKind::Flat => self.flat_material,
-        };
-        material.set_flag(MaterialFlag::IgnoreZ, ignore_z);
+        for layer in layers {
+            if !layer.enabled || !layer.ignore_z {
+                continue;
+            }
+            self.apply_material_and_draw(object, layer, interfaces);
+        }
 
-        interfaces.render_view.set_color(&config.color);
-        interfaces.render_view.set_blend(config.color.a);
+        for layer in layers {
+            if !layer.enabled || layer.ignore_z {
+                continue;
+            }
+            self.apply_material_and_draw(object, layer, interfaces);
+        }
+    }
+
+    fn apply_material_and_draw(
+        &self,
+        object: &mut RenderableObject,
+        layer: &ChamsLayer,
+        interfaces: &Interfaces,
+    ) {
+        let material = self.materials[layer.material_kind];
+        material.set_flag(MaterialFlag::IgnoreZ, layer.ignore_z);
+
+        let color = &layer.material_color;
+        interfaces.render_view.set_color(color);
+        interfaces.render_view.set_blend(color.a);
+
         interfaces
             .model_render
             .forced_material_override(Some(material));
 
         object.draw_model();
+        object.model_was_drawn = true;
     }
 
     pub fn cache_renderable_objects(&mut self, objects: &[RenderableObject<'a>]) {
@@ -117,23 +132,10 @@ impl<'a> Chams<'a> {
     }
 }
 
-fn determine_chams_config<'a>(
-    obj: &RenderableObject,
-    local_player: Option<&Entity>,
-    config: &'a ChamsGroupConfig,
-) -> (&'a ChamsConfig, &'a ChamsConfig) {
-    if let Some(lp) = local_player
-        && lp.team() != obj.entity.team()
-    {
-        (&config.enemies_occluded, &config.enemies_visible)
-    } else {
-        (&config.allies_occluded, &config.allies_visible)
-    }
-}
-
-fn draw_attachments(object: &RenderableObject, interfaces: &Interfaces) {
+fn draw_player_attachments(object: &RenderableObject, interfaces: &Interfaces) {
     interfaces.render_view.set_color(&Color::white());
     interfaces.render_view.set_blend(1.0);
+
     interfaces.model_render.forced_material_override(None);
 
     object.draw_attachments();

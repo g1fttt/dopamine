@@ -1,5 +1,6 @@
 use crate::utils::Color;
 
+use enum_map::{Enum, EnumMap};
 use serde::{Deserialize, Serialize};
 
 use std::path::Path;
@@ -85,7 +86,13 @@ pub struct GlowGroupConfig {
     pub allies: GlowConfig,
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Enum, Serialize, Deserialize)]
+pub enum ChamsConfigKind {
+    Enemies,
+    Allies,
+}
+
+#[derive(Default, Clone, Copy, Enum, Serialize, Deserialize)]
 pub enum ChamsKind {
     #[default]
     Regular,
@@ -93,26 +100,23 @@ pub enum ChamsKind {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct ChamsConfig {
+pub struct ChamsLayer {
     pub enabled: bool,
-    pub kind: ChamsKind,
-    pub color: Color,
+    pub ignore_z: bool,
+    pub material_kind: ChamsKind,
+    pub material_color: Color,
 }
 
-impl Default for ChamsConfig {
+impl Default for ChamsLayer {
     fn default() -> Self {
         Self {
             enabled: bool::default(),
-            kind: ChamsKind::default(),
-            color: Color::white(),
+            ignore_z: bool::default(),
+            material_kind: ChamsKind::default(),
+            material_color: Color::white(),
         }
     }
 }
 
 #[derive(Default, Serialize, Deserialize)]
-pub struct ChamsGroupConfig {
-    pub enemies_visible: ChamsConfig,
-    pub enemies_occluded: ChamsConfig,
-    pub allies_visible: ChamsConfig,
-    pub allies_occluded: ChamsConfig,
-}
+pub struct ChamsGroupConfig(pub EnumMap<ChamsConfigKind, [ChamsLayer; 2]>);

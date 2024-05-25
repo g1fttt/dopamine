@@ -9,6 +9,7 @@ crate-type = ["cdylib"]
 [dependencies]
 dopamine-macros = { path = "../dopamine-macros" }
 
+enum-map = { version = "2.7.3", features = ["serde"] }
 num-traits = "0.2.19"
 derive_builder = "0.20.0"
 regex = "1.10.4"
