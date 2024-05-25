@@ -80,16 +80,18 @@ fn regex_from_str(s: &str) -> Result<Regex, Error> {
     Regex::new(&re)
 }
 
-unsafe fn module_data(module_name: &str) -> windows::core::Result<(*mut u8, usize)> {
-    let module = GetModuleHandleA(pcstr!(module_name))?;
+fn module_data(module_name: &str) -> windows::core::Result<(*mut u8, usize)> {
+    let module = unsafe { GetModuleHandleA(pcstr!(module_name))? };
 
     let mut module_info = MODULEINFO::default();
-    GetModuleInformation(
-        GetCurrentProcess(),
-        module,
-        &mut module_info,
-        mem::size_of::<MODULEINFO>() as _,
-    )?;
+    unsafe {
+        GetModuleInformation(
+            GetCurrentProcess(),
+            module,
+            &mut module_info,
+            mem::size_of::<MODULEINFO>() as _,
+        )?
+    };
 
     let base = module_info.lpBaseOfDll as *mut u8;
     let size = module_info.SizeOfImage as usize;

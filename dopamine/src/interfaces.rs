@@ -24,16 +24,16 @@ pub struct Interfaces<'a> {
 impl Interfaces<'_> {
     pub fn get() -> &'static Self {
         static INTERFACES: LazyLock<Interfaces> =
-            LazyLock::new(|| unsafe { Interfaces::find().expect("Failed to find interfaces") });
+            LazyLock::new(|| Interfaces::find().expect("Failed to find interfaces"));
         &INTERFACES
     }
 
-    unsafe fn find() -> windows::core::Result<Self> {
+    fn find() -> windows::core::Result<Self> {
         let client = find_interface("client.dll", "VClient017")?;
 
         Ok(Self {
             client,
-            client_mode: ok_or_empty_err!(client_mode_from_client(client))?,
+            client_mode: ok_or_empty_err!(unsafe { client_mode_from_client(client) })?,
             entity_list: find_interface("client.dll", "VClientEntityList003")?,
             engine: find_interface("engine.dll", "VEngineClient013")?,
             render_view: find_interface("engine.dll", "VEngineRenderView014")?,
@@ -43,21 +43,20 @@ impl Interfaces<'_> {
     }
 }
 
-unsafe fn find_interface<'a, T>(
-    module_name: &str,
-    interface_name: &str,
-) -> windows::core::Result<&'a T> {
-    let module = GetModuleHandleA(pcstr!(module_name))?;
+fn find_interface<'a, T>(module_name: &str, interface_name: &str) -> windows::core::Result<&'a T> {
+    unsafe {
+        let module = GetModuleHandleA(pcstr!(module_name))?;
 
-    let create_interface = GetProcAddress(module, pcstr!("CreateInterface"));
-    let create_interface: extern "C" fn(*const c_char, *mut i32) -> *mut T =
-        mem::transmute(create_interface);
+        let create_interface = GetProcAddress(module, pcstr!("CreateInterface"));
+        let create_interface: extern "C" fn(*const c_char, *mut i32) -> *mut T =
+            mem::transmute(create_interface);
 
-    ok_or_empty_err!(create_interface(cstr!(interface_name), ptr::null_mut()).as_ref())
+        ok_or_empty_err!(create_interface(cstr!(interface_name), ptr::null_mut()).as_ref())
+    }
 }
 
 unsafe fn client_mode_from_client(client: &Client) -> Option<&ClientMode> {
-    let client_vtable = *(client as *const Client).cast::<*const *const c_void>();
+    let client_vtable = *(client as *const Client as *const *const *const c_void);
     (**(*client_vtable.add(10))
         .byte_add(5)
         .cast::<*const *const ClientMode>())
