@@ -13,7 +13,7 @@ use crate::config::{GlowConfig, GlowGroupConfig};
 use crate::interfaces::Interfaces;
 use crate::utils::Color;
 
-pub struct GlowObjectManager<'a> {
+pub struct Glow<'a> {
     rt_quarter_size_1: &'a Texture,
     rt_glow_buf_1: &'a Texture,
     rt_glow_buf_2: &'a Texture,
@@ -23,7 +23,7 @@ pub struct GlowObjectManager<'a> {
     glow_blur_y_material: &'a Material,
 }
 
-impl<'a> GlowObjectManager<'a> {
+impl<'a> Glow<'a> {
     pub fn new() -> Self {
         let material_system = Interfaces::get().material_system;
 
@@ -100,14 +100,15 @@ impl<'a> GlowObjectManager<'a> {
     }
 }
 
-impl GlowObjectManager<'_> {
-    pub fn draw_glow_effects(&self, objects: &mut [RenderableObject], app: &App, view: &ViewSetup) {
+impl Glow<'_> {
+    pub fn draw(&self, objects: &mut [RenderableObject], app: &App, view: &ViewSetup) {
         let interfaces = Interfaces::get();
         let render_ctx = interfaces.material_system.render_ctx();
 
-        render_ctx.with_pix_event("ApplyEntityGlowEffects", move || {
-            self.apply_entity_glow_effects(objects, interfaces, app, view, render_ctx);
-        });
+        // FIXME: Just return if there is nothing to glow,
+        //        because it is slowing down the game.
+
+        self.apply_entity_glow_effects(objects, interfaces, app, view, render_ctx);
     }
 
     fn draw_glow_models(
@@ -246,13 +247,8 @@ impl GlowObjectManager<'_> {
             return;
         }
 
-        render_ctx.with_pix_event("DrawGlowModels", move || {
-            self.draw_glow_models(objects, interfaces, app, view, render_ctx);
-        });
-
-        render_ctx.with_pix_event("BlurGlowEffects", move || {
-            self.blur_glow_effects(view, render_ctx);
-        });
+        self.draw_glow_models(objects, interfaces, app, view, render_ctx);
+        self.blur_glow_effects(view, render_ctx);
 
         StencilState {
             enable: true,

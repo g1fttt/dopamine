@@ -3,7 +3,7 @@ use crate::game::Entity;
 use crate::hooks::Hooks;
 
 use crate::features::chams::Chams;
-use crate::features::glow::GlowObjectManager;
+use crate::features::glow::Glow;
 
 use windows::Win32::Foundation::{CloseHandle, HMODULE};
 use windows::Win32::System::Diagnostics::Debug::Beep;
@@ -18,7 +18,7 @@ pub struct App {
     pub config: Config,
     pub hooks: Hooks,
 
-    pub glow_object_manager: GlowObjectManager<'static>,
+    pub glow: Glow<'static>,
     pub chams: Chams<'static>,
 
     pub local_player: Option<&'static Entity>,
@@ -106,7 +106,7 @@ impl App {
 
             local_player: None,
 
-            glow_object_manager: GlowObjectManager::new(),
+            glow: Glow::new(),
             chams: Chams::new(),
         })
     }
