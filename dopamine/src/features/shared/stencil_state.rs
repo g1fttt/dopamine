@@ -27,12 +27,12 @@ impl StencilState {
 impl Default for StencilState {
     fn default() -> Self {
         Self {
-            enable: false,
+            enable: bool::default(),
             fail_op: StencilOp::default(),
             z_fail_op: StencilOp::default(),
             pass_op: StencilOp::default(),
             cmp_fn: StencilCmpFn::default(),
-            ref_value: 0,
+            ref_value: i32::default(),
             test_mask: 0xFFFFFFFF,
             write_mask: 0xFFFFFFFF,
         }

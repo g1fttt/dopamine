@@ -44,11 +44,15 @@ pub(super) extern "thiscall" fn do_post_screen_space_effects(
             .map(RenderableObject::new)
             .collect();
 
-        app.chams.draw(&mut renderable_objects, interfaces, app);
+        app.chams.draw(
+            &mut renderable_objects,
+            interfaces,
+            &app.config.chams,
+            app.local_player,
+        );
         app.chams.cache_renderable_objects(&renderable_objects);
 
-        app.glow_object_manager
-            .draw_glow_effects(&mut renderable_objects, app, view);
+        app.glow.draw(&mut renderable_objects, app, view);
 
         result
     })
