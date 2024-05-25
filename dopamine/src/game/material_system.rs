@@ -124,18 +124,6 @@ impl RenderContext {
         self.clear_color_3u8_private(color.r, color.g, color.b);
     }
 
-    pub fn with_pix_event(&self, name: &str, mut f: impl FnMut()) {
-        self.begin_pix_event(name);
-        {
-            f();
-        }
-        self.end_pix_event();
-    }
-
-    fn begin_pix_event(&self, name: &str) {
-        self.begin_pix_event_private(0xFFF5940F, cstr!(name));
-    }
-
     fn set_viewport(&self, pos: Vec2<i32>, dimensions: Vec2<i32>) {
         self.set_viewport_private(pos.0, pos.1, dimensions.0, dimensions.1);
     }
@@ -205,12 +193,6 @@ impl RenderContext {
 
     #[virtual_method(index = 124)]
     fn set_stencil_write_mask(&self, mask: u32);
-
-    #[virtual_method(index = 140, private)]
-    fn begin_pix_event_private(&self, color: u32, name: *const c_char);
-
-    #[virtual_method(index = 141, private)]
-    fn end_pix_event(&self);
 }
 
 #[derive(Builder)]
