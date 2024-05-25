@@ -59,7 +59,7 @@ impl<T: NumCast + Clone + Copy> Color<T> {
                 T::from(0.0).unwrap_unchecked(),
                 T::from(0.0).unwrap_unchecked(),
                 T::from(0.0).unwrap_unchecked(),
-                T::from(0.0).unwrap_unchecked(),
+                T::from(1.0).unwrap_unchecked(),
             )
         }
     }
