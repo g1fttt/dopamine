@@ -65,6 +65,12 @@ pub struct MiscGroupConfig {
     pub bunnyhop: BunnyhopConfig,
 }
 
+#[derive(Enum, Serialize, Deserialize)]
+pub enum GlowConfigKind {
+    Enemies,
+    Allies,
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct GlowConfig {
     pub enabled: bool,
@@ -81,10 +87,7 @@ impl Default for GlowConfig {
 }
 
 #[derive(Default, Serialize, Deserialize)]
-pub struct GlowGroupConfig {
-    pub enemies: GlowConfig,
-    pub allies: GlowConfig,
-}
+pub struct GlowGroupConfig(pub EnumMap<GlowConfigKind, GlowConfig>);
 
 #[derive(Enum, Serialize, Deserialize)]
 pub enum ChamsConfigKind {

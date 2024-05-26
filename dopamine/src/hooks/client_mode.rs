@@ -52,7 +52,13 @@ pub(super) extern "thiscall" fn do_post_screen_space_effects(
         );
         app.chams.cache_renderable_objects(&renderable_objects);
 
-        app.glow.draw(&mut renderable_objects, app, view);
+        app.glow.draw(
+            &mut renderable_objects,
+            interfaces,
+            &app.config.glow,
+            app.local_player,
+            view,
+        );
 
         result
     })

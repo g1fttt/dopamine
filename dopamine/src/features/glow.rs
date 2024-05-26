@@ -8,8 +8,7 @@ use crate::game::{Entity, KeyValues};
 use super::shared::RenderableObject;
 use super::shared::StencilState;
 
-use crate::app::App;
-use crate::config::{GlowConfig, GlowGroupConfig};
+use crate::config::{GlowConfigKind, GlowGroupConfig};
 use crate::interfaces::Interfaces;
 use crate::utils::Color;
 
@@ -101,21 +100,37 @@ impl<'a> Glow<'a> {
 }
 
 impl Glow<'_> {
-    pub fn draw(&self, objects: &mut [RenderableObject], app: &App, view: &ViewSetup) {
-        let interfaces = Interfaces::get();
+    pub fn draw(
+        &self,
+        objects: &mut [RenderableObject],
+        interfaces: &Interfaces,
+        config: &GlowGroupConfig,
+        local_player: Option<&Entity>,
+        view: &ViewSetup,
+    ) {
         let render_ctx = interfaces.material_system.render_ctx();
 
-        // FIXME: Just return if there is nothing to glow,
-        //        because it is slowing down the game.
+        let GlowGroupConfig(config_inner) = config;
+        let should_glow = config_inner.as_array().iter().any(|cfg| cfg.enabled);
 
-        self.apply_entity_glow_effects(objects, interfaces, app, view, render_ctx);
+        if should_glow {
+            self.apply_entity_glow_effects(
+                objects,
+                interfaces,
+                config,
+                local_player,
+                view,
+                render_ctx,
+            );
+        }
     }
 
     fn draw_glow_models(
         &self,
         objects: &mut [RenderableObject],
         interfaces: &Interfaces,
-        app: &App,
+        GlowGroupConfig(config): &GlowGroupConfig,
+        local_player: Option<&Entity>,
         view: &ViewSetup,
         render_ctx: &RenderContext,
     ) {
@@ -145,7 +160,13 @@ impl Glow<'_> {
                 continue;
             }
 
-            let config = determine_glow_config(obj, app.local_player, &app.config.glow);
+            let is_enemy = local_player.is_some_and(|lp| lp.team() != obj.entity.team());
+            let config = if is_enemy {
+                &config[GlowConfigKind::Enemies]
+            } else {
+                &config[GlowConfigKind::Allies]
+            };
+
             if !config.enabled {
                 continue;
             }
@@ -192,7 +213,8 @@ impl Glow<'_> {
         &self,
         objects: &mut [RenderableObject],
         interfaces: &Interfaces,
-        app: &App,
+        config: &GlowGroupConfig,
+        local_player: Option<&Entity>,
         view: &ViewSetup,
         render_ctx: &RenderContext,
     ) {
@@ -247,7 +269,7 @@ impl Glow<'_> {
             return;
         }
 
-        self.draw_glow_models(objects, interfaces, app, view, render_ctx);
+        self.draw_glow_models(objects, interfaces, config, local_player, view, render_ctx);
         self.blur_glow_effects(view, render_ctx);
 
         StencilState {
@@ -276,19 +298,5 @@ impl Glow<'_> {
             .build_and_draw(render_ctx);
 
         StencilState::default().set(render_ctx);
-    }
-}
-
-fn determine_glow_config<'a>(
-    obj: &RenderableObject,
-    local_player: Option<&Entity>,
-    config: &'a GlowGroupConfig,
-) -> &'a GlowConfig {
-    if let Some(lp) = local_player
-        && lp.team() != obj.entity.team()
-    {
-        &config.enemies
-    } else {
-        &config.allies
     }
 }
