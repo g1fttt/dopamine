@@ -1,12 +1,12 @@
 #![allow(clippy::missing_transmute_annotations, internal_features)]
 #![feature(
-    once_cell_get_mut,
-    let_chains,
-    new_uninit,
-    maybe_uninit_uninit_array,
-    maybe_uninit_array_assume_init,
-    lazy_cell,
-    core_intrinsics
+  once_cell_get_mut,
+  let_chains,
+  new_uninit,
+  maybe_uninit_uninit_array,
+  maybe_uninit_array_assume_init,
+  lazy_cell,
+  core_intrinsics
 )]
 
 mod app;
@@ -29,12 +29,12 @@ use std::ffi::c_void;
 
 #[no_mangle]
 extern "system" fn DllMain(module: HMODULE, reason: u32, _reserved: *mut c_void) -> BOOL {
-    match reason {
-        DLL_PROCESS_ATTACH => {
-            App::on_process_attach(module).expect("Failed to create and setup application")
-        }
-        DLL_PROCESS_DETACH => App::on_process_detach(),
-        _ => (),
+  match reason {
+    DLL_PROCESS_ATTACH => {
+      App::on_process_attach(module).expect("Failed to create and setup application")
     }
-    TRUE
+    DLL_PROCESS_DETACH => App::on_process_detach(),
+    _ => (),
+  }
+  TRUE
 }
