@@ -108,9 +108,7 @@ impl<'a> Chams<'a> {
     interfaces.render_view.set_color(color);
     interfaces.render_view.set_blend(color.a);
 
-    interfaces
-      .model_render
-      .forced_material_override(Some(material));
+    interfaces.model_render.override_material(material);
 
     object.draw_model();
     object.model_was_drawn = true;
@@ -136,7 +134,7 @@ fn draw_player_attachments(object: &RenderableObject, interfaces: &Interfaces) {
   interfaces.render_view.set_color(&Color::white());
   interfaces.render_view.set_blend(1.0);
 
-  interfaces.model_render.forced_material_override(None);
+  interfaces.model_render.reset_material();
 
   object.draw_attachments();
 }

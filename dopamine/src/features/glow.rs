@@ -140,7 +140,7 @@ impl Glow<'_> {
 
     interfaces
       .model_render
-      .forced_material_override(Some(self.glow_material));
+      .override_material(self.glow_material);
 
     StencilState {
       test_mask: 0xFF,
@@ -171,7 +171,7 @@ impl Glow<'_> {
       object.draw_attachments();
     }
 
-    interfaces.model_render.forced_material_override(None);
+    interfaces.model_render.reset_material();
     interfaces.render_view.set_color(&orig_color);
     interfaces.render_view.set_blend(orig_alpha);
 
@@ -211,7 +211,7 @@ impl Glow<'_> {
     view: &ViewSetup,
     render_ctx: &RenderContext,
   ) {
-    interfaces.model_render.forced_material_override(None);
+    interfaces.model_render.reset_material();
 
     OverrideDepthBuilder::default()
       .enable(true)
@@ -255,7 +255,7 @@ impl Glow<'_> {
     StencilState::default().set(render_ctx);
 
     interfaces.render_view.set_blend(saved_blend);
-    interfaces.model_render.forced_material_override(None);
+    interfaces.model_render.reset_material();
 
     // https://github.com/ValveSoftware/source-sdk-2013/blob/0d8dceea4310fde5706b3ce1c70609d72a38efdf/sp/src/game/client/glow_outline_effect.cpp#L256-L260
     if !drew_anything {

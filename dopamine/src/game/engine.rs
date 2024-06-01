@@ -23,7 +23,15 @@ pub struct ModelRenderInfo {
 pub struct ModelRender(private::ModelRender);
 
 impl ModelRender {
-  pub fn forced_material_override(&self, new_material: Option<&Material>) {
+  pub fn override_material(&self, new_material: &Material) {
+    self.forced_material_override(Some(new_material));
+  }
+
+  pub fn reset_material(&self) {
+    self.forced_material_override(None);
+  }
+
+  fn forced_material_override(&self, new_material: Option<&Material>) {
     self
       .as_ref()
       .forced_material_override(new_material, 0 /* Normal */);
