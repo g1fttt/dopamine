@@ -4,7 +4,7 @@ use crate::interfaces::Interfaces;
 
 type LevelInitPostEntityFn = extern "thiscall" fn(&Client);
 
-pub(super) extern "thiscall" fn level_init_post_entity(this: &Client) {
+pub extern "thiscall" fn level_init_post_entity(this: &Client) {
   App::with_mut(move |app| {
     let original: LevelInitPostEntityFn = app.hooks.level_init_post_entity.original();
     original(this);
@@ -18,7 +18,7 @@ pub(super) extern "thiscall" fn level_init_post_entity(this: &Client) {
 
 type LevelShutdownFn = extern "thiscall" fn(&Client);
 
-pub(super) extern "thiscall" fn level_shutdown(this: &Client) {
+pub extern "thiscall" fn level_shutdown(this: &Client) {
   App::with_mut(move |app| {
     let original: LevelShutdownFn = app.hooks.level_shutdown.original();
     original(this);

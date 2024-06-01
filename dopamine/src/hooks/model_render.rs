@@ -7,7 +7,7 @@ use std::ffi::c_void;
 type DrawModelExecuteFn =
   extern "thiscall" fn(&ModelRender, *mut c_void, &ModelRenderInfo, *mut c_void);
 
-pub(super) extern "thiscall" fn draw_model_execute(
+pub extern "thiscall" fn draw_model_execute(
   this: &ModelRender,
   state: *mut c_void,
   info: &ModelRenderInfo,

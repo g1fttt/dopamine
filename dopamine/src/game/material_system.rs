@@ -5,7 +5,6 @@ use crate::utils::Color;
 use derive_builder::Builder;
 use dopamine_macros::virtual_method;
 
-use std::ffi::{c_char, c_void};
 use std::ptr;
 
 pub type Vec2<T> = (T, T);
@@ -23,75 +22,57 @@ impl Material {
   fn set_flag(&self, flag: MaterialFlag, state: bool);
 }
 
-#[repr(C)]
-pub struct Texture;
+#[repr(transparent)]
+pub struct Texture(raw::Texture);
 
 impl Texture {
   pub fn dimensions(&self) -> (i32, i32) {
-    (self.actual_width(), self.actual_height())
+    let raw_texture = self.as_ref();
+    (raw_texture.actual_width(), raw_texture.actual_height())
   }
 }
 
 impl Texture {
-  #[virtual_method(index = 3, private)]
-  fn actual_width(&self) -> i32;
-
-  #[virtual_method(index = 4, private)]
-  fn actual_height(&self) -> i32;
-
   #[virtual_method(index = 10)]
   fn inc_ref_counter(&self);
 }
 
-#[repr(C)]
-pub struct MaterialSystem;
+impl AsRef<raw::Texture> for Texture {
+  fn as_ref(&self) -> &raw::Texture {
+    &self.0
+  }
+}
+
+#[repr(transparent)]
+pub struct MaterialSystem(raw::MaterialSystem);
 
 impl MaterialSystem {
   pub fn create_material(&self, name: &str, kv: &KeyValues) -> Option<&Material> {
-    self.create_material_private(cstr!(name), kv)
+    self.as_ref().create_material(cstr!(name), kv)
   }
 
   pub fn find_texture(&self, name: &str, group: &str) -> Option<&Texture> {
-    self.find_texture_private(cstr!(name), cstr!(group), true, 0)
+    self
+      .as_ref()
+      .find_texture(cstr!(name), cstr!(group), true, 0)
   }
 
   pub fn create_named_rt(&self, name: &str, dimensions: Vec2<i32>) -> Option<&Texture> {
-    self.create_named_rt_ex_private(cstr!(name), dimensions.0, dimensions.1, 1, 0, 1, 0x200C, 1)
+    self
+      .as_ref()
+      .create_named_rt_ex(cstr!(name), dimensions.0, dimensions.1, 1, 0, 1, 0x200C, 1)
   }
 }
 
 impl MaterialSystem {
-  #[virtual_method(index = 70, private)]
-  fn create_material_private<'a>(
-    &self,
-    name: *const c_char,
-    kv: &KeyValues,
-  ) -> Option<&'a Material>;
-
-  #[virtual_method(index = 79, private)]
-  fn find_texture_private(
-    &self,
-    name: *const c_char,
-    group: *const c_char,
-    complain: bool,
-    additional_creation_flags: i32,
-  ) -> Option<&Texture>;
-
-  #[virtual_method(index = 85, private)]
-  fn create_named_rt_ex_private(
-    &self,
-    name: *const c_char,
-    width: i32,
-    height: i32,
-    size_mode: i32,
-    image_format: i32,
-    depth: i32,
-    texture_flags: u32,
-    rt_flags: u32,
-  ) -> Option<&Texture>;
-
   #[virtual_method(index = 98)]
   fn render_ctx(&self) -> &RenderContext;
+}
+
+impl AsRef<raw::MaterialSystem> for MaterialSystem {
+  fn as_ref(&self) -> &raw::MaterialSystem {
+    &self.0
+  }
 }
 
 #[derive(Default, Clone, Copy)]
@@ -110,8 +91,8 @@ pub enum StencilCmpFn {
   Always = 8,
 }
 
-#[repr(C)]
-pub struct RenderContext;
+#[repr(transparent)]
+pub struct RenderContext(raw::RenderContext);
 
 impl RenderContext {
   pub fn push_rt_and_set_viewport(&self, rt: &Texture, dimensions: Vec2<i32>) {
@@ -121,48 +102,19 @@ impl RenderContext {
 
   pub fn clear_color_3u8(&self, color: Color<u8>) {
     let color = color.mul_255_if_supports();
-    self.clear_color_3u8_private(color.r, color.g, color.b);
+    self.as_ref().clear_color_3u8(color.r, color.g, color.b);
   }
 
   fn set_viewport(&self, pos: Vec2<i32>, dimensions: Vec2<i32>) {
-    self.set_viewport_private(pos.0, pos.1, dimensions.0, dimensions.1);
+    self
+      .as_ref()
+      .set_viewport(pos.0, pos.1, dimensions.0, dimensions.1);
   }
 }
 
 impl RenderContext {
   #[virtual_method(index = 6)]
   fn set_render_target(&self, texture: &Texture);
-
-  #[virtual_method(index = 12, private)]
-  fn clear_buffers(&self, clear_color: bool, clear_depth: bool, clear_stencil: bool);
-
-  #[virtual_method(index = 38, private)]
-  fn set_viewport_private(&self, x: i32, y: i32, width: i32, height: i32);
-
-  #[virtual_method(index = 72, private)]
-  fn clear_color_3u8_private(&self, r: u8, g: u8, b: u8);
-
-  #[virtual_method(index = 74, private)]
-  fn override_depth_enable(&self, enable: bool, depth_enable: bool);
-
-  #[virtual_method(index = 103, private)]
-  fn draw_screen_space_rect_private(
-    &self,
-    material: &Material,
-    x: i32,
-    y: i32,
-    width: i32,
-    height: i32,
-    texture_x0: f32,
-    texture_y0: f32,
-    texture_x1: f32,
-    texture_y1: f32,
-    texture_width: i32,
-    texture_height: i32,
-    renderable: *mut c_void,
-    dice_x: i32,
-    dice_y: i32,
-  );
 
   #[virtual_method(index = 107)]
   fn push_rt_and_viewport(&self, rt: &Texture);
@@ -195,6 +147,12 @@ impl RenderContext {
   fn set_stencil_write_mask(&self, mask: u32);
 }
 
+impl AsRef<raw::RenderContext> for RenderContext {
+  fn as_ref(&self) -> &raw::RenderContext {
+    &self.0
+  }
+}
+
 #[derive(Builder)]
 #[builder(pattern = "owned", derive(Clone))]
 pub struct ScreenSpaceRect<'a> {
@@ -209,7 +167,7 @@ pub struct ScreenSpaceRect<'a> {
 impl ScreenSpaceRectBuilder<'_> {
   pub fn build_and_draw(self, render_ctx: &RenderContext) {
     let rect = self.build().expect("Failed to build ScreenSpaceRect");
-    render_ctx.draw_screen_space_rect_private(
+    render_ctx.as_ref().draw_screen_space_rect(
       rect.material,
       rect.pos.0,
       rect.pos.1,
@@ -240,7 +198,7 @@ pub struct ClearBuffers {
 impl ClearBuffersBuilder {
   pub fn build_and_clear(self, render_ctx: &RenderContext) {
     let buffers = self.build().expect("Failed to build ClearBuffers");
-    render_ctx.clear_buffers(
+    render_ctx.as_ref().clear_buffers(
       buffers.clear_color,
       buffers.clear_depth,
       buffers.clear_stencil,
@@ -259,6 +217,97 @@ pub struct OverrideDepth {
 impl OverrideDepthBuilder {
   pub fn build_and_override(self, render_ctx: &RenderContext) {
     let overrides = self.build().expect("Failed to build OverrideDepth");
-    render_ctx.override_depth_enable(overrides.enable, overrides.depth_enable);
+    render_ctx
+      .as_ref()
+      .override_depth_enable(overrides.enable, overrides.depth_enable);
+  }
+}
+
+mod raw {
+  use crate::game::KeyValues;
+
+  use dopamine_macros::virtual_method;
+
+  use std::ffi::{c_char, c_void};
+
+  #[repr(C)]
+  pub struct Texture;
+
+  impl Texture {
+    #[virtual_method(index = 3)]
+    fn actual_width(&self) -> i32;
+
+    #[virtual_method(index = 4)]
+    fn actual_height(&self) -> i32;
+  }
+
+  #[repr(C)]
+  pub struct MaterialSystem;
+
+  impl MaterialSystem {
+    #[virtual_method(index = 70)]
+    fn create_material<'a>(
+      &self,
+      name: *const c_char,
+      kv: &KeyValues,
+    ) -> Option<&'a super::Material>;
+
+    #[virtual_method(index = 79)]
+    fn find_texture(
+      &self,
+      name: *const c_char,
+      group: *const c_char,
+      complain: bool,
+      additional_creation_flags: i32,
+    ) -> Option<&super::Texture>;
+
+    #[virtual_method(index = 85)]
+    fn create_named_rt_ex(
+      &self,
+      name: *const c_char,
+      width: i32,
+      height: i32,
+      size_mode: i32,
+      image_format: i32,
+      depth: i32,
+      texture_flags: u32,
+      rt_flags: u32,
+    ) -> Option<&super::Texture>;
+  }
+
+  #[repr(C)]
+  pub struct RenderContext;
+
+  impl RenderContext {
+    #[virtual_method(index = 12)]
+    fn clear_buffers(&self, clear_color: bool, clear_depth: bool, clear_stencil: bool);
+
+    #[virtual_method(index = 38)]
+    fn set_viewport(&self, x: i32, y: i32, width: i32, height: i32);
+
+    #[virtual_method(index = 72)]
+    fn clear_color_3u8(&self, r: u8, g: u8, b: u8);
+
+    #[virtual_method(index = 74)]
+    fn override_depth_enable(&self, enable: bool, depth_enable: bool);
+
+    #[virtual_method(index = 103)]
+    fn draw_screen_space_rect(
+      &self,
+      material: &super::Material,
+      x: i32,
+      y: i32,
+      width: i32,
+      height: i32,
+      texture_x0: f32,
+      texture_y0: f32,
+      texture_x1: f32,
+      texture_y1: f32,
+      texture_width: i32,
+      texture_height: i32,
+      renderable: *mut c_void,
+      dice_x: i32,
+      dice_y: i32,
+    );
   }
 }

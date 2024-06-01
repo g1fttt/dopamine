@@ -4,7 +4,7 @@ use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_END;
 use windows::Win32::UI::WindowsAndMessaging::{CallWindowProcW, WM_KEYUP};
 
-pub(super) unsafe extern "stdcall" fn wnd_proc(
+pub unsafe extern "stdcall" fn wnd_proc(
   window: HWND,
   msg: u32,
   wparam: WPARAM,

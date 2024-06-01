@@ -5,17 +5,17 @@ use dopamine_macros::virtual_method;
 
 use std::mem::MaybeUninit;
 
-#[repr(C)]
-pub struct RenderView;
+#[repr(transparent)]
+pub struct RenderView(raw::RenderView);
 
 impl RenderView {
   pub fn set_color(&self, color: &Color) {
-    self.set_color_private(color as *const Color as _);
+    self.as_ref().set_color(color as *const Color as _);
   }
 
   pub fn color(&self) -> Color {
     let mut out: [MaybeUninit<f32>; 3] = MaybeUninit::uninit_array();
-    self.color_private(out.as_mut_ptr().cast());
+    self.as_ref().color(out.as_mut_ptr().cast());
 
     unsafe {
       let rgb = MaybeUninit::array_assume_init(out);
@@ -30,12 +30,12 @@ impl RenderView {
 
   #[virtual_method(index = 5)]
   fn blend(&self) -> f32;
+}
 
-  #[virtual_method(index = 6, private)]
-  fn set_color_private(&self, color: *const f32);
-
-  #[virtual_method(index = 7, private)]
-  fn color_private(&self, color: *mut f32);
+impl AsRef<raw::RenderView> for RenderView {
+  fn as_ref(&self) -> &raw::RenderView {
+    &self.0
+  }
 }
 
 #[repr(C)]
@@ -49,5 +49,20 @@ pub struct ViewSetup {
 impl ViewSetup {
   pub fn dimensions(&self) -> Vec2<i32> {
     (self.width, self.height)
+  }
+}
+
+mod raw {
+  use dopamine_macros::virtual_method;
+
+  #[repr(C)]
+  pub struct RenderView;
+
+  impl RenderView {
+    #[virtual_method(index = 6)]
+    fn set_color(&self, color: *const f32);
+
+    #[virtual_method(index = 7)]
+    fn color(&self, color: *mut f32);
   }
 }

@@ -10,7 +10,7 @@ use crate::App;
 
 type CreateMoveFn = extern "thiscall" fn(&ClientMode, f32, &mut UserCommand) -> bool;
 
-pub(super) extern "thiscall" fn create_move(
+pub extern "thiscall" fn create_move(
   this: &ClientMode,
   input_sample_frame_time: f32,
   cmd: &mut UserCommand,
@@ -27,10 +27,7 @@ pub(super) extern "thiscall" fn create_move(
 
 type DoPostScreenSpaceEffects = extern "thiscall" fn(&ClientMode, &ViewSetup) -> bool;
 
-pub(super) extern "thiscall" fn do_post_screen_space_effects(
-  this: &ClientMode,
-  view: &ViewSetup,
-) -> bool {
+pub extern "thiscall" fn do_post_screen_space_effects(this: &ClientMode, view: &ViewSetup) -> bool {
   App::with_mut(move |app| {
     let original: DoPostScreenSpaceEffects = app.hooks.do_post_screen_space_effects.original();
     let result = original(this, view);
