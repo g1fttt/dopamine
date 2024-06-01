@@ -29,28 +29,28 @@ impl Patterns {
     &PATTERNS
   }
 
-    #[rustfmt::skip]
+  #[rustfmt::skip]
   unsafe fn find() -> windows::core::Result<Self> {
-        let key_values_new = find_pattern("StudioRender.dll", "55 8B EC 56 8B F1 6A")?;
-        let key_values_set_string = find_pattern("client.dll", "55 8B EC 57 6A 01 FF 75 08 E8 ? ? ? ? 8B F8 85 FF 74 60")?;
+    let key_values_new = find_pattern("StudioRender.dll", "55 8B EC 56 8B F1 6A")?;
+    let key_values_set_string = find_pattern("client.dll", "55 8B EC 57 6A 01 FF 75 08 E8 ? ? ? ? 8B F8 85 FF 74 60")?;
 
-        let is_local_player = find_pattern("client.dll", "33 C0 39 0D ? ? ? ? 0F")?;
+    let is_local_player = find_pattern("client.dll", "33 C0 39 0D ? ? ? ? 0F")?;
 
-        let d3d9_reset = find_pattern::<*mut c_void>("GameOverlayRenderer.dll", "A1 ? ? ? ? 57 53 C7 45 FC 00 00 00 00")?
-            .byte_add(1);
-        let d3d9_present = find_pattern::<*mut c_void>("GameOverlayRenderer.dll", "A1 ? ? ? ? 51 FF 75 14")?
-            .byte_add(1);
+    let d3d9_reset = find_pattern::<*mut c_void>("GameOverlayRenderer.dll", "A1 ? ? ? ? 57 53 C7 45 FC 00 00 00 00")?
+      .byte_add(1);
+    let d3d9_present = find_pattern::<*mut c_void>("GameOverlayRenderer.dll", "A1 ? ? ? ? 51 FF 75 14")?
+      .byte_add(1);
 
-        Ok(Self {
-            key_values_new,
-            key_values_set_string,
+    Ok(Self {
+      key_values_new,
+      key_values_set_string,
 
-            is_local_player,
+      is_local_player,
 
-            d3d9_reset,
-            d3d9_present,
-        })
-    }
+      d3d9_reset,
+      d3d9_present,
+    })
+  }
 }
 
 unsafe impl Send for Patterns {}
