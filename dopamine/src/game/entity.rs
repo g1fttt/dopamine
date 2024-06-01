@@ -14,7 +14,7 @@ impl UserCommand {
 }
 
 #[repr(transparent)]
-pub struct Entity(raw::Entity);
+pub struct Entity(private::Entity);
 
 impl Entity {
   const ON_GROUND: i32 = 1 << 0;
@@ -67,8 +67,8 @@ impl Entity {
   }
 }
 
-impl AsRef<raw::Entity> for Entity {
-  fn as_ref(&self) -> &raw::Entity {
+impl AsRef<private::Entity> for Entity {
+  fn as_ref(&self) -> &private::Entity {
     &self.0
   }
 }
@@ -101,7 +101,7 @@ impl<'a> Iterator for EntityAttachmentIterator<'a> {
   }
 }
 
-mod raw {
+mod private {
   use dopamine_macros::virtual_method;
 
   #[repr(C)]

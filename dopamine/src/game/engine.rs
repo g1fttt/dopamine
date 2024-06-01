@@ -20,7 +20,7 @@ pub struct ModelRenderInfo {
 }
 
 #[repr(transparent)]
-pub struct ModelRender(raw::ModelRender);
+pub struct ModelRender(private::ModelRender);
 
 impl ModelRender {
   pub fn forced_material_override(&self, new_material: Option<&Material>) {
@@ -30,13 +30,13 @@ impl ModelRender {
   }
 }
 
-impl AsRef<raw::ModelRender> for ModelRender {
-  fn as_ref(&self) -> &raw::ModelRender {
+impl AsRef<private::ModelRender> for ModelRender {
+  fn as_ref(&self) -> &private::ModelRender {
     &self.0
   }
 }
 
-mod raw {
+mod private {
   use crate::game::material_system::Material;
 
   use dopamine_macros::virtual_method;

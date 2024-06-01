@@ -6,7 +6,7 @@ use dopamine_macros::virtual_method;
 use std::mem::MaybeUninit;
 
 #[repr(transparent)]
-pub struct RenderView(raw::RenderView);
+pub struct RenderView(private::RenderView);
 
 impl RenderView {
   pub fn set_color(&self, color: &Color) {
@@ -32,8 +32,8 @@ impl RenderView {
   fn blend(&self) -> f32;
 }
 
-impl AsRef<raw::RenderView> for RenderView {
-  fn as_ref(&self) -> &raw::RenderView {
+impl AsRef<private::RenderView> for RenderView {
+  fn as_ref(&self) -> &private::RenderView {
     &self.0
   }
 }
@@ -52,7 +52,7 @@ impl ViewSetup {
   }
 }
 
-mod raw {
+mod private {
   use dopamine_macros::virtual_method;
 
   #[repr(C)]

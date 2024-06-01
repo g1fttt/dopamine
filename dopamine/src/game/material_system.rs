@@ -23,7 +23,7 @@ impl Material {
 }
 
 #[repr(transparent)]
-pub struct Texture(raw::Texture);
+pub struct Texture(private::Texture);
 
 impl Texture {
   pub fn dimensions(&self) -> (i32, i32) {
@@ -37,14 +37,14 @@ impl Texture {
   fn inc_ref_counter(&self);
 }
 
-impl AsRef<raw::Texture> for Texture {
-  fn as_ref(&self) -> &raw::Texture {
+impl AsRef<private::Texture> for Texture {
+  fn as_ref(&self) -> &private::Texture {
     &self.0
   }
 }
 
 #[repr(transparent)]
-pub struct MaterialSystem(raw::MaterialSystem);
+pub struct MaterialSystem(private::MaterialSystem);
 
 impl MaterialSystem {
   pub fn create_material(&self, name: &str, kv: &KeyValues) -> Option<&Material> {
@@ -69,8 +69,8 @@ impl MaterialSystem {
   fn render_ctx(&self) -> &RenderContext;
 }
 
-impl AsRef<raw::MaterialSystem> for MaterialSystem {
-  fn as_ref(&self) -> &raw::MaterialSystem {
+impl AsRef<private::MaterialSystem> for MaterialSystem {
+  fn as_ref(&self) -> &private::MaterialSystem {
     &self.0
   }
 }
@@ -92,7 +92,7 @@ pub enum StencilCmpFn {
 }
 
 #[repr(transparent)]
-pub struct RenderContext(raw::RenderContext);
+pub struct RenderContext(private::RenderContext);
 
 impl RenderContext {
   pub fn push_rt_and_set_viewport(&self, rt: &Texture, dimensions: Vec2<i32>) {
@@ -147,8 +147,8 @@ impl RenderContext {
   fn set_stencil_write_mask(&self, mask: u32);
 }
 
-impl AsRef<raw::RenderContext> for RenderContext {
-  fn as_ref(&self) -> &raw::RenderContext {
+impl AsRef<private::RenderContext> for RenderContext {
+  fn as_ref(&self) -> &private::RenderContext {
     &self.0
   }
 }
@@ -223,7 +223,7 @@ impl OverrideDepthBuilder {
   }
 }
 
-mod raw {
+mod private {
   use crate::game::KeyValues;
 
   use dopamine_macros::virtual_method;
