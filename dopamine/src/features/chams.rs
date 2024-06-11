@@ -43,7 +43,7 @@ impl<'a> Chams<'a> {
     &self,
     objects: &mut [RenderableObject<'a>],
     interfaces: &Interfaces,
-    ChamsGroupConfig(config): &ChamsGroupConfig,
+    config: &ChamsGroupConfig,
     local_player: Option<&Entity>,
   ) {
     let render_ctx = interfaces.material_system.render_ctx();
@@ -65,9 +65,9 @@ impl<'a> Chams<'a> {
       let is_enemy = local_player.is_some_and(|lp| lp.team() != object.entity.team());
 
       if is_enemy {
-        self.draw_chams(object, &config[ChamsConfigKind::Enemies], interfaces);
+        self.draw_chams(object, &config[ChamsConfigKind::Enemies].layers, interfaces);
       } else {
-        self.draw_chams(object, &config[ChamsConfigKind::Allies], interfaces);
+        self.draw_chams(object, &config[ChamsConfigKind::Allies].layers, interfaces);
       }
       draw_player_attachments(object, interfaces);
     }

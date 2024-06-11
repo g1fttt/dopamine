@@ -13,7 +13,7 @@ use std::sync::LazyLock;
 use std::{mem, slice};
 
 pub struct Patterns {
-  pub key_values_new: extern "thiscall" fn(*mut KeyValues, *const c_char) -> *mut KeyValues,
+  pub key_values_new: extern "thiscall" fn(*mut KeyValues, shader: *const c_char) -> *mut KeyValues,
   pub key_values_set_string: extern "thiscall" fn(&mut KeyValues, *const c_char, *const c_char),
 
   pub is_local_player: extern "thiscall" fn(&Entity) -> bool,

@@ -7,25 +7,19 @@ edition.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
+windows = { workspace = true }
+imgui = { workspace = true }
+
 dopamine-macros = { path = "../dopamine-macros" }
 
+imgui-dx9-renderer = { path = "../imgui-dx9-renderer" }
+imgui-win32-support = { path = "../imgui-win32-support" }
+
+strum = { version = "0.26.2", features = ["derive"] }
 enum-map = { version = "2.7.3", features = ["serde"] }
 num-traits = "0.2.19"
 derive_builder = "0.20.0"
-regex = "1.10.4"
+regex = "1.10.5"
 fastrand = "2.1.0"
-serde = { version = "1.0.200", features = ["derive"] }
-toml = "0.8.12"
-windows = { version = "0.56.0", features = [
-    "Win32_System_Memory",
-    "Win32_System_LibraryLoader",
-    "Win32_System_Threading",
-    "Win32_Security",
-    "Win32_UI_WindowsAndMessaging",
-    "Win32_UI_Input_KeyboardAndMouse",
-    "Win32_System_Diagnostics_Debug",
-    "Win32_System_SystemServices",
-    "Win32_System_ProcessStatus",
-    "Win32_Graphics_Direct3D9",
-    "Win32_Graphics_Gdi",
-] }
+serde = { version = "1.0.203", features = ["derive"] }
+toml = "0.8.14"

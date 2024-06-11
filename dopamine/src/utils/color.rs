@@ -1,6 +1,7 @@
 use num_traits::{AsPrimitive, NumCast};
 use serde::{Deserialize, Serialize};
 
+use std::mem;
 use std::ops::Mul;
 
 #[derive(Clone, Copy, Default)]
@@ -62,6 +63,10 @@ impl<T: NumCast + Clone + Copy> Color<T> {
         T::from(1.0).unwrap_unchecked(),
       )
     }
+  }
+
+  pub fn as_mut_array(&mut self) -> &mut [T; 4] {
+    unsafe { mem::transmute(self) }
   }
 }
 

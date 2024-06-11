@@ -1,8 +1,10 @@
 use crate::utils::Color;
 
-use enum_map::{Enum, EnumMap};
+use enum_map::{Enum, EnumArray, EnumMap};
 use serde::{Deserialize, Serialize};
+use strum::VariantNames;
 
+use std::ops::{Deref, DerefMut};
 use std::path::Path;
 use std::{fs, io};
 
@@ -65,7 +67,7 @@ pub struct MiscGroupConfig {
   pub bunnyhop: BunnyhopConfig,
 }
 
-#[derive(Enum, Serialize, Deserialize)]
+#[derive(Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]
 pub enum GlowConfigKind {
   Enemies,
   Allies,
@@ -86,16 +88,16 @@ impl Default for GlowConfig {
   }
 }
 
-#[derive(Default, Serialize, Deserialize)]
-pub struct GlowGroupConfig(pub EnumMap<GlowConfigKind, GlowConfig>);
+pub type GlowGroupConfig = EnumMapConfig<GlowConfigKind, GlowConfig>;
 
-#[derive(Enum, Serialize, Deserialize)]
+#[derive(Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]
 pub enum ChamsConfigKind {
   Enemies,
   Allies,
 }
 
-#[derive(Default, Clone, Copy, Enum, Serialize, Deserialize)]
+#[derive(Default, Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]
+#[repr(usize)]
 pub enum ChamsKind {
   #[default]
   Regular,
@@ -122,4 +124,57 @@ impl Default for ChamsLayer {
 }
 
 #[derive(Default, Serialize, Deserialize)]
-pub struct ChamsGroupConfig(pub EnumMap<ChamsConfigKind, [ChamsLayer; 2]>);
+pub struct ChamsConfig {
+  #[serde(skip)]
+  pub current_layer_index: usize,
+  pub layers: [ChamsLayer; 2],
+}
+
+pub type ChamsGroupConfig = EnumMapConfig<ChamsConfigKind, ChamsConfig>;
+
+#[derive(Serialize, Deserialize)]
+pub struct EnumMapConfig<K, V>
+where
+  K: EnumArray<V> + EnumArray<Option<V>>,
+  V: Default,
+{
+  #[serde(skip)]
+  pub current_config_index: usize,
+  #[serde(flatten)]
+  inner: EnumMap<K, V>,
+}
+
+impl<K, V> Default for EnumMapConfig<K, V>
+where
+  K: EnumArray<V> + EnumArray<Option<V>>,
+  V: Default,
+{
+  fn default() -> Self {
+    Self {
+      current_config_index: usize::default(),
+      inner: Default::default(),
+    }
+  }
+}
+
+impl<K, V> Deref for EnumMapConfig<K, V>
+where
+  K: EnumArray<V> + EnumArray<Option<V>>,
+  V: Default,
+{
+  type Target = EnumMap<K, V>;
+
+  fn deref(&self) -> &Self::Target {
+    &self.inner
+  }
+}
+
+impl<K, V> DerefMut for EnumMapConfig<K, V>
+where
+  K: EnumArray<V> + EnumArray<Option<V>>,
+  V: Default,
+{
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.inner
+  }
+}

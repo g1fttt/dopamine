@@ -1,6 +1,7 @@
 use crate::config::Config;
 use crate::game::Entity;
 use crate::hooks::Hooks;
+use crate::ui::Menu;
 
 use crate::features::chams::Chams;
 use crate::features::glow::Glow;
@@ -15,13 +16,15 @@ use std::ffi::c_void;
 
 pub struct App {
   module: HMODULE,
+
   pub config: Config,
   pub hooks: Hooks,
+  pub menu: Menu,
+
+  pub local_player: Option<&'static Entity>,
 
   pub glow: Glow<'static>,
   pub chams: Chams<'static>,
-
-  pub local_player: Option<&'static Entity>,
 }
 
 impl App {
@@ -102,8 +105,10 @@ impl App {
 
     APP.get_mut_or_init(|| App {
       module: module.unwrap(),
+
       config: Config::create_and_load_from(Config::PATH),
       hooks: Hooks::create(),
+      menu: Menu::new(),
 
       local_player: None,
 

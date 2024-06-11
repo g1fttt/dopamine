@@ -110,8 +110,7 @@ impl Glow<'_> {
   ) {
     let render_ctx = interfaces.material_system.render_ctx();
 
-    let GlowGroupConfig(config_inner) = config;
-    let should_glow = config_inner.as_array().iter().any(|cfg| cfg.enabled);
+    let should_glow = config.as_array().iter().any(|cfg| cfg.enabled);
 
     if should_glow {
       self.apply_entity_glow_effects(objects, interfaces, config, local_player, view, render_ctx);
@@ -122,7 +121,7 @@ impl Glow<'_> {
     &self,
     objects: &mut [RenderableObject],
     interfaces: &Interfaces,
-    GlowGroupConfig(config): &GlowGroupConfig,
+    config: &GlowGroupConfig,
     local_player: Option<&Entity>,
     view: &ViewSetup,
     render_ctx: &RenderContext,

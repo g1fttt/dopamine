@@ -1,21 +1,23 @@
+use crate::ui::ImGuiContext;
 use crate::App;
 
 use windows::core::HRESULT;
 use windows::Win32::Foundation::{HWND, RECT};
-use windows::Win32::Graphics::Direct3D9::{IDirect3DDevice9, D3DPRESENT_PARAMETERS};
+use windows::Win32::Graphics::Direct3D9::{
+  IDirect3DDevice9, D3DDEVICE_CREATION_PARAMETERS, D3DPRESENT_PARAMETERS, D3DRS_COLORWRITEENABLE,
+  D3DRS_SRGBWRITEENABLE, D3DSBT_ALL,
+};
 use windows::Win32::Graphics::Gdi::RGNDATA;
 
-pub type ResetFn = extern "stdcall" fn(&IDirect3DDevice9, &D3DPRESENT_PARAMETERS) -> HRESULT;
+pub type ResetFn = extern "stdcall" fn(IDirect3DDevice9, &D3DPRESENT_PARAMETERS) -> HRESULT;
 
-pub extern "stdcall" fn reset(
-  device: &IDirect3DDevice9,
-  params: &D3DPRESENT_PARAMETERS,
-) -> HRESULT {
-  App::with(move |app| (app.hooks.reset)(device, params))
+// NOTE: Maybe unused
+pub extern "stdcall" fn reset(device: IDirect3DDevice9, params: &D3DPRESENT_PARAMETERS) -> HRESULT {
+  App::with(move |app| (app.hooks.reset)(device.clone(), params))
 }
 
 pub type PresentFn = extern "stdcall" fn(
-  &IDirect3DDevice9,
+  IDirect3DDevice9,
   Option<&RECT>,
   Option<&RECT>,
   HWND,
@@ -23,11 +25,36 @@ pub type PresentFn = extern "stdcall" fn(
 ) -> HRESULT;
 
 pub extern "stdcall" fn present(
-  device: &IDirect3DDevice9,
+  device: IDirect3DDevice9,
   src: Option<&RECT>,
   dest: Option<&RECT>,
   window_override: HWND,
   dirty_region: Option<&RGNDATA>,
 ) -> HRESULT {
-  App::with(move |app| (app.hooks.present)(device, src, dest, window_override, dirty_region))
+  App::with_mut(move |app| unsafe {
+    let mut params = D3DDEVICE_CREATION_PARAMETERS::default();
+    let _ = device.GetCreationParameters(&mut params);
+
+    let imgui_ctx = ImGuiContext::get_mut_or_init(Some(device.clone()), Some(params.hFocusWindow));
+    imgui_ctx.prepare_frame();
+
+    app.menu.render(imgui_ctx.new_frame(), &mut app.config);
+
+    if let Ok(state_block) = device.CreateStateBlock(D3DSBT_ALL) {
+      let _ = state_block.Capture();
+
+      // Fix menu not rendering without `net_graph` or `cl_showfps`
+      let _ = device.SetRenderState(D3DRS_COLORWRITEENABLE, u32::MAX);
+
+      // Fix broken ImGui menu colors with Source engine gamma correction
+      let _ = device.SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
+
+      if device.BeginScene().is_ok() {
+        imgui_ctx.render();
+        let _ = device.EndScene();
+      }
+      let _ = state_block.Apply();
+    }
+    (app.hooks.present)(device.clone(), src, dest, window_override, dirty_region)
+  })
 }

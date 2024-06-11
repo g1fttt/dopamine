@@ -18,6 +18,7 @@ mod interfaces;
 mod macros;
 mod netvar_manager;
 mod patterns;
+mod ui;
 mod utils;
 
 use windows::Win32::Foundation::{BOOL, HMODULE, TRUE};
