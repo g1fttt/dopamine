@@ -1,11 +1,13 @@
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Direct3D9::IDirect3DDevice9;
 
-use imgui::{Context, Ui};
+use imgui::{Context, Io, Ui};
 use imgui_dx9_renderer::Renderer;
 use imgui_win32_support::Win32;
 
 use std::sync::OnceLock;
+
+static mut IMGUI_CONTEXT: OnceLock<ImGuiContext> = OnceLock::new();
 
 // TODO: Deinitialization upon unloading
 pub struct ImGuiContext {
@@ -15,12 +17,12 @@ pub struct ImGuiContext {
 }
 
 impl ImGuiContext {
-  pub unsafe fn get_mut_or_init(
-    device: Option<IDirect3DDevice9>,
-    hwnd: Option<HWND>,
-  ) -> &'static mut Self {
-    static mut IMGUI_CONTEXT: OnceLock<ImGuiContext> = OnceLock::new();
-    IMGUI_CONTEXT.get_mut_or_init(|| ImGuiContext::new(device.unwrap(), hwnd.unwrap()))
+  pub fn get_mut_or_init(device: IDirect3DDevice9, hwnd: HWND) -> &'static mut Self {
+    unsafe { IMGUI_CONTEXT.get_mut_or_init(|| ImGuiContext::new(device, hwnd)) }
+  }
+
+  pub fn get_mut() -> Option<&'static mut Self> {
+    unsafe { IMGUI_CONTEXT.get_mut() }
   }
 
   fn new(device: IDirect3DDevice9, hwnd: HWND) -> Self {
@@ -52,6 +54,10 @@ impl ImGuiContext {
   #[inline(always)]
   pub fn render(&mut self) {
     let _ = self.renderer.render(self.ctx.render());
+  }
+
+  pub fn io_mut(&mut self) -> &mut Io {
+    self.ctx.io_mut()
   }
 }
 

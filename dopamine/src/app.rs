@@ -1,6 +1,7 @@
 use crate::config::Config;
 use crate::game::Entity;
 use crate::hooks::Hooks;
+use crate::interfaces::Interfaces;
 use crate::ui::Menu;
 
 use crate::features::chams::Chams;
@@ -10,6 +11,7 @@ use windows::Win32::Foundation::{CloseHandle, HMODULE};
 use windows::Win32::System::Diagnostics::Debug::Beep;
 use windows::Win32::System::LibraryLoader::{DisableThreadLibraryCalls, FreeLibraryAndExitThread};
 use windows::Win32::System::Threading::{CreateThread, THREAD_CREATION_FLAGS};
+use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
 
 use std::cell::OnceCell;
 use std::ffi::c_void;
@@ -50,6 +52,8 @@ impl App {
   }
 
   pub unsafe fn unload(&mut self) -> windows::core::Result<()> {
+    ShowCursor(true);
+
     self.hooks.unhook_all()?;
 
     let handle = CreateThread(
@@ -70,6 +74,8 @@ impl App {
 
 unsafe extern "system" fn free_library(app: *mut c_void) -> u32 {
   Beep(1500, 200).expect("Failed to make beep sound upon unhooking");
+
+  Interfaces::get().input_system.enable_input(true);
 
   let app = app.cast::<App>().as_ref().unwrap();
   FreeLibraryAndExitThread(app.module, 0);

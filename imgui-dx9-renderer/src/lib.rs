@@ -108,7 +108,10 @@ impl Renderer {
   ///
   /// [`Ui`]: https://docs.rs/imgui/*/imgui/struct.Ui.html
   pub fn render(&mut self, draw_data: &DrawData) -> Result<()> {
-    if draw_data.display_size[0] <= 0.0 || draw_data.display_size[1] <= 0.0 {
+    if draw_data.display_size[0] <= 0.0
+      || draw_data.display_size[1] <= 0.0
+      || draw_data.draw_lists_count() == 0
+    {
       return Ok(());
     }
     unsafe {

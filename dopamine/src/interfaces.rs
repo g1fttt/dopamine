@@ -1,7 +1,9 @@
 use crate::game::client::{Client, ClientMode, EntityList};
 use crate::game::engine::{Engine, ModelRender};
+use crate::game::input_system::InputSystem;
 use crate::game::material_system::MaterialSystem;
 use crate::game::render_view::RenderView;
+use crate::game::surface::Surface;
 
 use crate::{cstr, ok_or_empty_err, pcstr};
 
@@ -19,6 +21,8 @@ pub struct Interfaces<'a> {
   pub render_view: &'a RenderView,
   pub material_system: &'a MaterialSystem,
   pub model_render: &'a ModelRender,
+  pub surface: &'a Surface,
+  pub input_system: &'a InputSystem,
 }
 
 impl Interfaces<'_> {
@@ -39,6 +43,8 @@ impl Interfaces<'_> {
       render_view: find_interface("engine.dll", "VEngineRenderView014")?,
       material_system: find_interface("MaterialSystem.dll", "VMaterialSystem080")?,
       model_render: find_interface("engine.dll", "VEngineModel016")?,
+      surface: find_interface("vguimatsurface.dll", "VGUI_Surface030")?,
+      input_system: find_interface("inputsystem.dll", "InputSystemVersion001")?,
     })
   }
 }

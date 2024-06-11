@@ -2,6 +2,7 @@ mod client;
 mod client_mode;
 mod d3d9;
 mod model_render;
+mod surface;
 mod winapi;
 
 use crate::interfaces::Interfaces;
@@ -31,6 +32,8 @@ pub struct Hooks {
 
   pub(self) draw_model_execute: VMTHook,
 
+  pub(self) lock_cursor: VMTHook,
+
   reset_raw: *mut c_void,
   present_raw: *mut c_void,
   pub(self) reset: ResetFn,
@@ -56,6 +59,8 @@ impl Hooks {
       level_shutdown: VMTHook::new(interfaces.client, 7),
 
       draw_model_execute: VMTHook::new(interfaces.model_render, 19),
+
+      lock_cursor: VMTHook::new(interfaces.surface, 62),
 
       reset_raw: patterns.d3d9_reset,
       present_raw: patterns.d3d9_present,
@@ -88,6 +93,8 @@ impl Hooks {
       .draw_model_execute
       .hook(model_render::draw_model_execute as _)?;
 
+    self.lock_cursor.hook(surface::lock_cursor as _)?;
+
     **self.reset_raw.cast::<*mut ResetFn>() = d3d9::reset;
     **self.present_raw.cast::<*mut PresentFn>() = d3d9::present;
 
@@ -105,6 +112,8 @@ impl Hooks {
     self.level_shutdown.unhook()?;
 
     self.draw_model_execute.unhook()?;
+
+    self.lock_cursor.unhook()?;
 
     SetWindowLongPtrW(self.window, GWLP_WNDPROC, mem::transmute(self.wnd_proc));
 

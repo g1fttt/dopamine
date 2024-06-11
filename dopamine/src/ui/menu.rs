@@ -1,19 +1,27 @@
 use crate::config::*;
+use crate::game::input_system::InputSystem;
 
-use imgui::{ColorEditFlags, Ui, WindowFlags};
+use imgui::{ColorEditFlags, Io, Ui, WindowFlags};
 use strum::VariantNames;
+use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
 
 use std::mem;
 
 pub struct Menu {
+  open: bool,
   should_draw_window: ShouldDrawWindow,
 }
 
 impl Menu {
   pub fn new() -> Self {
     Self {
+      open: bool::default(),
       should_draw_window: ShouldDrawWindow::default(),
     }
+  }
+
+  pub fn is_open(&self) -> bool {
+    self.open
   }
 
   pub fn render(&mut self, ui: &mut Ui, config: &mut Config) {
@@ -21,6 +29,20 @@ impl Menu {
     self.render_misc_window(ui, &mut config.misc);
     self.render_glow_window(ui, &mut config.glow);
     self.render_chams_window(ui, &mut config.chams);
+  }
+
+  pub fn handle_toggle(&mut self, input_system: &InputSystem) {
+    self.open = !self.open;
+
+    if !self.open {
+      input_system.reset_input_state();
+    }
+    input_system.enable_input(!self.open);
+  }
+
+  pub fn update_mouse_cursor(&self, io: &mut Io) {
+    io.mouse_draw_cursor = self.open;
+    unsafe { ShowCursor(!self.open) };
   }
 
   fn render_menu_bar(&mut self, ui: &mut Ui) {

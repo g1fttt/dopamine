@@ -3,10 +3,7 @@ use crate::App;
 
 use windows::core::HRESULT;
 use windows::Win32::Foundation::{HWND, RECT};
-use windows::Win32::Graphics::Direct3D9::{
-  IDirect3DDevice9, D3DDEVICE_CREATION_PARAMETERS, D3DPRESENT_PARAMETERS, D3DRS_COLORWRITEENABLE,
-  D3DRS_SRGBWRITEENABLE, D3DSBT_ALL,
-};
+use windows::Win32::Graphics::Direct3D9::*;
 use windows::Win32::Graphics::Gdi::RGNDATA;
 
 pub type ResetFn = extern "stdcall" fn(IDirect3DDevice9, &D3DPRESENT_PARAMETERS) -> HRESULT;
@@ -35,10 +32,14 @@ pub extern "stdcall" fn present(
     let mut params = D3DDEVICE_CREATION_PARAMETERS::default();
     let _ = device.GetCreationParameters(&mut params);
 
-    let imgui_ctx = ImGuiContext::get_mut_or_init(Some(device.clone()), Some(params.hFocusWindow));
+    let imgui_ctx = ImGuiContext::get_mut_or_init(device.clone(), params.hFocusWindow);
     imgui_ctx.prepare_frame();
 
-    app.menu.render(imgui_ctx.new_frame(), &mut app.config);
+    let ui = imgui_ctx.new_frame();
+
+    if app.menu.is_open() {
+      app.menu.render(ui, &mut app.config);
+    }
 
     if let Ok(state_block) = device.CreateStateBlock(D3DSBT_ALL) {
       let _ = state_block.Capture();
