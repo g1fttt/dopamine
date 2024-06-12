@@ -6,7 +6,7 @@ use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::UI::WindowsAndMessaging::CallWindowProcW;
 
 use imgui::Key;
-use imgui_win32_support::imgui_win32_window_proc;
+use imgui_win32_support::{imgui_win32_window_proc, ProcResponse};
 
 pub unsafe extern "stdcall" fn wnd_proc(
   window: HWND,
@@ -14,7 +14,11 @@ pub unsafe extern "stdcall" fn wnd_proc(
   wparam: WPARAM,
   lparam: LPARAM,
 ) -> LRESULT {
-  let _ = imgui_win32_window_proc(window, msg, wparam, lparam);
+  if let Ok(resp) = imgui_win32_window_proc(window, msg, wparam, lparam)
+    && resp == ProcResponse::ActionTaken
+  {
+    return LRESULT(1);
+  }
 
   App::with_mut(move |app| {
     if let Some(imgui_ctx) = ImGuiContext::get_mut()

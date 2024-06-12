@@ -13,6 +13,7 @@ use std::time::Instant;
 
 pub type WindowProc = unsafe extern "system" fn(HWND, u32, WPARAM, LPARAM) -> LRESULT;
 
+#[derive(PartialEq)]
 pub enum ProcResponse {
   NoAction,
   ActionTaken,
