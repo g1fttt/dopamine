@@ -35,6 +35,7 @@ pub extern "stdcall" fn present(
     let imgui_ctx = ImGuiContext::get_mut_or_init(device.clone(), params.hFocusWindow);
     imgui_ctx.prepare_frame();
 
+    // ImGui::NewFrame with Drop at the end of the block
     let ui = imgui_ctx.new_frame();
 
     if app.menu.is_open() {

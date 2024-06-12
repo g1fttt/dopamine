@@ -5,18 +5,20 @@ use imgui::{Context, Io, Ui};
 use imgui_dx9_renderer::Renderer;
 use imgui_win32_support::Win32;
 
+use std::mem;
 use std::sync::OnceLock;
 
 static mut IMGUI_CONTEXT: OnceLock<ImGuiContext> = OnceLock::new();
 
 // TODO: Deinitialization upon unloading
-pub struct ImGuiContext {
+pub struct ImGuiContext<'a> {
   ctx: Context,
   renderer: Renderer,
   win32: Win32,
+  ui: Option<&'a Ui>,
 }
 
-impl ImGuiContext {
+impl ImGuiContext<'_> {
   pub fn get_mut_or_init(device: IDirect3DDevice9, hwnd: HWND) -> &'static mut Self {
     unsafe { IMGUI_CONTEXT.get_mut_or_init(|| ImGuiContext::new(device, hwnd)) }
   }
@@ -36,19 +38,21 @@ impl ImGuiContext {
       ctx,
       renderer,
       win32,
+      ui: None,
     }
   }
 }
 
-impl ImGuiContext {
+impl ImGuiContext<'_> {
   #[inline(always)]
   pub fn prepare_frame(&mut self) {
     let _ = unsafe { self.win32.prepare_frame(&mut self.ctx) };
   }
 
-  #[inline(always)]
   pub fn new_frame(&mut self) -> &mut Ui {
-    self.ctx.new_frame()
+    let ui = self.ctx.new_frame();
+    self.ui.replace(unsafe { mem::transmute_copy(&ui) });
+    ui
   }
 
   #[inline(always)]
@@ -56,10 +60,18 @@ impl ImGuiContext {
     let _ = self.renderer.render(self.ctx.render());
   }
 
+  #[inline(always)]
   pub fn io_mut(&mut self) -> &mut Io {
     self.ctx.io_mut()
   }
+
+  #[inline(always)]
+  pub fn ui(&mut self) -> Option<&mut Ui> {
+    self
+      .ui
+      .map(|imm_ref| unsafe { mem::transmute_copy(&imm_ref) })
+  }
 }
 
-unsafe impl Send for ImGuiContext {}
-unsafe impl Sync for ImGuiContext {}
+unsafe impl Send for ImGuiContext<'_> {}
+unsafe impl Sync for ImGuiContext<'_> {}
