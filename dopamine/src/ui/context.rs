@@ -5,11 +5,10 @@ use imgui::{Context, Io, Ui};
 use imgui_dx9_renderer::Renderer;
 use imgui_win32_support::Win32;
 
-use std::cell::UnsafeCell;
+use std::cell::{OnceCell, UnsafeCell};
 use std::mem;
-use std::sync::OnceLock;
 
-static mut IMGUI_CONTEXT: OnceLock<ImGuiContext> = OnceLock::new();
+static mut IMGUI_CONTEXT: OnceCell<ImGuiContext> = OnceCell::new();
 
 // TODO: Deinitialization upon unloading
 pub struct ImGuiContext<'a> {
@@ -71,6 +70,3 @@ impl ImGuiContext<'_> {
     self.ui.as_mut().map(|ui_cell| ui_cell.get_mut())
   }
 }
-
-unsafe impl Send for ImGuiContext<'_> {}
-unsafe impl Sync for ImGuiContext<'_> {}
