@@ -5,6 +5,7 @@ use imgui::{Context, Io, Ui};
 use imgui_dx9_renderer::Renderer;
 use imgui_win32_support::Win32;
 
+use std::cell::UnsafeCell;
 use std::mem;
 use std::sync::OnceLock;
 
@@ -15,7 +16,7 @@ pub struct ImGuiContext<'a> {
   ctx: Context,
   renderer: Renderer,
   win32: Win32,
-  ui: Option<&'a Ui>,
+  ui: Option<&'a mut UnsafeCell<Ui>>,
 }
 
 impl ImGuiContext<'_> {
@@ -67,9 +68,7 @@ impl ImGuiContext<'_> {
 
   #[inline(always)]
   pub fn ui(&mut self) -> Option<&mut Ui> {
-    self
-      .ui
-      .map(|imm_ref| unsafe { mem::transmute_copy(&imm_ref) })
+    self.ui.as_mut().map(|ui_cell| ui_cell.get_mut())
   }
 }
 

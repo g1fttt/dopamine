@@ -26,6 +26,7 @@ pub unsafe extern "stdcall" fn wnd_proc(
 
       if ui.is_key_down(Key::Insert) {
         app.menu.handle_toggle(Interfaces::get().input_system);
+        app.menu.update_mouse_cursor(imgui_ctx.io_mut());
       }
     }
     CallWindowProcW(app.hooks.wnd_proc, window, msg, wparam, lparam)
