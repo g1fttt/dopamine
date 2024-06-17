@@ -5,7 +5,6 @@
   new_uninit,
   maybe_uninit_uninit_array,
   maybe_uninit_array_assume_init,
-  lazy_cell,
   core_intrinsics
 )]
 

@@ -1,4 +1,4 @@
-use crate::game::Entity;
+use crate::game::{Entity, RenderableEntity};
 
 #[derive(Clone)]
 pub struct RenderableObject<'a> {
@@ -15,20 +15,19 @@ impl<'a> RenderableObject<'a> {
   }
 
   pub fn should_draw_model(&self) -> bool {
-    self.entity.should_draw() && !self.entity.is_dormant()
+    self.entity.renderable().should_draw() && !self.entity.networkable().is_dormant()
   }
 
   pub fn draw_model(&self) {
-    self.entity.draw_model();
+    self.entity.renderable().draw_model();
   }
 
   pub fn draw_attachments(&self) {
     self
       .entity
       .attachments()
-      .filter(|&att| att.should_draw())
-      .for_each(|att| {
-        att.draw_model();
-      });
+      .map(Entity::renderable)
+      .filter(|att_rend| att_rend.should_draw())
+      .for_each(RenderableEntity::draw_model);
   }
 }

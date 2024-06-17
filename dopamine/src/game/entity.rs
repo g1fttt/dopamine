@@ -13,38 +13,35 @@ impl UserCommand {
   pub const IN_JUMP: i32 = 1 << 1;
 }
 
-#[repr(transparent)]
-pub struct Entity(private::Entity);
+#[repr(C)]
+pub struct Entity;
 
 impl Entity {
   const ON_GROUND: i32 = 1 << 0;
 
+  #[inline]
   pub fn is_on_ground(&self) -> bool {
     (self.flags() & Self::ON_GROUND) != 0
   }
 
+  #[inline]
   pub fn is_local_player(&self) -> bool {
     (Patterns::get().is_local_player)(self)
   }
 
+  #[inline]
   pub fn attachments(&self) -> EntityAttachmentIterator {
     EntityAttachmentIterator::new(self)
-  }
-
-  pub fn is_dormant(&self) -> bool {
-    self.as_ref().networkable().is_dormant()
-  }
-
-  pub fn should_draw(&self) -> bool {
-    self.as_ref().renderable().should_draw()
-  }
-
-  pub fn draw_model(&self) {
-    self.as_ref().renderable().draw_model(1 /* StudioRender */);
   }
 }
 
 impl Entity {
+  #[virtual_method(index = 4)]
+  fn networkable(&self) -> &NetworkableEntity;
+
+  #[virtual_method(index = 5)]
+  fn renderable(&self) -> &RenderableEntity;
+
   #[virtual_method(index = 131)]
   fn is_player(&self) -> bool;
 
@@ -67,8 +64,31 @@ impl Entity {
   }
 }
 
-impl AsRef<private::Entity> for Entity {
-  fn as_ref(&self) -> &private::Entity {
+#[repr(C)]
+pub struct NetworkableEntity;
+
+impl NetworkableEntity {
+  #[virtual_method(index = 8)]
+  fn is_dormant(&self) -> bool;
+}
+
+#[repr(transparent)]
+pub struct RenderableEntity(private::RenderableEntity);
+
+impl RenderableEntity {
+  #[inline]
+  pub fn draw_model(&self) {
+    self.as_ref().draw_model(1 /* StudioRender */);
+  }
+}
+
+impl RenderableEntity {
+  #[virtual_method(index = 3)]
+  fn should_draw(&self) -> bool;
+}
+
+impl AsRef<private::RenderableEntity> for RenderableEntity {
+  fn as_ref(&self) -> &private::RenderableEntity {
     &self.0
   }
 }
@@ -105,31 +125,9 @@ mod private {
   use dopamine_macros::virtual_method;
 
   #[repr(C)]
-  pub struct Entity;
-
-  impl Entity {
-    #[virtual_method(index = 4)]
-    fn networkable(&self) -> &NetworkableEntity;
-
-    #[virtual_method(index = 5)]
-    fn renderable(&self) -> &RenderableEntity;
-  }
-
-  #[repr(C)]
-  pub struct NetworkableEntity;
-
-  impl NetworkableEntity {
-    #[virtual_method(index = 8)]
-    fn is_dormant(&self) -> bool;
-  }
-
-  #[repr(C)]
   pub struct RenderableEntity;
 
   impl RenderableEntity {
-    #[virtual_method(index = 3)]
-    fn should_draw(&self) -> bool;
-
     #[virtual_method(index = 10)]
     fn draw_model(&self, flags: i32) -> i32;
   }

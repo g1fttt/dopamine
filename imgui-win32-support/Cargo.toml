@@ -1,7 +1,7 @@
 [package]
 name = "imgui-win32-support"
 version = "0.12.0"
-edition = "2021"
+edition.workspace = true
 
 [dependencies]
 windows = { workspace = true }

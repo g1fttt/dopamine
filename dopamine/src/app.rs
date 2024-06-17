@@ -96,12 +96,12 @@ impl App {
     f(Self::get())
   }
 
-  #[inline(always)]
+  #[inline]
   fn get_mut() -> &'static mut Self {
     unsafe { Self::get_mut_or_init(None) }
   }
 
-  #[inline(always)]
+  #[inline]
   fn get() -> &'static Self {
     Self::get_mut()
   }

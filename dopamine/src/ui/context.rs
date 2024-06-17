@@ -44,7 +44,7 @@ impl ImGuiContext<'_> {
 }
 
 impl ImGuiContext<'_> {
-  #[inline(always)]
+  #[inline]
   pub fn prepare_frame(&mut self) {
     let _ = unsafe { self.win32.prepare_frame(&mut self.ctx) };
   }
@@ -55,17 +55,17 @@ impl ImGuiContext<'_> {
     ui
   }
 
-  #[inline(always)]
+  #[inline]
   pub fn render(&mut self) {
     let _ = self.renderer.render(self.ctx.render());
   }
 
-  #[inline(always)]
+  #[inline]
   pub fn io_mut(&mut self) -> &mut Io {
     self.ctx.io_mut()
   }
 
-  #[inline(always)]
+  #[inline]
   pub fn ui(&mut self) -> Option<&mut Ui> {
     self.ui.as_mut().map(|ui_cell| ui_cell.get_mut())
   }
