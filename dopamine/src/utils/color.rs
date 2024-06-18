@@ -65,6 +65,7 @@ impl<T: NumCast + Clone + Copy> Color<T> {
     }
   }
 
+  #[inline]
   pub fn as_mut_array(&mut self) -> &mut [T; 4] {
     unsafe { mem::transmute(self) }
   }

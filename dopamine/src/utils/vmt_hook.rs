@@ -24,10 +24,12 @@ impl VMTHook {
     }
   }
 
+  #[inline]
   pub unsafe fn hook(&self, hook: *const ()) -> windows::core::Result<()> {
     self.replace_target(hook)
   }
 
+  #[inline]
   pub unsafe fn unhook(&self) -> windows::core::Result<()> {
     self.replace_target(self.original.cast())
   }
@@ -42,6 +44,7 @@ impl VMTHook {
     }
   }
 
+  #[inline]
   pub fn original<T>(&self) -> T {
     unsafe { mem::transmute_copy(&self.original) }
   }

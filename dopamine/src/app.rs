@@ -82,6 +82,7 @@ unsafe extern "system" fn free_library(app: *mut c_void) -> u32 {
 }
 
 impl App {
+  #[inline]
   pub fn with_mut<T, F>(mut f: F) -> T
   where
     F: FnMut(&mut Self) -> T,
@@ -89,6 +90,7 @@ impl App {
     f(Self::get_mut())
   }
 
+  #[inline]
   pub fn with<T, F>(mut f: F) -> T
   where
     F: FnMut(&Self) -> T,
