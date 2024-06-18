@@ -189,7 +189,7 @@ impl Glow<'_> {
         .pos((0, 0))
         .dimensions(view.dimensions())
         .texture_x0_y0((0.0, 0.0))
-        .texture_x1_y1((view_width as f32 / 1.0, view_height as f32 / 1.0))
+        .texture_x1_y1((view_width as f32, view_height as f32))
         .texture_dimensions(view.dimensions());
       blur_screen_space_rect.clone().build_and_draw(render_ctx);
 
