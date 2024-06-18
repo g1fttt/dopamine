@@ -11,6 +11,9 @@ impl Engine {
 
   #[virtual_method(index = 21)]
   fn max_clients(&self) -> i32;
+
+  #[virtual_method(index = 26)]
+  fn is_in_game(&self) -> bool;
 }
 
 #[repr(C)]

@@ -13,6 +13,17 @@ impl UserCommand {
   pub const IN_JUMP: i32 = 1 << 1;
 }
 
+#[allow(dead_code)]
+#[repr(C)]
+pub enum WeaponId {
+  Scout = 3,
+  Aug = 8,
+  SG550 = 13,
+  Awp = 17,
+  G3SG1 = 23,
+  SG552 = 26,
+}
+
 #[repr(C)]
 pub struct Entity;
 
@@ -33,6 +44,22 @@ impl Entity {
   pub fn attachments(&self) -> EntityAttachmentIterator {
     EntityAttachmentIterator::new(self)
   }
+
+  pub fn is_sniper_rifle(&self) -> bool {
+    use WeaponId::*;
+
+    matches!(self.weapon_id(), Scout | Awp | G3SG1 | SG550)
+  }
+
+  pub fn is_rifle_with_scope(&self) -> bool {
+    use WeaponId::*;
+
+    self.is_sniper_rifle() || matches!(self.weapon_id(), Aug | SG552)
+  }
+
+  pub fn is_in_scope(&self) -> bool {
+    self.is_rifle_with_scope() && self.weapon_mode() == 1 // enum with #[repr(C)] leading to crash
+  }
 }
 
 impl Entity {
@@ -45,11 +72,20 @@ impl Entity {
   #[virtual_method(index = 131)]
   fn is_player(&self) -> bool;
 
+  #[virtual_method(index = 222)]
+  fn active_weapon(&self) -> Option<&Entity>;
+
+  #[virtual_method(index = 365)]
+  fn weapon_id(&self) -> WeaponId;
+
   #[netvar(path = "CBaseEntity->m_iTeamNum")]
   fn team(&self) -> i32;
 
   #[netvar(path = "CBasePlayer->m_fFlags")]
   fn flags(&self) -> i32;
+
+  #[netvar(path = "CWeaponCSBase->m_weaponMode")]
+  fn weapon_mode(&self) -> i32;
 }
 
 impl Entity {

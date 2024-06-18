@@ -1,7 +1,10 @@
+use crate::features::visuals;
+use crate::interfaces::Interfaces;
 use crate::ui::ImGuiContext;
 use crate::App;
 
 use windows::core::HRESULT;
+
 use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::Graphics::Direct3D9::*;
 use windows::Win32::Graphics::Gdi::RGNDATA;
@@ -37,6 +40,19 @@ pub extern "stdcall" fn present(
 
     // ImGui::NewFrame with Drop at the end of the block
     let ui = imgui_ctx.new_frame();
+
+    let interfaces = Interfaces::get();
+    let should_draw_visuals =
+      interfaces.engine.is_in_game() && !interfaces.surface.is_cursor_visible();
+
+    if should_draw_visuals {
+      visuals::draw_sniper_rifle_crosshair(
+        &app.config.visuals.sniper_rifle_crosshair,
+        app.local_player,
+        ui.io(),
+        ui.get_background_draw_list(),
+      )
+    }
 
     if app.menu.is_open() {
       app.menu.render(ui, &mut app.config);

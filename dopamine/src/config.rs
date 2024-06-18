@@ -11,6 +11,7 @@ use std::{fs, io};
 #[derive(Default, Serialize, Deserialize)]
 pub struct Config {
   pub misc: MiscGroupConfig,
+  pub visuals: VisualsGroupConfig,
   pub glow: GlowGroupConfig,
   pub chams: ChamsGroupConfig,
 }
@@ -65,6 +66,30 @@ impl Default for BunnyhopConfig {
 #[derive(Default, Serialize, Deserialize)]
 pub struct MiscGroupConfig {
   pub bunnyhop: BunnyhopConfig,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct SniperRifleCrosshair {
+  pub enabled: bool,
+  pub size: f32,
+  pub thickness: f32,
+  pub color: Color,
+}
+
+impl Default for SniperRifleCrosshair {
+  fn default() -> Self {
+    Self {
+      enabled: bool::default(),
+      size: 10.0,
+      thickness: 1.0,
+      color: Color::white(),
+    }
+  }
+}
+
+#[derive(Default, Serialize, Deserialize)]
+pub struct VisualsGroupConfig {
+  pub sniper_rifle_crosshair: SniperRifleCrosshair,
 }
 
 #[derive(Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]

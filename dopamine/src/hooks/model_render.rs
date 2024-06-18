@@ -14,8 +14,6 @@ pub extern "thiscall" fn draw_model_execute(
   custom_bone_to_world: *mut c_void,
 ) {
   App::with_mut(move |app| {
-    let original: DrawModelExecuteFn = app.hooks.draw_model_execute.original();
-
     if let Some(current_entity) = Interfaces::get()
       .entity_list
       .get_entity_by_index(info.entity_index)
@@ -23,6 +21,8 @@ pub extern "thiscall" fn draw_model_execute(
     {
       return;
     }
+
+    let original: DrawModelExecuteFn = app.hooks.draw_model_execute.original();
     original(this, state, info, custom_bone_to_world);
   });
 }

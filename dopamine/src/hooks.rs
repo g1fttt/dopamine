@@ -32,6 +32,7 @@ pub struct Hooks {
 
   pub(self) draw_model_execute: VMTHook,
 
+  pub(self) is_cursor_visible: VMTHook,
   pub(self) lock_cursor: VMTHook,
 
   reset_raw: *mut c_void,
@@ -60,6 +61,7 @@ impl Hooks {
 
       draw_model_execute: VMTHook::new(interfaces.model_render, 19),
 
+      is_cursor_visible: VMTHook::new(interfaces.surface, 53),
       lock_cursor: VMTHook::new(interfaces.surface, 62),
 
       reset_raw: patterns.d3d9_reset,
@@ -93,6 +95,9 @@ impl Hooks {
       .draw_model_execute
       .hook(model_render::draw_model_execute as _)?;
 
+    self
+      .is_cursor_visible
+      .hook(surface::is_cursor_visible as _)?;
     self.lock_cursor.hook(surface::lock_cursor as _)?;
 
     **self.reset_raw.cast::<*mut ResetFn>() = d3d9::reset;
@@ -113,6 +118,7 @@ impl Hooks {
 
     self.draw_model_execute.unhook()?;
 
+    self.is_cursor_visible.unhook()?;
     self.lock_cursor.unhook()?;
 
     SetWindowLongPtrW(self.window, GWLP_WNDPROC, mem::transmute(self.wnd_proc));

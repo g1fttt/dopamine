@@ -7,6 +7,14 @@ use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
 
 use std::mem;
 
+#[derive(Default)]
+struct ShouldDrawWindow {
+  misc: bool,
+  visuals: bool,
+  glow: bool,
+  chams: bool,
+}
+
 pub struct Menu {
   open: bool,
   should_draw_window: ShouldDrawWindow,
@@ -20,6 +28,7 @@ impl Menu {
     }
   }
 
+  #[inline]
   pub fn is_open(&self) -> bool {
     self.open
   }
@@ -27,6 +36,7 @@ impl Menu {
   pub fn render(&mut self, ui: &mut Ui, config: &mut Config) {
     self.render_menu_bar(ui);
     self.render_misc_window(ui, &mut config.misc);
+    self.render_visuals_window(ui, &mut config.visuals);
     self.render_glow_window(ui, &mut config.glow);
     self.render_chams_window(ui, &mut config.chams);
   }
@@ -49,6 +59,8 @@ impl Menu {
     if let Some(bar) = ui.begin_main_menu_bar() {
       if ui.menu_item("Misc") {
         self.should_draw_window.misc = true;
+      } else if ui.menu_item("Visuals") {
+        self.should_draw_window.visuals = true;
       } else if ui.menu_item("Glow") {
         self.should_draw_window.glow = true;
       } else if ui.menu_item("Chams") {
@@ -70,6 +82,36 @@ impl Menu {
         ui.checkbox("Bunnyhop", &mut config.bunnyhop.enabled);
         ui.same_line();
         ui.slider("Chance", 10, 100, &mut config.bunnyhop.chance);
+      });
+  }
+
+  fn render_visuals_window(&mut self, ui: &mut Ui, config: &mut VisualsGroupConfig) {
+    if !self.should_draw_window.visuals {
+      return;
+    }
+
+    ui.window("Visuals")
+      .opened(&mut self.should_draw_window.visuals)
+      .flags(Self::window_flags())
+      .build(|| {
+        ui.checkbox(
+          "Sniper rifle crosshair",
+          &mut config.sniper_rifle_crosshair.enabled,
+        );
+        ui.same_line();
+        ui.color_edit4_config(
+          "##Color",
+          config.sniper_rifle_crosshair.color.as_mut_array(),
+        )
+        .flags(Self::color_edit_flags())
+        .build();
+        ui.slider("Size", 1.0, 30.0, &mut config.sniper_rifle_crosshair.size);
+        ui.slider(
+          "Thickness",
+          1.0,
+          5.0,
+          &mut config.sniper_rifle_crosshair.thickness,
+        );
       });
   }
 
@@ -160,11 +202,4 @@ impl Menu {
   fn color_edit_flags() -> ColorEditFlags {
     ColorEditFlags::ALPHA_BAR | ColorEditFlags::NO_INPUTS
   }
-}
-
-#[derive(Default)]
-struct ShouldDrawWindow {
-  misc: bool,
-  glow: bool,
-  chams: bool,
 }
