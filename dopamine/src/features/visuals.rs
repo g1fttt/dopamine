@@ -1,10 +1,10 @@
-use crate::config::SniperRifleCrosshair;
+use crate::config::NoScopeCrosshairConfig;
 use crate::game::Entity;
 
 use imgui::{DrawListMut, ImColor32, Io};
 
-pub fn draw_sniper_rifle_crosshair(
-  config: &SniperRifleCrosshair,
+pub fn draw_sniper_crosshair(
+  config: &NoScopeCrosshairConfig,
   local_player: Option<&Entity>,
   io: &Io,
   draw_list: DrawListMut,

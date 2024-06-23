@@ -1,5 +1,6 @@
 use crate::utils::Color;
 
+use educe::Educe;
 use enum_map::{Enum, EnumArray, EnumMap};
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
@@ -48,19 +49,12 @@ impl Config {
   }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Educe, Serialize, Deserialize)]
+#[educe(Default)]
 pub struct BunnyhopConfig {
   pub enabled: bool,
+  #[educe(Default = 100)]
   pub chance: u8,
-}
-
-impl Default for BunnyhopConfig {
-  fn default() -> Self {
-    Self {
-      enabled: bool::default(),
-      chance: 100,
-    }
-  }
 }
 
 #[derive(Default, Serialize, Deserialize)]
@@ -68,28 +62,21 @@ pub struct MiscGroupConfig {
   pub bunnyhop: BunnyhopConfig,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct SniperRifleCrosshair {
+#[derive(Educe, Serialize, Deserialize)]
+#[educe(Default)]
+pub struct NoScopeCrosshairConfig {
   pub enabled: bool,
+  #[educe(Default = 5.0)]
   pub size: f32,
+  #[educe(Default = 1.0)]
   pub thickness: f32,
+  #[educe(Default = Color::white())]
   pub color: Color,
-}
-
-impl Default for SniperRifleCrosshair {
-  fn default() -> Self {
-    Self {
-      enabled: bool::default(),
-      size: 10.0,
-      thickness: 1.0,
-      color: Color::white(),
-    }
-  }
 }
 
 #[derive(Default, Serialize, Deserialize)]
 pub struct VisualsGroupConfig {
-  pub sniper_rifle_crosshair: SniperRifleCrosshair,
+  pub no_scope_crosshair: NoScopeCrosshairConfig,
 }
 
 #[derive(Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]
@@ -98,19 +85,12 @@ pub enum GlowConfigKind {
   Allies,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Educe, Serialize, Deserialize)]
+#[educe(Default)]
 pub struct GlowConfig {
   pub enabled: bool,
+  #[educe(Default = Color::white())]
   pub color: Color,
-}
-
-impl Default for GlowConfig {
-  fn default() -> Self {
-    Self {
-      enabled: bool::default(),
-      color: Color::white(),
-    }
-  }
 }
 
 pub type GlowGroupConfig = EnumMapConfig<GlowConfigKind, GlowConfig>;
@@ -129,23 +109,14 @@ pub enum ChamsKind {
   Flat,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Educe, Serialize, Deserialize)]
+#[educe(Default)]
 pub struct ChamsLayer {
   pub enabled: bool,
   pub ignore_z: bool,
   pub material_kind: ChamsKind,
+  #[educe(Default = Color::white())]
   pub material_color: Color,
-}
-
-impl Default for ChamsLayer {
-  fn default() -> Self {
-    Self {
-      enabled: bool::default(),
-      ignore_z: bool::default(),
-      material_kind: ChamsKind::default(),
-      material_color: Color::white(),
-    }
-  }
 }
 
 #[derive(Default, Serialize, Deserialize)]
@@ -157,7 +128,8 @@ pub struct ChamsConfig {
 
 pub type ChamsGroupConfig = EnumMapConfig<ChamsConfigKind, ChamsConfig>;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Educe, Serialize, Deserialize)]
+#[educe(Default)]
 pub struct EnumMapConfig<K, V>
 where
   K: EnumArray<V> + EnumArray<Option<V>>,
@@ -167,19 +139,6 @@ where
   pub current_config_index: usize,
   #[serde(flatten)]
   inner: EnumMap<K, V>,
-}
-
-impl<K, V> Default for EnumMapConfig<K, V>
-where
-  K: EnumArray<V> + EnumArray<Option<V>>,
-  V: Default,
-{
-  fn default() -> Self {
-    Self {
-      current_config_index: usize::default(),
-      inner: Default::default(),
-    }
-  }
 }
 
 impl<K, V> Deref for EnumMapConfig<K, V>

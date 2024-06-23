@@ -15,6 +15,7 @@ dopamine-macros = { path = "../dopamine-macros" }
 imgui-dx9-renderer = { path = "../imgui-dx9-renderer" }
 imgui-win32-support = { path = "../imgui-win32-support" }
 
+educe = { version = "0.6.0", features = ["Default"], default-features = false }
 strum = { version = "0.26.2", features = ["derive"] }
 enum-map = { version = "2.7.3", features = ["serde"] }
 num-traits = "0.2.19"

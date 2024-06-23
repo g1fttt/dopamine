@@ -46,8 +46,8 @@ pub extern "stdcall" fn present(
       interfaces.engine.is_in_game() && !interfaces.surface.is_cursor_visible();
 
     if should_draw_visuals {
-      visuals::draw_sniper_rifle_crosshair(
-        &app.config.visuals.sniper_rifle_crosshair,
+      visuals::draw_sniper_crosshair(
+        &app.config.visuals.no_scope_crosshair,
         app.local_player,
         ui.io(),
         ui.get_background_draw_list(),

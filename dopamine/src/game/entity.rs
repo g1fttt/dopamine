@@ -58,7 +58,9 @@ impl Entity {
   }
 
   pub fn is_in_scope(&self) -> bool {
-    self.is_rifle_with_scope() && self.weapon_mode() == 1 // enum with #[repr(C)] leading to crash
+    self.is_rifle_with_scope() && self.weapon_mode() == 1 // Secondary
+                                                          //
+                                                          // enum with #[repr(C)] leading to crash
   }
 }
 

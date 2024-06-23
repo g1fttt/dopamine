@@ -1,7 +1,4 @@
-use crate::game::material_system::{
-  ClearBuffersBuilder, Material, OverrideDepthBuilder, RenderContext, ScreenSpaceRectBuilder,
-  StencilCmpFn, StencilOp, Texture,
-};
+use crate::game::material_system::*;
 use crate::game::render_view::ViewSetup;
 use crate::game::{Entity, KeyValues};
 

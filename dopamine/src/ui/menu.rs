@@ -94,23 +94,17 @@ impl Menu {
       .opened(&mut self.should_draw_window.visuals)
       .flags(Self::window_flags())
       .build(|| {
-        ui.checkbox(
-          "Sniper rifle crosshair",
-          &mut config.sniper_rifle_crosshair.enabled,
-        );
+        ui.checkbox("No-scope crosshair", &mut config.no_scope_crosshair.enabled);
         ui.same_line();
-        ui.color_edit4_config(
-          "##Color",
-          config.sniper_rifle_crosshair.color.as_mut_array(),
-        )
-        .flags(Self::color_edit_flags())
-        .build();
-        ui.slider("Size", 1.0, 30.0, &mut config.sniper_rifle_crosshair.size);
+        ui.color_edit4_config("##Color", config.no_scope_crosshair.color.as_mut_array())
+          .flags(Self::color_edit_flags())
+          .build();
+        ui.slider("Size", 1.0, 20.0, &mut config.no_scope_crosshair.size);
         ui.slider(
           "Thickness",
           1.0,
-          5.0,
-          &mut config.sniper_rifle_crosshair.thickness,
+          3.0,
+          &mut config.no_scope_crosshair.thickness,
         );
       });
   }
