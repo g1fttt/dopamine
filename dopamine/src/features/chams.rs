@@ -2,7 +2,7 @@ use crate::game::material_system::{Material, MaterialFlag, StencilOp};
 use crate::game::{Entity, KeyValues};
 
 use super::shared::{RenderableObject, StencilState};
-use crate::config::{ChamsConfigKind, ChamsGroupConfig, ChamsKind, ChamsLayer};
+use crate::config::{ChamsConfigKind, ChamsGroupConfig, ChamsKind, ChamsLayerConfig};
 use crate::interfaces::Interfaces;
 use crate::utils::Color;
 
@@ -77,7 +77,7 @@ impl<'a> Chams<'a> {
   fn draw_chams(
     &self,
     object: &mut RenderableObject,
-    layers: &[ChamsLayer],
+    layers: &[ChamsLayerConfig],
     interfaces: &Interfaces,
   ) {
     for layer in layers {
@@ -98,13 +98,14 @@ impl<'a> Chams<'a> {
   fn apply_material_and_draw(
     &self,
     object: &mut RenderableObject,
-    layer: &ChamsLayer,
+    config: &ChamsLayerConfig,
     interfaces: &Interfaces,
   ) {
-    let material = self.materials[layer.material_kind];
-    material.set_flag(MaterialFlag::IgnoreZ, layer.ignore_z);
+    let material = self.materials[config.material_kind];
+    material.set_flag(MaterialFlag::IgnoreZ, config.ignore_z);
+    material.set_flag(MaterialFlag::Wireframe, config.wireframe);
 
-    let color = &layer.material_color;
+    let color = &config.material_color;
     interfaces.render_view.set_color(color);
     interfaces.render_view.set_blend(color.a);
 

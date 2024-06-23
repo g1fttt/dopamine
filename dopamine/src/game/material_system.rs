@@ -13,6 +13,7 @@ pub type Vec2<T> = (T, T);
 #[repr(C)]
 pub enum MaterialFlag {
   IgnoreZ = 1 << 15,
+  Wireframe = 1 << 28,
 }
 
 #[repr(C)]
@@ -26,14 +27,14 @@ impl Material {
 pub struct Texture;
 
 impl Texture {
-  pub fn dimensions(&self) -> (i32, i32) {
+  pub fn dimensions(&self) -> Vec2<i32> {
     (self.actual_width(), self.actual_height())
   }
 }
 
 impl Texture {
-  virtual_method!(pub fn actual_width(&self) -> i32 [3]);
-  virtual_method!(pub fn actual_height(&self) -> i32 [4]);
+  virtual_method!(fn actual_width(&self) -> i32 [3]);
+  virtual_method!(fn actual_height(&self) -> i32 [4]);
   virtual_method!(pub fn inc_ref_counter(&self) [10]);
 }
 

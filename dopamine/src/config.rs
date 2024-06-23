@@ -111,9 +111,10 @@ pub enum ChamsKind {
 
 #[derive(Educe, Serialize, Deserialize)]
 #[educe(Default)]
-pub struct ChamsLayer {
+pub struct ChamsLayerConfig {
   pub enabled: bool,
   pub ignore_z: bool,
+  pub wireframe: bool,
   pub material_kind: ChamsKind,
   #[educe(Default = Color::white())]
   pub material_color: Color,
@@ -123,7 +124,7 @@ pub struct ChamsLayer {
 pub struct ChamsConfig {
   #[serde(skip)]
   pub current_layer_index: usize,
-  pub layers: [ChamsLayer; 2],
+  pub layers: [ChamsLayerConfig; 4],
 }
 
 pub type ChamsGroupConfig = EnumMapConfig<ChamsConfigKind, ChamsConfig>;
