@@ -1,4 +1,4 @@
-use crate::game::{Entity, RenderableEntity};
+use crate::game::Entity;
 
 #[derive(Clone)]
 pub struct RenderableObject<'a> {
@@ -28,6 +28,8 @@ impl<'a> RenderableObject<'a> {
       .attachments()
       .map(Entity::renderable)
       .filter(|att_rend| att_rend.should_draw())
-      .for_each(RenderableEntity::draw_model);
+      .for_each(|att_rend| {
+        att_rend.draw_model();
+      });
   }
 }

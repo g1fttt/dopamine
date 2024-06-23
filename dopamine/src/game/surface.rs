@@ -4,9 +4,6 @@ use dopamine_macros::virtual_method;
 pub struct Surface;
 
 impl Surface {
-  #[virtual_method(index = 53)]
-  fn is_cursor_visible(&self) -> bool;
-
-  #[virtual_method(index = 61)]
-  fn unlock_cursor(&self);
+  virtual_method!(pub fn is_cursor_visible(&self) -> bool [53]);
+  virtual_method!(pub fn unlock_cursor(&self) [61]);
 }

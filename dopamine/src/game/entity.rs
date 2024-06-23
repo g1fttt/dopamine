@@ -65,20 +65,11 @@ impl Entity {
 }
 
 impl Entity {
-  #[virtual_method(index = 4)]
-  fn networkable(&self) -> &NetworkableEntity;
-
-  #[virtual_method(index = 5)]
-  fn renderable(&self) -> &RenderableEntity;
-
-  #[virtual_method(index = 131)]
-  fn is_player(&self) -> bool;
-
-  #[virtual_method(index = 222)]
-  fn active_weapon(&self) -> Option<&Entity>;
-
-  #[virtual_method(index = 365)]
-  fn weapon_id(&self) -> WeaponId;
+  virtual_method!(pub fn networkable(&self) -> &NetworkableEntity [4]);
+  virtual_method!(pub fn renderable(&self) -> &RenderableEntity [5]);
+  virtual_method!(pub fn is_player(&self) -> bool [131]);
+  virtual_method!(pub fn active_weapon(&self) -> Option<&Entity> [222]);
+  virtual_method!(pub fn weapon_id(&self) -> WeaponId [365]);
 
   #[netvar(path = "CBaseEntity->m_iTeamNum")]
   fn team(&self) -> i32;
@@ -106,29 +97,15 @@ impl Entity {
 pub struct NetworkableEntity;
 
 impl NetworkableEntity {
-  #[virtual_method(index = 8)]
-  fn is_dormant(&self) -> bool;
+  virtual_method!(pub fn is_dormant(&self) -> bool [8]);
 }
 
-#[repr(transparent)]
-pub struct RenderableEntity(private::RenderableEntity);
+#[repr(C)]
+pub struct RenderableEntity;
 
 impl RenderableEntity {
-  #[inline]
-  pub fn draw_model(&self) {
-    self.as_ref().draw_model(1 /* StudioRender */);
-  }
-}
-
-impl RenderableEntity {
-  #[virtual_method(index = 3)]
-  fn should_draw(&self) -> bool;
-}
-
-impl AsRef<private::RenderableEntity> for RenderableEntity {
-  fn as_ref(&self) -> &private::RenderableEntity {
-    &self.0
-  }
+  virtual_method!(pub fn should_draw(&self) -> bool [3]);
+  virtual_method!(pub fn draw_model(&self) -> i32 [10] => (1: i32 /* StudioRender */));
 }
 
 pub struct EntityAttachmentIterator<'a> {
@@ -156,17 +133,5 @@ impl<'a> Iterator for EntityAttachmentIterator<'a> {
       self.entity = self.entity.move_peer()?;
     }
     Some(self.entity)
-  }
-}
-
-mod private {
-  use dopamine_macros::virtual_method;
-
-  #[repr(C)]
-  pub struct RenderableEntity;
-
-  impl RenderableEntity {
-    #[virtual_method(index = 10)]
-    fn draw_model(&self, flags: i32) -> i32;
   }
 }

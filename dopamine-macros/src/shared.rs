@@ -24,7 +24,7 @@ pub fn parse_and_validate<T: FromMeta>(
   if let Some(default) = item.default {
     return Err(
       quote_spanned! {
-          default.span() => compile_error!("This item cannot be declared with default body");
+        default.span() => compile_error!("This item cannot be declared with default body");
       }
       .into(),
     );
@@ -40,7 +40,7 @@ pub fn parse_and_validate<T: FromMeta>(
   {
     return Err(
       quote_spanned! {
-          fn_sign.paren_token.span => compile_error!("This item cannot be static");
+        fn_sign.paren_token.span => compile_error!("This item cannot be static");
       }
       .into(),
     );
