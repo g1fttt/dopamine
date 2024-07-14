@@ -20,7 +20,7 @@ pub enum MaterialFlag {
 pub struct Material;
 
 impl Material {
-  virtual_method!(pub fn set_flag(&self, flag: MaterialFlag, state: bool) [29]);
+  virtual_method!(pub fn set_flag[29](&self, flag: MaterialFlag, state: bool));
 }
 
 #[repr(C)]
@@ -33,9 +33,9 @@ impl Texture {
 }
 
 impl Texture {
-  virtual_method!(fn actual_width(&self) -> i32 [3]);
-  virtual_method!(fn actual_height(&self) -> i32 [4]);
-  virtual_method!(pub fn inc_ref_counter(&self) [10]);
+  virtual_method!(fn actual_width[3](&self) -> i32);
+  virtual_method!(fn actual_height[4](&self) -> i32);
+  virtual_method!(pub fn inc_ref_counter[10](&self));
 }
 
 #[repr(C)]
@@ -59,13 +59,18 @@ impl MaterialSystem {
 }
 
 impl MaterialSystem {
-  virtual_method!(fn create_material_raw<'a>(&self, name: *const c_char, kv: &KeyValues) -> Option<&'a Material> [70]);
-  virtual_method!(fn find_texture_raw(&self, name: *const c_char, group: *const c_char) -> Option<&Texture> [79] => (true: bool, 0: i32));
-  virtual_method!(fn create_named_rt_ex(&self, name: *const c_char, width: i32, height: i32) -> Option<&Texture> [85] => (1: i32, 0: i32, 1: i32, 0x200C: u32, 1: u32));
+  virtual_method!(fn create_material_raw<'a>[70](&self, name: *const c_char, kv: &KeyValues) -> Option<&'a Material>);
+  virtual_method!(fn find_texture_raw[79](&self, name: *const c_char, group: *const c_char) -> Option<&Texture> where (true: bool, 0: i32));
+  virtual_method!(fn create_named_rt_ex[85](
+    &self,
+    name: *const c_char,
+    width: i32,
+    height: i32
+  ) -> Option<&Texture> where (1: i32, 0: i32, 1: i32, 0x200C: u32, 1: u32));
 }
 
 impl MaterialSystem {
-  virtual_method!(pub fn render_ctx(&self) -> &RenderContext [98]);
+  virtual_method!(pub fn render_ctx[98](&self) -> &RenderContext);
 }
 
 #[derive(Default, Clone, Copy)]
@@ -100,24 +105,24 @@ impl RenderContext {
 }
 
 impl RenderContext {
-  virtual_method!(pub fn set_render_target(&self, texture: &Texture) [6]);
-  virtual_method!(pub fn pop_rt_and_viewport(&self) [109]);
-  virtual_method!(pub fn set_stencil_enable(&self, enable: bool) [117]);
-  virtual_method!(pub fn set_stencil_fail_op(&self, op: StencilOp) [118]);
-  virtual_method!(pub fn set_stencil_z_fail_op(&self, op: StencilOp) [119]);
-  virtual_method!(pub fn set_stencil_pass_op(&self, op: StencilOp) [120]);
-  virtual_method!(pub fn set_stencil_cmp_fn(&self, cmp_fn: StencilCmpFn) [121]);
-  virtual_method!(pub fn set_stencil_ref_value(&self, ref_value: i32) [122]);
-  virtual_method!(pub fn set_stencil_test_mask(&self, mask: u32) [123]);
-  virtual_method!(pub fn set_stencil_write_mask(&self, mask: u32) [124]);
+  virtual_method!(pub fn set_render_target[6](&self, texture: &Texture));
+  virtual_method!(pub fn pop_rt_and_viewport[109](&self));
+  virtual_method!(pub fn set_stencil_enable[117](&self, enable: bool));
+  virtual_method!(pub fn set_stencil_fail_op[118](&self, op: StencilOp));
+  virtual_method!(pub fn set_stencil_z_fail_op[119](&self, op: StencilOp));
+  virtual_method!(pub fn set_stencil_pass_op[120](&self, op: StencilOp));
+  virtual_method!(pub fn set_stencil_cmp_fn[121](&self, cmp_fn: StencilCmpFn));
+  virtual_method!(pub fn set_stencil_ref_value[122](&self, ref_value: i32));
+  virtual_method!(pub fn set_stencil_test_mask[123](&self, mask: u32));
+  virtual_method!(pub fn set_stencil_write_mask[124](&self, mask: u32));
 }
 
 impl RenderContext {
-  virtual_method!(fn clear_buffers(&self, clear_color: bool, clear_depth: bool, clear_stencil: bool) [12]);
-  virtual_method!(fn set_viewport(&self, x: i32, y: i32, width: i32, height: i32) [38]);
-  virtual_method!(fn clear_color_3u8_raw(&self, r: u8, g: u8, b: u8) [72]);
-  virtual_method!(fn override_depth_enable(&self, enable: bool, depth_enable: bool) [74]);
-  virtual_method!(fn draw_screen_space_rect(
+  virtual_method!(fn clear_buffers[12](&self, clear_color: bool, clear_depth: bool, clear_stencil: bool));
+  virtual_method!(fn set_viewport[38](&self, x: i32, y: i32, width: i32, height: i32));
+  virtual_method!(fn clear_color_3u8_raw[72](&self, r: u8, g: u8, b: u8));
+  virtual_method!(fn override_depth_enable[74](&self, enable: bool, depth_enable: bool));
+  virtual_method!(fn draw_screen_space_rect[103](
     &self,
     material: &Material,
     x: i32,
@@ -130,8 +135,8 @@ impl RenderContext {
     texture_y1: f32,
     texture_width: i32,
     texture_height: i32
-  ) [103] => (ptr::null_mut(): *mut c_void, 1: i32, 1: i32));
-  virtual_method!(fn push_rt_and_viewport(&self, rt: &Texture) [107]);
+  ) where (ptr::null_mut(): *mut c_void, 1: i32, 1: i32));
+  virtual_method!(fn push_rt_and_viewport[107](&self, rt: &Texture));
 }
 
 #[derive(Builder)]

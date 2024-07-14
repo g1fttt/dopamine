@@ -65,20 +65,15 @@ impl Entity {
 }
 
 impl Entity {
-  virtual_method!(pub fn networkable(&self) -> &NetworkableEntity [4]);
-  virtual_method!(pub fn renderable(&self) -> &RenderableEntity [5]);
-  virtual_method!(pub fn is_player(&self) -> bool [131]);
-  virtual_method!(pub fn active_weapon(&self) -> Option<&Entity> [222]);
-  virtual_method!(pub fn weapon_id(&self) -> WeaponId [365]);
+  virtual_method!(pub fn networkable[4](&self) -> &NetworkableEntity);
+  virtual_method!(pub fn renderable[5](&self) -> &RenderableEntity);
+  virtual_method!(pub fn is_player[131](&self) -> bool);
+  virtual_method!(pub fn active_weapon[222](&self) -> Option<&Entity>);
+  virtual_method!(pub fn weapon_id[365](&self) -> WeaponId);
 
-  #[netvar(path = "CBaseEntity->m_iTeamNum")]
-  fn team(&self) -> i32;
-
-  #[netvar(path = "CBasePlayer->m_fFlags")]
-  fn flags(&self) -> i32;
-
-  #[netvar(path = "CWeaponCSBase->m_weaponMode")]
-  fn weapon_mode(&self) -> i32;
+  netvar!(pub fn team -> i32 for CBaseEntity->m_iTeamNum);
+  netvar!(pub fn flags -> i32 for CBasePlayer->m_fFlags);
+  netvar!(pub fn weapon_mode -> i32 for CWeaponCSBase->m_weaponMode);
 }
 
 impl Entity {
@@ -97,15 +92,15 @@ impl Entity {
 pub struct NetworkableEntity;
 
 impl NetworkableEntity {
-  virtual_method!(pub fn is_dormant(&self) -> bool [8]);
+  virtual_method!(pub fn is_dormant[8](&self) -> bool);
 }
 
 #[repr(C)]
 pub struct RenderableEntity;
 
 impl RenderableEntity {
-  virtual_method!(pub fn should_draw(&self) -> bool [3]);
-  virtual_method!(pub fn draw_model(&self) -> i32 [10] => (1: i32 /* StudioRender */));
+  virtual_method!(pub fn should_draw[3](&self) -> bool);
+  virtual_method!(pub fn draw_model[10](&self) -> i32 where (1: i32 /* StudioRender */));
 }
 
 pub struct EntityAttachmentIterator<'a> {

@@ -6,9 +6,9 @@ use dopamine_macros::virtual_method;
 pub struct Engine;
 
 impl Engine {
-  virtual_method!(pub fn local_player_index(&self) -> i32 [12]);
-  virtual_method!(pub fn max_clients(&self) -> i32 [21]);
-  virtual_method!(pub fn is_in_game(&self) -> bool [26]);
+  virtual_method!(pub fn local_player_index[12](&self) -> i32);
+  virtual_method!(pub fn max_clients[21](&self) -> i32);
+  virtual_method!(pub fn is_in_game[26](&self) -> bool);
 }
 
 #[repr(C)]
@@ -33,5 +33,5 @@ impl ModelRender {
 }
 
 impl ModelRender {
-  virtual_method!(fn forced_material_override(&self, new_material: Option<&Material>) [1] => (10: i32 /* Normal */));
+  virtual_method!(fn forced_material_override[1](&self, new_material: Option<&Material>) where (10: i32 /* Normal */));
 }

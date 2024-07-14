@@ -137,7 +137,6 @@ dependencies = [
 name = "dopamine-macros"
 version = "0.1.0"
 dependencies = [
- "darling",
  "quote",
  "syn",
 ]

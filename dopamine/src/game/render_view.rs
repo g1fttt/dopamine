@@ -26,13 +26,13 @@ impl RenderView {
 }
 
 impl RenderView {
-  virtual_method!(pub fn set_blend(&self, blend: f32) [4]);
-  virtual_method!(pub fn blend(&self) -> f32 [5]);
+  virtual_method!(pub fn set_blend[4](&self, blend: f32));
+  virtual_method!(pub fn blend[5](&self) -> f32);
 }
 
 impl RenderView {
-  virtual_method!(fn set_color_raw(&self, color: *const f32) [6]);
-  virtual_method!(fn color_raw(&self, color: *mut f32) [7]);
+  virtual_method!(fn set_color_raw[6](&self, color: *const f32));
+  virtual_method!(fn color_raw[7](&self, color: *mut f32));
 }
 
 #[repr(C)]

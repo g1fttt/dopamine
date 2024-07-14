@@ -1,38 +1,50 @@
-use darling::FromMeta;
 use proc_macro::TokenStream;
-use quote::{quote, quote_spanned};
+use quote::quote;
 
-use syn::spanned::Spanned;
-use syn::{parse_macro_input, TraitItemFn};
+use syn::parse::{Parse, ParseStream};
+use syn::token::{Fn, For};
+use syn::*;
 
-#[derive(FromMeta)]
-struct AttrArgs {
-  path: String,
+#[allow(dead_code)]
+struct Netvar {
+  vis_token: Option<Visibility>,
+  fn_token: Fn,
+  name: Ident,
+  output: Option<ReturnType>,
+  for_token: For,
+  class: Ident,
+  arrow_token: Token![->],
+  field: Ident,
 }
 
-pub fn macro_impl(attr_args: TokenStream, item: TokenStream) -> TokenStream {
-  let item = parse_macro_input!(item as TraitItemFn);
-  let attr_args = match crate::shared::parse_and_validate::<AttrArgs>(attr_args, item.clone()) {
-    Ok(args) => args,
-    Err(err) => return err,
-  };
+impl Parse for Netvar {
+  fn parse(input: ParseStream) -> Result<Self> {
+    Ok(Self {
+      vis_token: input.parse().ok(),
+      fn_token: input.parse()?,
+      name: input.parse()?,
+      output: input.parse().ok(),
+      for_token: input.parse()?,
+      class: input.parse()?,
+      arrow_token: input.parse()?,
+      field: input.parse()?,
+    })
+  }
+}
 
-  let fn_sign = item.clone().sig;
-  let fn_ident = fn_sign.ident;
-  let fn_output = fn_sign.output;
+pub fn macro_impl(item: TokenStream) -> TokenStream {
+  let item = parse_macro_input!(item as Netvar);
 
-  let Some((class_name, prop_name)) = attr_args.path.split_once("->") else {
-    return quote_spanned! {
-      item.span() => compile_error!("Netvar must be declared using `->`: `Class->prop`"),
-    }
-    .into();
-  };
+  let fn_name = item.name;
+  let fn_output = item.output;
+  let prop_class = item.class;
+  let prop_field = item.field;
 
   quote! {
-    pub fn #fn_ident(&self) #fn_output {
+    pub fn #fn_name(&self) #fn_output {
       let offset = crate::netvar_manager::NetvarManager::get()
         .offsets
-        .get(&(#class_name, #prop_name))
+        .get(&(stringify!(#prop_class), stringify!(#prop_field)))
         .cloned()
         .expect("Failed to find netvar");
       unsafe { *(self as *const Self).byte_add(offset).cast() }

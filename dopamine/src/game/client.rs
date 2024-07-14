@@ -6,7 +6,7 @@ use dopamine_macros::virtual_method;
 pub struct Client;
 
 impl Client {
-  virtual_method!(pub fn all_classes(&self) -> Option<&ClientClass> [8]);
+  virtual_method!(pub fn all_classes[8](&self) -> Option<&ClientClass>);
 }
 
 #[repr(C)]
@@ -16,6 +16,6 @@ pub struct ClientMode;
 pub struct EntityList;
 
 impl EntityList {
-  virtual_method!(pub fn get_entity_by_index(&self, index: i32) -> Option<&Entity> [3]);
-  virtual_method!(pub fn get_entity_from_handle(&self, handle: i32) -> Option<&Entity> [4]);
+  virtual_method!(pub fn get_entity_by_index[3](&self, index: i32) -> Option<&Entity>);
+  virtual_method!(pub fn get_entity_from_handle[4](&self, handle: i32) -> Option<&Entity>);
 }

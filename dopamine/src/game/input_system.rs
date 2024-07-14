@@ -4,6 +4,6 @@ use dopamine_macros::virtual_method;
 pub struct InputSystem;
 
 impl InputSystem {
-  virtual_method!(pub fn enable_input(&self, state: bool) [7]);
-  virtual_method!(pub fn reset_input_state(&self) [25]);
+  virtual_method!(pub fn enable_input[7](&self, state: bool));
+  virtual_method!(pub fn reset_input_state[25](&self));
 }
