@@ -1,5 +1,6 @@
-use windows::core::Result;
+use windows::core::Result as WinApiResult;
 use windows::Foundation::Numerics::Matrix4x4;
+
 use windows::Win32::Foundation::RECT;
 use windows::Win32::Graphics::Direct3D9::*;
 use windows::Win32::Graphics::Dxgi::DXGI_ERROR_INVALID_CALL;
@@ -58,7 +59,7 @@ impl Renderer {
   /// `device` must be a valid [`IDirect3DDevice9`] pointer.
   ///
   /// [`IDirect3DDevice9`]: https://docs.rs/winapi/0.3/x86_64-pc-windows-msvc/winapi/shared/d3d9/struct.IDirect3DDevice9.html
-  pub unsafe fn new(ctx: &mut Context, device: IDirect3DDevice9) -> Result<Self> {
+  pub unsafe fn new(ctx: &mut Context, device: IDirect3DDevice9) -> WinApiResult<Self> {
     let font_tex = Self::create_font_texture(ctx.fonts(), &device)?;
 
     ctx.io_mut().backend_flags |= BackendFlags::RENDERER_HAS_VTX_OFFSET;
@@ -82,7 +83,10 @@ impl Renderer {
   /// `device` must be a valid [`IDirect3DDevice9`] pointer.
   ///
   /// [`IDirect3DDevice9`]: https://docs.rs/winapi/0.3/x86_64-pc-windows-msvc/winapi/shared/d3d9/struct.IDirect3DDevice9.html
-  pub unsafe fn new_raw(im_ctx: &mut imgui::Context, device: IDirect3DDevice9) -> Result<Self> {
+  pub unsafe fn new_raw(
+    im_ctx: &mut imgui::Context,
+    device: IDirect3DDevice9,
+  ) -> WinApiResult<Self> {
     Self::new(im_ctx, device)
   }
 
@@ -107,7 +111,7 @@ impl Renderer {
   /// will return `DXGI_ERROR_INVALID_CALL` and immediately stop rendering.
   ///
   /// [`Ui`]: https://docs.rs/imgui/*/imgui/struct.Ui.html
-  pub fn render(&mut self, draw_data: &DrawData) -> Result<()> {
+  pub fn render(&mut self, draw_data: &DrawData) -> WinApiResult<()> {
     if draw_data.display_size[0] <= 0.0
       || draw_data.display_size[1] <= 0.0
       || draw_data.draw_lists_count() == 0
@@ -135,7 +139,7 @@ impl Renderer {
     }
   }
 
-  unsafe fn render_impl(&mut self, draw_data: &DrawData) -> Result<()> {
+  unsafe fn render_impl(&mut self, draw_data: &DrawData) -> WinApiResult<()> {
     let clip_off = draw_data.display_pos;
     let clip_scale = draw_data.framebuffer_scale;
     let mut vertex_offset = 0;
@@ -193,7 +197,7 @@ impl Renderer {
     Ok(())
   }
 
-  unsafe fn set_render_state(&mut self, draw_data: &DrawData) -> Result<()> {
+  unsafe fn set_render_state(&mut self, draw_data: &DrawData) -> WinApiResult<()> {
     let fb_width = draw_data.display_size[0] * draw_data.framebuffer_scale[0];
     let fb_height = draw_data.display_size[1] * draw_data.framebuffer_scale[1];
 
@@ -275,7 +279,7 @@ impl Renderer {
     ib: &'i mut IDirect3DIndexBuffer9,
     vtx_count: usize,
     idx_count: usize,
-  ) -> Result<(&'v mut [CustomVertex], &'i mut [DrawIdx])> {
+  ) -> WinApiResult<(&'v mut [CustomVertex], &'i mut [DrawIdx])> {
     let mut vtx_dst: *mut CustomVertex = ptr::null_mut();
     let mut idx_dst: *mut DrawIdx = ptr::null_mut();
 
@@ -303,7 +307,7 @@ impl Renderer {
     }
   }
 
-  unsafe fn write_buffers(&mut self, draw_data: &DrawData) -> Result<()> {
+  unsafe fn write_buffers(&mut self, draw_data: &DrawData) -> WinApiResult<()> {
     let (mut vtx_dst, mut idx_dst) = Self::lock_buffers(
       &mut self.vertex_buffer.0,
       &mut self.index_buffer.0,
@@ -342,7 +346,7 @@ impl Renderer {
   unsafe fn create_vertex_buffer(
     device: &IDirect3DDevice9,
     vtx_count: usize,
-  ) -> Result<(IDirect3DVertexBuffer9, usize)> {
+  ) -> WinApiResult<(IDirect3DVertexBuffer9, usize)> {
     let len = vtx_count + VERTEX_BUF_ADD_CAPACITY;
     let mut vertex_buffer: Option<IDirect3DVertexBuffer9> = None;
     device.CreateVertexBuffer(
@@ -359,7 +363,7 @@ impl Renderer {
   unsafe fn create_index_buffer(
     device: &IDirect3DDevice9,
     idx_count: usize,
-  ) -> Result<(IDirect3DIndexBuffer9, usize)> {
+  ) -> WinApiResult<(IDirect3DIndexBuffer9, usize)> {
     let len = idx_count + INDEX_BUF_ADD_CAPACITY;
     let mut index_buffer: Option<IDirect3DIndexBuffer9> = None;
 
@@ -383,7 +387,7 @@ impl Renderer {
   unsafe fn create_font_texture(
     fonts: &mut imgui::FontAtlas,
     device: &IDirect3DDevice9,
-  ) -> Result<IDirect3DTexture9> {
+  ) -> WinApiResult<IDirect3DTexture9> {
     let texture = fonts.build_rgba32_texture();
     let mut texture_handle: Option<IDirect3DTexture9> = None;
 

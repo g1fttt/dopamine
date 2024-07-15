@@ -23,6 +23,7 @@ impl ImGuiContext<'_> {
     unsafe { IMGUI_CONTEXT.get_mut_or_init(|| ImGuiContext::new(device, hwnd)) }
   }
 
+  #[inline]
   pub fn get_mut() -> Option<&'static mut Self> {
     unsafe { IMGUI_CONTEXT.get_mut() }
   }
@@ -40,6 +41,12 @@ impl ImGuiContext<'_> {
       win32,
       ui: None,
     }
+  }
+}
+
+impl ImGuiContext<'_> {
+  pub fn reset(&mut self, device: IDirect3DDevice9) {
+    self.renderer = unsafe { Renderer::new(&mut self.ctx, device).unwrap_unchecked() };
   }
 }
 

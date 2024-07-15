@@ -11,9 +11,15 @@ use windows::Win32::Graphics::Gdi::RGNDATA;
 
 pub type ResetFn = extern "stdcall" fn(IDirect3DDevice9, &D3DPRESENT_PARAMETERS) -> HRESULT;
 
-// NOTE: Maybe unused
 pub extern "stdcall" fn reset(device: IDirect3DDevice9, params: &D3DPRESENT_PARAMETERS) -> HRESULT {
-  App::with(move |app| (app.hooks.reset)(device.clone(), params))
+  App::with(move |app| {
+    let result = (app.hooks.reset)(device.clone(), params);
+
+    if let Some(imgui_ctx) = ImGuiContext::get_mut() {
+      imgui_ctx.reset(device.clone());
+    }
+    result
+  })
 }
 
 pub type PresentFn = extern "stdcall" fn(
