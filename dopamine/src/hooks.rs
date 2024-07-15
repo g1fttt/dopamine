@@ -49,8 +49,10 @@ impl Hooks {
     let reset = **patterns.d3d9_reset.cast::<*const ResetFn>();
     let present = **patterns.d3d9_present.cast::<*const PresentFn>();
 
+    let window = FindWindowA(pcstr!("Valve001"), pcstr!()).expect("Failed to find game window");
+
     Self {
-      window: FindWindowA(pcstr!("Valve001"), pcstr!()),
+      window,
       wnd_proc: None,
 
       create_move: VMTHook::new(interfaces.client_mode, 21),

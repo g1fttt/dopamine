@@ -9,6 +9,7 @@ use windows::Win32::UI::WindowsAndMessaging::*;
 use imgui::sys::*;
 use imgui::{BackendFlags, Context, Key};
 
+use std::ptr;
 use std::time::Instant;
 
 pub type WindowProc = unsafe extern "system" fn(HWND, u32, WPARAM, LPARAM) -> LRESULT;
@@ -167,7 +168,7 @@ pub unsafe fn imgui_win32_window_proc(
         _ => 0,
       };
 
-      if !igIsAnyMouseDown() && GetCapture().0 == 0 {
+      if !igIsAnyMouseDown() && GetCapture().is_invalid() {
         SetCapture(window);
       }
 
@@ -242,7 +243,7 @@ unsafe fn update_cursor() -> bool {
 
   let mouse_cursor = igGetMouseCursor();
   let win32_cursor = if mouse_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor {
-    HCURSOR(0)
+    HCURSOR(ptr::null_mut())
   } else {
     #[allow(non_upper_case_globals)]
     HCURSOR(
@@ -258,7 +259,9 @@ unsafe fn update_cursor() -> bool {
         ImGuiMouseCursor_NotAllowed => IDC_NO,
         _ => IDC_ARROW,
       }
-      .0 as isize,
+      .as_ptr()
+      .cast_mut()
+      .cast(),
     )
   };
 
