@@ -24,7 +24,7 @@ pub unsafe extern "stdcall" fn wnd_proc(
     if let Some(imgui_ctx) = ImGuiContext::get_mut()
       && let Some(ui) = imgui_ctx.ui()
     {
-      if ui.is_key_down(Key::End) {
+      if ui.is_key_down(Key::Home) {
         app.unload().expect("Failed to unload application");
       }
 
