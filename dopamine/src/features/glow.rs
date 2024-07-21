@@ -2,10 +2,9 @@ use crate::game::material_system::*;
 use crate::game::render_view::ViewSetup;
 use crate::game::{Entity, KeyValues};
 
-use super::shared::RenderableObject;
 use super::shared::StencilState;
-
 use crate::config::{GlowConfigKind, GlowGroupConfig};
+use crate::entities;
 use crate::interfaces::Interfaces;
 use crate::utils::Color;
 
@@ -99,7 +98,6 @@ impl<'a> Glow<'a> {
 impl Glow<'_> {
   pub fn draw(
     &self,
-    objects: &mut [RenderableObject],
     interfaces: &Interfaces,
     config: &GlowGroupConfig,
     local_player: Option<&Entity>,
@@ -110,13 +108,12 @@ impl Glow<'_> {
     let should_glow = config.as_array().iter().any(|cfg| cfg.enabled);
 
     if should_glow {
-      self.apply_entity_glow_effects(objects, interfaces, config, local_player, view, render_ctx);
+      self.apply_entity_glow_effects(interfaces, config, local_player, view, render_ctx);
     }
   }
 
   fn draw_glow_models(
     &self,
-    objects: &mut [RenderableObject],
     interfaces: &Interfaces,
     config: &GlowGroupConfig,
     local_player: Option<&Entity>,
@@ -144,12 +141,12 @@ impl Glow<'_> {
     }
     .set(render_ctx);
 
-    for object in objects {
-      if !object.should_draw_model() {
+    for entity in entities::players_iter() {
+      if !entity.renderable().should_draw() || entity.networkable().is_dormant() {
         continue;
       }
 
-      let is_enemy = local_player.is_some_and(|lp| lp.team() != object.entity.team());
+      let is_enemy = local_player.is_some_and(|lp| lp.team() != entity.team());
       let config = if is_enemy {
         &config[GlowConfigKind::Enemies]
       } else {
@@ -163,11 +160,18 @@ impl Glow<'_> {
       interfaces.render_view.set_color(&config.color);
       interfaces.render_view.set_blend(config.color.a);
 
-      object.draw_model();
-      object.draw_attachments();
+      entity.renderable().draw_model();
+
+      for attach in entity.attachments().map(|a| a.renderable()) {
+        if !attach.should_draw() {
+          continue;
+        }
+        attach.draw_model();
+      }
     }
 
     interfaces.model_render.reset_material();
+
     interfaces.render_view.set_color(&orig_color);
     interfaces.render_view.set_blend(orig_alpha);
 
@@ -200,7 +204,6 @@ impl Glow<'_> {
 
   fn apply_entity_glow_effects(
     &self,
-    objects: &mut [RenderableObject],
     interfaces: &Interfaces,
     config: &GlowGroupConfig,
     local_player: Option<&Entity>,
@@ -229,17 +232,18 @@ impl Glow<'_> {
 
     let mut drew_anything = false;
 
-    for object in objects.iter_mut() {
-      if !object.should_draw_model() {
+    for entity in entities::players_iter() {
+      if !entity.renderable().should_draw() || entity.networkable().is_dormant() {
         continue;
       }
 
-      // Draw regular player model over glowing one
-      // if we didn't drew it before (chams)
-      if !object.model_was_drawn {
-        object.draw_model();
-        object.draw_attachments();
-        object.model_was_drawn = true;
+      entity.renderable().draw_model();
+
+      for attach in entity.attachments().map(|a| a.renderable()) {
+        if !attach.should_draw() {
+          continue;
+        }
+        attach.draw_model();
       }
       drew_anything = true;
     }
@@ -258,7 +262,7 @@ impl Glow<'_> {
       return;
     }
 
-    self.draw_glow_models(objects, interfaces, config, local_player, view, render_ctx);
+    self.draw_glow_models(interfaces, config, local_player, view, render_ctx);
     self.blur_glow_effects(view, render_ctx);
 
     StencilState {

@@ -40,29 +40,25 @@ impl<T: NumCast + Clone + Copy> Color<T> {
   }
 
   pub fn rgb(r: T, g: T, b: T) -> Self {
-    Self::rgba(r, g, b, unsafe { T::from(1.0).unwrap_unchecked() })
+    Self::rgba(r, g, b, T::from(1.0).unwrap())
   }
 
   pub fn white() -> Self {
-    unsafe {
-      Self::rgba(
-        T::from(1.0).unwrap_unchecked(),
-        T::from(1.0).unwrap_unchecked(),
-        T::from(1.0).unwrap_unchecked(),
-        T::from(1.0).unwrap_unchecked(),
-      )
-    }
+    Self::rgba(
+      T::from(1.0).unwrap(),
+      T::from(1.0).unwrap(),
+      T::from(1.0).unwrap(),
+      T::from(1.0).unwrap(),
+    )
   }
 
   pub fn black() -> Self {
-    unsafe {
-      Self::rgba(
-        T::from(0.0).unwrap_unchecked(),
-        T::from(0.0).unwrap_unchecked(),
-        T::from(0.0).unwrap_unchecked(),
-        T::from(1.0).unwrap_unchecked(),
-      )
-    }
+    Self::rgba(
+      T::from(0.0).unwrap(),
+      T::from(0.0).unwrap(),
+      T::from(0.0).unwrap(),
+      T::from(1.0).unwrap(),
+    )
   }
 
   #[inline]
@@ -78,7 +74,7 @@ where
 {
   pub fn mul_255_if_supports(self) -> Self {
     match self.mode {
-      ColorMode::OneBased => self * unsafe { T::from(255).unwrap_unchecked() },
+      ColorMode::OneBased => self * T::from(255).unwrap(),
       ColorMode::FullByte | ColorMode::Undefined => self,
     }
   }

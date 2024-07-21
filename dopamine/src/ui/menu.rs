@@ -180,6 +180,8 @@ impl Menu {
         ui.same_line();
         ui.checkbox("Wireframe", &mut current_layer.wireframe);
         ui.same_line();
+        ui.checkbox("Cover", &mut current_layer.cover);
+        ui.same_line();
         ui.color_edit4_config("##Color", current_layer.material_color.as_mut_array())
           .flags(Self::color_edit_flags())
           .build();

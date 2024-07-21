@@ -99,6 +99,7 @@ pub type GlowGroupConfig = EnumMapConfig<GlowConfigKind, GlowConfig>;
 pub enum ChamsConfigKind {
   Enemies,
   Allies,
+  Viewmodel,
 }
 
 #[derive(Default, Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]
@@ -115,6 +116,7 @@ pub struct ChamsLayerConfig {
   pub enabled: bool,
   pub ignore_z: bool,
   pub wireframe: bool,
+  pub cover: bool,
   pub material_kind: ChamsKind,
   #[educe(Default = Color::white())]
   pub material_color: Color,

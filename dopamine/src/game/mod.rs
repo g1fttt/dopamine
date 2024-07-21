@@ -7,6 +7,7 @@ mod key_values;
 pub mod material_system;
 mod recv;
 pub mod render_view;
+pub mod studio_render;
 pub mod surface;
 
 pub use client_class::*;

@@ -32,7 +32,7 @@ impl ImGuiContext<'_> {
     let mut ctx = Context::create();
     ctx.set_ini_filename(None);
 
-    let renderer = unsafe { Renderer::new(&mut ctx, device).unwrap_unchecked() };
+    let renderer = unsafe { Renderer::new(&mut ctx, device).unwrap() };
     let win32 = Win32::new(&mut ctx, hwnd);
 
     Self {
@@ -46,7 +46,7 @@ impl ImGuiContext<'_> {
 
 impl ImGuiContext<'_> {
   pub fn reset(&mut self, device: IDirect3DDevice9) {
-    self.renderer = unsafe { Renderer::new(&mut self.ctx, device).unwrap_unchecked() };
+    self.renderer = unsafe { Renderer::new(&mut self.ctx, device).unwrap() };
   }
 }
 

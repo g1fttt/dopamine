@@ -49,8 +49,8 @@ unsafe fn walk_table(offsets: &mut Offsets, class_name: *const c_char, table: &R
       walk_table(offsets, class_name, t);
     }
 
-    let class_name = CStr::from_ptr(class_name).to_str().unwrap_unchecked();
-    let prop_name = prop_name.to_str().unwrap_unchecked();
+    let class_name = CStr::from_ptr(class_name).to_str().unwrap();
+    let prop_name = prop_name.to_str().unwrap();
 
     offsets.insert((class_name, prop_name), prop.offset as usize);
   }

@@ -14,7 +14,7 @@ impl KeyValues {
   }
 
   // FIXME: It's better to store it somewhere and then free on unload
-  pub fn new_leaked(shader: &str) -> &'static mut Self {
+  pub fn new_leaked(shader: &str) -> &mut Self {
     Box::leak(Self::new_boxed(shader))
   }
 

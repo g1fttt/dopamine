@@ -10,6 +10,7 @@
 
 mod app;
 mod config;
+mod entities;
 mod features;
 mod game;
 mod hooks;

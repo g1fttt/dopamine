@@ -14,15 +14,27 @@ pub extern "thiscall" fn draw_model_execute(
   custom_bone_to_world: *mut c_void,
 ) {
   App::with_mut(move |app| {
-    if let Some(current_entity) = Interfaces::get()
-      .entity_list
-      .get_entity_by_index(info.entity_index)
-      && !app.chams.should_process_dme(current_entity)
-    {
-      return;
+    let original: DrawModelExecuteFn = app.hooks.draw_model_execute.original();
+    let original = move || original(this, state, info, custom_bone_to_world);
+
+    let interfaces = Interfaces::get();
+
+    if interfaces.studio_render.is_material_overrided() {
+      return original();
     }
 
-    let original: DrawModelExecuteFn = app.hooks.draw_model_execute.original();
-    original(this, state, info, custom_bone_to_world);
+    // FIXME: Chams also applies onto world-model weapons
+    app.chams.draw(
+      &original,
+      interfaces,
+      &app.config.chams,
+      info,
+      app.local_player,
+    );
+
+    if !app.chams.applied() {
+      original();
+    }
+    interfaces.model_render.reset_material();
   });
 }
