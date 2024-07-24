@@ -54,6 +54,8 @@ impl Parse for Netvar {
 pub fn macro_impl(item: TokenStream) -> TokenStream {
   let item = parse_macro_input!(item as Netvar);
 
+  let vis_token = item.vis_token;
+
   let fn_name = item.name;
   let fn_output = item.output;
 
@@ -66,7 +68,7 @@ pub fn macro_impl(item: TokenStream) -> TokenStream {
   });
 
   quote! {
-    pub fn #fn_name(&self) #fn_output {
+    #vis_token fn #fn_name(&self) #fn_output {
       let offset = crate::netvar_manager::NetvarManager::get()
         .offsets
         .get(&(stringify!(#prop_class), concat!(stringify!(#prop_field), #prop_field_index)))
