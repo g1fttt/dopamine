@@ -2,7 +2,6 @@ use crate::game::material_system::*;
 use crate::game::render_view::ViewSetup;
 use crate::game::{Entity, KeyValues};
 
-use super::shared::StencilState;
 use crate::config::{GlowConfigKind, GlowGroupConfig};
 use crate::entities;
 use crate::interfaces::Interfaces;
@@ -18,7 +17,7 @@ pub struct Glow<'a> {
   glow_blur_y_material: &'a Material,
 }
 
-impl<'a> Glow<'a> {
+impl Glow<'_> {
   pub fn new() -> Self {
     let material_system = Interfaces::get().material_system;
 
@@ -93,9 +92,7 @@ impl<'a> Glow<'a> {
       glow_blur_y_material,
     }
   }
-}
 
-impl Glow<'_> {
   pub fn draw(
     &self,
     interfaces: &Interfaces,
@@ -291,5 +288,44 @@ impl Glow<'_> {
       .build_and_draw(render_ctx);
 
     StencilState::default().set(render_ctx);
+  }
+}
+
+struct StencilState {
+  enable: bool,
+  fail_op: StencilOp,
+  z_fail_op: StencilOp,
+  pass_op: StencilOp,
+  cmp_fn: StencilCmpFn,
+  ref_value: i32,
+  test_mask: u32,
+  write_mask: u32,
+}
+
+impl StencilState {
+  fn set(&self, render_ctx: &RenderContext) {
+    render_ctx.set_stencil_enable(self.enable);
+    render_ctx.set_stencil_fail_op(self.fail_op);
+    render_ctx.set_stencil_z_fail_op(self.z_fail_op);
+    render_ctx.set_stencil_pass_op(self.pass_op);
+    render_ctx.set_stencil_cmp_fn(self.cmp_fn);
+    render_ctx.set_stencil_ref_value(self.ref_value);
+    render_ctx.set_stencil_test_mask(self.test_mask);
+    render_ctx.set_stencil_write_mask(self.write_mask);
+  }
+}
+
+impl Default for StencilState {
+  fn default() -> Self {
+    Self {
+      enable: bool::default(),
+      fail_op: StencilOp::default(),
+      z_fail_op: StencilOp::default(),
+      pass_op: StencilOp::default(),
+      cmp_fn: StencilCmpFn::default(),
+      ref_value: i32::default(),
+      test_mask: 0xFFFFFFFF,
+      write_mask: 0xFFFFFFFF,
+    }
   }
 }

@@ -103,7 +103,6 @@ pub enum ChamsConfigKind {
 }
 
 #[derive(Default, Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]
-#[repr(usize)]
 pub enum ChamsKind {
   #[default]
   Regular,

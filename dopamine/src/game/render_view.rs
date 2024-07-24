@@ -1,4 +1,3 @@
-use super::material_system::Vec2;
 use crate::utils::Color;
 
 use dopamine_macros::virtual_method;
@@ -45,7 +44,7 @@ pub struct ViewSetup {
 
 impl ViewSetup {
   #[inline]
-  pub fn dimensions(&self) -> Vec2<i32> {
+  pub fn dimensions(&self) -> (i32, i32) {
     (self.width, self.height)
   }
 }

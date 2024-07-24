@@ -33,9 +33,7 @@ impl Chams<'_> {
       applied: false,
     }
   }
-}
 
-impl<'a> Chams<'a> {
   #[inline]
   pub fn applied(&self) -> bool {
     self.applied

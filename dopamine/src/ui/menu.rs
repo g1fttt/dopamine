@@ -176,15 +176,14 @@ impl Menu {
         let current_layer = &mut cfg.layers[cfg.current_layer_index];
         ui.checkbox("Enabled", &mut current_layer.enabled);
         ui.same_line();
-        ui.checkbox("Ignore Z", &mut current_layer.ignore_z);
-        ui.same_line();
-        ui.checkbox("Wireframe", &mut current_layer.wireframe);
-        ui.same_line();
         ui.checkbox("Cover", &mut current_layer.cover);
         ui.same_line();
         ui.color_edit4_config("##Color", current_layer.material_color.as_mut_array())
           .flags(Self::color_edit_flags())
           .build();
+        ui.checkbox("Ignore Z", &mut current_layer.ignore_z);
+        ui.same_line();
+        ui.checkbox("Wireframe", &mut current_layer.wireframe);
         ui.combo_simple_string(
           "Material",
           unsafe { mem::transmute(&mut current_layer.material_kind) },
@@ -193,10 +192,12 @@ impl Menu {
       });
   }
 
+  #[inline]
   fn window_flags() -> WindowFlags {
     WindowFlags::NO_RESIZE | WindowFlags::NO_SCROLLBAR | WindowFlags::ALWAYS_AUTO_RESIZE
   }
 
+  #[inline]
   fn color_edit_flags() -> ColorEditFlags {
     ColorEditFlags::ALPHA_BAR | ColorEditFlags::NO_INPUTS
   }

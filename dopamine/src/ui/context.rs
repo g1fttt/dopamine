@@ -45,12 +45,6 @@ impl ImGuiContext<'_> {
 }
 
 impl ImGuiContext<'_> {
-  pub fn reset(&mut self, device: IDirect3DDevice9) {
-    self.renderer = unsafe { Renderer::new(&mut self.ctx, device).unwrap() };
-  }
-}
-
-impl ImGuiContext<'_> {
   #[inline]
   pub fn prepare_frame(&mut self) {
     let _ = unsafe { self.win32.prepare_frame(&mut self.ctx) };
@@ -60,6 +54,10 @@ impl ImGuiContext<'_> {
     let ui = self.ctx.new_frame();
     self.ui.replace(unsafe { mem::transmute_copy(&ui) });
     ui
+  }
+
+  pub fn reset(&mut self, device: IDirect3DDevice9) {
+    self.renderer = unsafe { Renderer::new(&mut self.ctx, device).unwrap() };
   }
 
   #[inline]

@@ -8,8 +8,6 @@ use dopamine_macros::virtual_method;
 use std::ffi::{c_char, c_void};
 use std::ptr;
 
-pub type Vec2<T> = (T, T);
-
 #[repr(C)]
 pub enum MaterialFlag {
   IgnoreZ = 1 << 15,
@@ -27,7 +25,8 @@ impl Material {
 pub struct Texture;
 
 impl Texture {
-  pub fn dimensions(&self) -> Vec2<i32> {
+  #[inline]
+  pub fn dimensions(&self) -> (i32, i32) {
     (self.actual_width(), self.actual_height())
   }
 }
@@ -53,7 +52,7 @@ impl MaterialSystem {
   }
 
   #[inline]
-  pub fn create_named_rt(&self, name: &str, (width, height): Vec2<i32>) -> Option<&Texture> {
+  pub fn create_named_rt(&self, name: &str, (width, height): (i32, i32)) -> Option<&Texture> {
     self.create_named_rt_ex(cstr!(name), width, height)
   }
 }
@@ -93,7 +92,7 @@ pub enum StencilCmpFn {
 pub struct RenderContext;
 
 impl RenderContext {
-  pub fn push_rt_and_set_viewport(&self, rt: &Texture, (width, height): Vec2<i32>) {
+  pub fn push_rt_and_set_viewport(&self, rt: &Texture, (width, height): (i32, i32)) {
     self.push_rt_and_viewport(rt);
     self.set_viewport(0, 0, width, height);
   }
@@ -143,11 +142,11 @@ impl RenderContext {
 #[builder(pattern = "owned", derive(Clone))]
 pub struct ScreenSpaceRect<'a> {
   material: &'a Material,
-  pos: Vec2<i32>,
-  dimensions: Vec2<i32>,
-  texture_x0_y0: Vec2<f32>,
-  texture_x1_y1: Vec2<f32>,
-  texture_dimensions: Vec2<i32>,
+  pos: (i32, i32),
+  dimensions: (i32, i32),
+  texture_x0_y0: (f32, f32),
+  texture_x1_y1: (f32, f32),
+  texture_dimensions: (i32, i32),
 }
 
 impl ScreenSpaceRectBuilder<'_> {
