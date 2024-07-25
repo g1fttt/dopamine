@@ -10,9 +10,8 @@ pub extern "thiscall" fn level_init_post_entity(this: &Client) {
     original(this);
 
     let interfaces = Interfaces::get();
-    app.local_player = interfaces
-      .entity_list
-      .get_entity_by_index(interfaces.engine.local_player_index());
+    app.local_player =
+      interfaces.entity_list.get_entity_by_index(interfaces.engine.local_player_index());
   });
 }
 

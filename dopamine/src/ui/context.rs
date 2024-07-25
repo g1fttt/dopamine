@@ -35,12 +35,7 @@ impl ImGuiContext<'_> {
     let renderer = unsafe { Renderer::new(&mut ctx, device).unwrap() };
     let win32 = Win32::new(&mut ctx, hwnd);
 
-    Self {
-      ctx,
-      renderer,
-      win32,
-      ui: None,
-    }
+    Self { ctx, renderer, win32, ui: None }
   }
 }
 

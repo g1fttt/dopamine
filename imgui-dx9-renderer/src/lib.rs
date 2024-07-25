@@ -63,10 +63,7 @@ impl Renderer {
     let font_tex = Self::create_font_texture(ctx.fonts(), &device)?;
 
     ctx.io_mut().backend_flags |= BackendFlags::RENDERER_HAS_VTX_OFFSET;
-    ctx.set_renderer_name(String::from(concat!(
-      "imgui_dx9_renderer@",
-      env!("CARGO_PKG_VERSION")
-    )));
+    ctx.set_renderer_name(String::from(concat!("imgui_dx9_renderer@", env!("CARGO_PKG_VERSION"))));
     Ok(Renderer {
       vertex_buffer: Self::create_vertex_buffer(&device, 0)?,
       index_buffer: Self::create_index_buffer(&device, 0)?,
@@ -149,23 +146,12 @@ impl Renderer {
     for draw_list in draw_data.draw_lists() {
       for cmd in draw_list.commands() {
         match cmd {
-          DrawCmd::Elements {
-            count,
-            cmd_params:
-              DrawCmdParams {
-                clip_rect,
-                texture_id,
-                ..
-              },
-          } => {
+          DrawCmd::Elements { count, cmd_params: DrawCmdParams { clip_rect, texture_id, .. } } => {
             if texture_id != last_tex {
               let texture = if texture_id.id() == FONT_TEX_ID {
                 &self.font_tex
               } else {
-                self
-                  .textures
-                  .get(texture_id)
-                  .ok_or(DXGI_ERROR_INVALID_CALL)?
+                self.textures.get(texture_id).ok_or(DXGI_ERROR_INVALID_CALL)?
               };
               self.device.SetTexture(0, texture)?;
               last_tex = texture_id;
@@ -315,9 +301,8 @@ impl Renderer {
       draw_data.total_idx_count as usize,
     )?;
 
-    for (vbuf, ibuf) in draw_data
-      .draw_lists()
-      .map(|draw_list| (draw_list.vtx_buffer(), draw_list.idx_buffer()))
+    for (vbuf, ibuf) in
+      draw_data.draw_lists().map(|draw_list| (draw_list.vtx_buffer(), draw_list.idx_buffer()))
     {
       for (vertex, vtx_dst) in vbuf.iter().zip(vtx_dst.iter_mut()) {
         *vtx_dst = CustomVertex {
@@ -370,11 +355,7 @@ impl Renderer {
     device.CreateIndexBuffer(
       (len * mem::size_of::<DrawIdx>()) as u32,
       (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY) as u32,
-      if mem::size_of::<DrawIdx>() == 2 {
-        D3DFMT_INDEX16
-      } else {
-        D3DFMT_INDEX32
-      },
+      if mem::size_of::<DrawIdx>() == 2 { D3DFMT_INDEX16 } else { D3DFMT_INDEX32 },
       D3DPOOL_DEFAULT,
       &mut index_buffer,
       ptr::null_mut(),
@@ -402,10 +383,7 @@ impl Renderer {
       ptr::null_mut(),
     )?;
 
-    let mut locked_rect: D3DLOCKED_RECT = D3DLOCKED_RECT {
-      Pitch: 0,
-      pBits: ptr::null_mut(),
-    };
+    let mut locked_rect: D3DLOCKED_RECT = D3DLOCKED_RECT { Pitch: 0, pBits: ptr::null_mut() };
     let result_texture = texture_handle.unwrap();
 
     result_texture.LockRect(0, &mut locked_rect, ptr::null_mut(), 0)?;

@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::features::FeatureContext;
 use crate::game::Entity;
 use crate::hooks::Hooks;
 use crate::interfaces::Interfaces;
@@ -44,14 +45,20 @@ impl App {
 
   pub fn on_process_detach() {
     Self::with(|app| {
-      app
-        .config
-        .save_to(Config::PATH)
-        .expect("Failed to write config");
+      app.config.save_to(Config::PATH).expect("Failed to write config");
     });
   }
 
   pub unsafe fn unload(&mut self) -> windows::core::Result<()> {
+    unsafe extern "system" fn free_library(app: *mut c_void) -> u32 {
+      Beep(1500, 200).expect("Failed to make beep sound upon unhooking");
+
+      Interfaces::get().input_system.enable_input(true);
+
+      let app = app.cast::<App>().as_ref_unchecked();
+      FreeLibraryAndExitThread(app.module, 0);
+    }
+
     ShowCursor(true);
 
     self.hooks.unhook_all()?;
@@ -72,13 +79,11 @@ impl App {
   }
 }
 
-unsafe extern "system" fn free_library(app: *mut c_void) -> u32 {
-  Beep(1500, 200).expect("Failed to make beep sound upon unhooking");
-
-  Interfaces::get().input_system.enable_input(true);
-
-  let app = app.cast::<App>().as_ref().unwrap();
-  FreeLibraryAndExitThread(app.module, 0);
+impl App {
+  #[inline]
+  pub fn capture_context<'a, T>(&self, config: &'a T) -> FeatureContext<'a, 'static, T> {
+    FeatureContext::new(self, config)
+  }
 }
 
 impl App {

@@ -75,11 +75,7 @@ impl Win32 {
 
     let last_cursor = ImGuiMouseCursor_None;
 
-    Self {
-      hwnd,
-      time,
-      last_cursor,
-    }
+    Self { hwnd, time, last_cursor }
   }
 
   #[allow(clippy::missing_safety_doc)]

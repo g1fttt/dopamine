@@ -68,8 +68,5 @@ fn find_interface<'a, T>(module_name: &str, interface_name: &str) -> windows::co
 
 unsafe fn client_mode_from_client(client: &Client) -> Option<&ClientMode> {
   let client_vtable = *(client as *const Client as *const *const *const c_void);
-  (**(*client_vtable.add(10))
-    .byte_add(5)
-    .cast::<*const *const ClientMode>())
-  .as_ref()
+  (**(*client_vtable.add(10)).byte_add(5).cast::<*const *const ClientMode>()).as_ref()
 }

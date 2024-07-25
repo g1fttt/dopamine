@@ -40,6 +40,8 @@ pub struct ViewSetup {
   width: i32,
   pad2: [u8; 4],
   height: i32,
+  pad3: [u8; 25],
+  pub fov: f32,
 }
 
 impl ViewSetup {

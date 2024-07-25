@@ -18,10 +18,7 @@ impl VMTHook {
     let vtable = *base.cast::<*mut *mut c_void>();
     let ptr_to_target = vtable.add(idx);
 
-    Self {
-      ptr_to_target,
-      original: *ptr_to_target,
-    }
+    Self { ptr_to_target, original: *ptr_to_target }
   }
 
   #[inline]

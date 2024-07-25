@@ -5,6 +5,7 @@
   new_uninit,
   maybe_uninit_uninit_array,
   maybe_uninit_array_assume_init,
+  ptr_as_ref_unchecked,
   core_intrinsics
 )]
 

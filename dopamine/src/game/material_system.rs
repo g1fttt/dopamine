@@ -180,11 +180,7 @@ pub struct ClearBuffers {
 impl ClearBuffersBuilder {
   pub fn build_and_clear(self, render_ctx: &RenderContext) {
     let buffers = self.build().expect("Failed to build ClearBuffers");
-    render_ctx.clear_buffers(
-      buffers.clear_color,
-      buffers.clear_depth,
-      buffers.clear_stencil,
-    );
+    render_ctx.clear_buffers(buffers.clear_color, buffers.clear_depth, buffers.clear_stencil);
   }
 }
 

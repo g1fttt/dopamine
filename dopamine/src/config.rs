@@ -74,9 +74,18 @@ pub struct NoScopeCrosshairConfig {
   pub color: Color,
 }
 
+#[derive(Educe, Serialize, Deserialize)]
+#[educe(Default)]
+pub struct AddFov {
+  pub enabled: bool,
+  #[educe(Default = 10.0)]
+  pub amount: f32,
+}
+
 #[derive(Default, Serialize, Deserialize)]
 pub struct VisualsGroupConfig {
   pub no_scope_crosshair: NoScopeCrosshairConfig,
+  pub add_fov: AddFov,
 }
 
 #[derive(Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]

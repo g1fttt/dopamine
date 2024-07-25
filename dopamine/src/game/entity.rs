@@ -111,10 +111,7 @@ pub struct EntityAttachmentIterator<'a> {
 
 impl<'a> EntityAttachmentIterator<'a> {
   fn new(entity: &'a Entity) -> Self {
-    Self {
-      entity,
-      first_pass: true,
-    }
+    Self { entity, first_pass: true }
   }
 }
 

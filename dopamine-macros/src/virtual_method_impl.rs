@@ -17,10 +17,7 @@ struct ColonAndType {
 
 impl Parse for ColonAndType {
   fn parse(input: ParseStream) -> Result<Self> {
-    Ok(Self {
-      colon_token: input.parse()?,
-      expr_type: input.parse()?,
-    })
+    Ok(Self { colon_token: input.parse()?, expr_type: input.parse()? })
   }
 }
 
@@ -32,10 +29,7 @@ struct VirtualMethodParam {
 
 impl Parse for VirtualMethodParam {
   fn parse(input: ParseStream) -> Result<Self> {
-    Ok(Self {
-      expr: input.parse()?,
-      colon_and_type: input.parse().ok(),
-    })
+    Ok(Self { expr: input.parse()?, colon_and_type: input.parse().ok() })
   }
 }
 
@@ -108,11 +102,7 @@ pub fn macro_impl(item: TokenStream) -> TokenStream {
     fn_params_types.push(arg.ty.clone());
   }
 
-  let fn_params = item
-    .where_and_params
-    .as_ref()
-    .map(|x| x.params.clone())
-    .unwrap_or_default();
+  let fn_params = item.where_and_params.as_ref().map(|x| x.params.clone()).unwrap_or_default();
 
   let mut fn_params_exprs = Vec::new();
 

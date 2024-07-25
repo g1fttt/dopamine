@@ -22,10 +22,7 @@ pub struct Menu {
 
 impl Menu {
   pub fn new() -> Self {
-    Self {
-      open: bool::default(),
-      should_draw_window: ShouldDrawWindow::default(),
-    }
+    Self { open: bool::default(), should_draw_window: ShouldDrawWindow::default() }
   }
 
   #[inline]
@@ -75,14 +72,13 @@ impl Menu {
       return;
     }
 
-    ui.window("Misc")
-      .opened(&mut self.should_draw_window.misc)
-      .flags(Self::window_flags())
-      .build(|| {
+    ui.window("Misc").opened(&mut self.should_draw_window.misc).flags(Self::window_flags()).build(
+      || {
         ui.checkbox("Bunnyhop", &mut config.bunnyhop.enabled);
         ui.same_line();
         ui.slider("Chance", 10, 100, &mut config.bunnyhop.chance);
-      });
+      },
+    );
   }
 
   fn render_visuals_window(&mut self, ui: &mut Ui, config: &mut VisualsGroupConfig) {
@@ -100,12 +96,13 @@ impl Menu {
           .flags(Self::color_edit_flags())
           .build();
         ui.slider("Size", 1.0, 20.0, &mut config.no_scope_crosshair.size);
-        ui.slider(
-          "Thickness",
-          1.0,
-          3.0,
-          &mut config.no_scope_crosshair.thickness,
-        );
+        ui.slider("Thickness", 1.0, 3.0, &mut config.no_scope_crosshair.thickness);
+
+        ui.separator();
+
+        ui.checkbox("Add Fov", &mut config.add_fov.enabled);
+        ui.same_line();
+        ui.slider("Amount", -50.0, 50.0, &mut config.add_fov.amount);
       });
   }
 
@@ -114,10 +111,8 @@ impl Menu {
       return;
     }
 
-    ui.window("Glow")
-      .opened(&mut self.should_draw_window.glow)
-      .flags(Self::window_flags())
-      .build(|| {
+    ui.window("Glow").opened(&mut self.should_draw_window.glow).flags(Self::window_flags()).build(
+      || {
         ui.combo_simple_string(
           "##ConfigKind",
           &mut config.current_config_index,
@@ -134,7 +129,8 @@ impl Menu {
         ui.color_edit4_config("##Color", cfg.color.as_mut_array())
           .flags(Self::color_edit_flags())
           .build();
-      });
+      },
+    );
   }
 
   fn render_chams_window(&mut self, ui: &mut Ui, config: &mut ChamsGroupConfig) {

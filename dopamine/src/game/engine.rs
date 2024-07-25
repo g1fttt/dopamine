@@ -48,9 +48,7 @@ pub struct ModelInfo;
 
 impl ModelInfo {
   pub fn model_name(&self, model: &Model) -> &str {
-    unsafe { CStr::from_ptr(self.model_name_raw(model)) }
-      .to_str()
-      .unwrap()
+    unsafe { CStr::from_ptr(self.model_name_raw(model)) }.to_str().unwrap()
   }
 }
 

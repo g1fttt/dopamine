@@ -88,11 +88,7 @@ where
   type Output = Self;
 
   fn mul(self, rhs: T) -> Self::Output {
-    let mode = if rhs.as_() == 255 {
-      ColorMode::FullByte
-    } else {
-      ColorMode::Undefined
-    };
+    let mode = if rhs.as_() == 255 { ColorMode::FullByte } else { ColorMode::Undefined };
 
     Self::rgbam(
       (self.r * rhs).as_(),

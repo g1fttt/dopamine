@@ -24,13 +24,7 @@ pub extern "thiscall" fn draw_model_execute(
     }
 
     // FIXME: Chams also applies onto world-model weapons
-    app.chams.draw(
-      &original,
-      interfaces,
-      &app.config.chams,
-      info,
-      app.local_player,
-    );
+    app.chams.draw(app.capture_context(&app.config.chams), &original, info);
 
     if !app.chams.applied() {
       original();

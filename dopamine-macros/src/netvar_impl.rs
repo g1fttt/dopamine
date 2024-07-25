@@ -15,10 +15,7 @@ impl Parse for FieldIndex {
   fn parse(input: ParseStream) -> SynResult<Self> {
     let index;
 
-    Ok(Self {
-      bracket_token: bracketed!(index in input),
-      index: index.parse()?,
-    })
+    Ok(Self { bracket_token: bracketed!(index in input), index: index.parse()? })
   }
 }
 

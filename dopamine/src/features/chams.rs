@@ -7,6 +7,8 @@ use crate::interfaces::Interfaces;
 
 use enum_map::EnumMap;
 
+use super::FeatureContext;
+
 pub struct Chams<'a> {
   materials: EnumMap<ChamsKind, &'a Material>,
   applied: bool,
@@ -17,21 +19,14 @@ impl Chams<'_> {
     let material_system = Interfaces::get().material_system;
 
     let kv = KeyValues::new_leaked("VertexLitGeneric");
-    let regular_material = material_system
-      .create_material("_RegularMaterial", kv)
-      .unwrap();
+    let regular_material = material_system.create_material("_RegularMaterial", kv).unwrap();
 
     let kv = KeyValues::new_leaked("UnlitGeneric");
-    let flat_material = material_system
-      .create_material("_FlatMaterial", kv)
-      .unwrap();
+    let flat_material = material_system.create_material("_FlatMaterial", kv).unwrap();
 
     let materials = EnumMap::from_array([regular_material, flat_material]);
 
-    Self {
-      materials,
-      applied: false,
-    }
+    Self { materials, applied: false }
   }
 
   #[inline]
@@ -41,51 +36,45 @@ impl Chams<'_> {
 
   pub fn draw(
     &mut self,
+    ctx: FeatureContext<'_, '_, ChamsGroupConfig>,
     original_dme: &impl Fn(),
-    interfaces: &Interfaces,
-    config: &ChamsGroupConfig,
     info: &ModelRenderInfo,
-    local_player: Option<&Entity>,
   ) {
-    let Some(local_player) = local_player else {
+    if ctx.local_player.is_none() {
       return;
-    };
+    }
 
     self.applied = false;
 
-    let model_name = interfaces.model_info.model_name(info.model);
-    let entity = interfaces
-      .entity_list
-      .get_entity_by_index(info.entity_index);
+    let model_name = ctx.interfaces.model_info.model_name(info.model);
+    let entity = ctx.interfaces.entity_list.get_entity_by_index(info.entity_index);
 
     if model_name.starts_with("models/weapons/v_") {
       self.apply_chams(
         original_dme,
-        interfaces,
-        &config[ChamsConfigKind::Viewmodel].layers,
+        ctx.interfaces,
+        &ctx.config[ChamsConfigKind::Viewmodel].layers,
       );
     } else if let Some(entity) = entity
       && entity.is_player()
       && !entity.networkable().is_dormant()
     {
-      self.apply_player_chams(original_dme, interfaces, config, entity, local_player);
+      self.apply_player_chams(ctx, original_dme, entity);
     }
   }
 
   fn apply_player_chams(
     &mut self,
+    ctx: FeatureContext<'_, '_, ChamsGroupConfig>,
     original_dme: &impl Fn(),
-    interfaces: &Interfaces,
-    config: &ChamsGroupConfig,
     player_entity: &Entity,
-    local_player: &Entity,
   ) {
-    let config_kind = if local_player.team() != player_entity.team() {
+    let config_kind = if unsafe { ctx.local_player() }.team() != player_entity.team() {
       ChamsConfigKind::Enemies
     } else {
       ChamsConfigKind::Allies
     };
-    self.apply_chams(original_dme, interfaces, &config[config_kind].layers);
+    self.apply_chams(original_dme, ctx.interfaces, &ctx.config[config_kind].layers);
   }
 
   fn apply_chams(

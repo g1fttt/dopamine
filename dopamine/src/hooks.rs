@@ -24,6 +24,7 @@ pub struct Hooks {
   window: HWND,
   pub(self) wnd_proc: WNDPROC,
 
+  pub(self) override_view: VMTHook,
   pub(self) create_move: VMTHook,
   pub(self) do_post_screen_space_effects: VMTHook,
 
@@ -55,6 +56,7 @@ impl Hooks {
       window,
       wnd_proc: None,
 
+      override_view: VMTHook::new(interfaces.client_mode, 16),
       create_move: VMTHook::new(interfaces.client_mode, 21),
       do_post_screen_space_effects: VMTHook::new(interfaces.client_mode, 39),
 
@@ -76,30 +78,19 @@ impl Hooks {
   pub unsafe fn hook_all(&mut self) -> windows::core::Result<()> {
     self.wnd_proc = {
       #[allow(clippy::fn_to_numeric_cast)]
-      mem::transmute(SetWindowLongPtrW(
-        self.window,
-        GWLP_WNDPROC,
-        winapi::wnd_proc as _,
-      ))
+      mem::transmute(SetWindowLongPtrW(self.window, GWLP_WNDPROC, winapi::wnd_proc as _))
     };
 
+    self.override_view.hook(client_mode::override_view as _)?;
     self.create_move.hook(client_mode::create_move as _)?;
-    self
-      .do_post_screen_space_effects
-      .hook(client_mode::do_post_screen_space_effects as _)?;
+    self.do_post_screen_space_effects.hook(client_mode::do_post_screen_space_effects as _)?;
 
-    self
-      .level_init_post_entity
-      .hook(client::level_init_post_entity as _)?;
+    self.level_init_post_entity.hook(client::level_init_post_entity as _)?;
     self.level_shutdown.hook(client::level_shutdown as _)?;
 
-    self
-      .draw_model_execute
-      .hook(model_render::draw_model_execute as _)?;
+    self.draw_model_execute.hook(model_render::draw_model_execute as _)?;
 
-    self
-      .is_cursor_visible
-      .hook(surface::is_cursor_visible as _)?;
+    self.is_cursor_visible.hook(surface::is_cursor_visible as _)?;
     self.lock_cursor.hook(surface::lock_cursor as _)?;
 
     **self.reset_raw.cast::<*mut ResetFn>() = d3d9::reset;
@@ -112,6 +103,7 @@ impl Hooks {
     **self.reset_raw.cast::<*mut ResetFn>() = self.reset;
     **self.present_raw.cast::<*mut PresentFn>() = self.present;
 
+    self.override_view.unhook()?;
     self.create_move.unhook()?;
     self.do_post_screen_space_effects.unhook()?;
 
