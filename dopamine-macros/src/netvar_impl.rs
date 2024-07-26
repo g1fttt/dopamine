@@ -1,74 +1,69 @@
 use proc_macro::TokenStream;
 use quote::quote;
 
+use syn::__private::parse_brackets;
 use syn::parse::{Parse, ParseStream};
-use syn::token::{Bracket, Fn, For};
+use syn::token::{Fn, For};
 use syn::{Result as SynResult, *};
 
-#[allow(dead_code)]
-struct FieldIndex {
-  bracket_token: Bracket,
-  index: LitInt,
+struct PropField {
+  ident: Ident,
+  index: Option<LitInt>,
 }
 
-impl Parse for FieldIndex {
+impl Parse for PropField {
   fn parse(input: ParseStream) -> SynResult<Self> {
-    let index;
+    let ident = input.parse()?;
+    let index = parse_brackets(input).map(|b| b.content).and_then(|i| i.parse()).ok();
 
-    Ok(Self { bracket_token: bracketed!(index in input), index: index.parse()? })
+    Ok(Self { ident, index })
   }
 }
 
-#[allow(dead_code)]
 struct Netvar {
-  vis_token: Option<Visibility>,
-  fn_token: Fn,
-  name: Ident,
+  visibility: Option<Visibility>,
+  ident: Ident,
   output: Option<ReturnType>,
-  for_token: For,
-  class: Ident,
-  arrow_token: Token![->],
-  field: Ident,
-  field_index: Option<FieldIndex>,
+  prop_class: Ident,
+  prop_field: PropField,
 }
 
 impl Parse for Netvar {
   fn parse(input: ParseStream) -> SynResult<Self> {
-    Ok(Self {
-      vis_token: input.parse().ok(),
-      fn_token: input.parse()?,
-      name: input.parse()?,
-      output: input.parse().ok(),
-      for_token: input.parse()?,
-      class: input.parse()?,
-      arrow_token: input.parse()?,
-      field: input.parse()?,
-      field_index: input.parse().ok(),
-    })
+    let visibility = input.parse().ok();
+    input.parse::<Fn>()?;
+    let ident = input.parse()?;
+    let output = input.parse().ok();
+    input.parse::<For>()?;
+    let prop_class = input.parse()?;
+    input.parse::<Token![->]>()?;
+    let prop_field = input.parse()?;
+
+    Ok(Self { visibility, ident, output, prop_class, prop_field })
   }
 }
 
 pub fn macro_impl(item: TokenStream) -> TokenStream {
   let item = parse_macro_input!(item as Netvar);
 
-  let vis_token = item.vis_token;
+  let visibility = item.visibility;
 
-  let fn_name = item.name;
+  let fn_ident = item.ident;
   let fn_output = item.output;
 
-  let prop_class = item.class;
-  let prop_field = item.field;
+  let prop_class = item.prop_class;
+  let prop_field = item.prop_field;
 
-  let prop_field_index = item.field_index.map(|field| {
-    let index = field.index;
+  let prop_field_ident = prop_field.ident;
+  let prop_field_index = prop_field.index.map(|index| {
     quote! { concat!('[', #index, ']') }
   });
 
   quote! {
-    #vis_token fn #fn_name(&self) #fn_output {
+    #visibility fn #fn_ident(&self) #fn_output {
       let offset = crate::netvar_manager::NetvarManager::get()
         .offsets
-        .get(&(stringify!(#prop_class), concat!(stringify!(#prop_field), #prop_field_index)))
+        .get(&(stringify!(#prop_class), concat!(stringify!(#prop_field_ident), #prop_field_index)))
         .cloned()
         .expect("Failed to find netvar");
       unsafe { *(self as *const Self).byte_add(offset).cast() }

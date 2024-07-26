@@ -1,88 +1,66 @@
 use proc_macro::TokenStream;
 use quote::quote;
 
+use syn::__private::{parse_brackets, parse_parens};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
-use syn::token::{Bracket, Colon, Comma, Fn, Paren, Where};
-use syn::*;
+use syn::token::{Colon, Comma, Fn, Where};
+use syn::{Result as SynResult, *};
 
 use std::ops::Not;
 
-#[allow(dead_code)]
-#[derive(Clone)]
-struct ColonAndType {
-  colon_token: Colon,
+struct VirtualMethodParam {
+  expr: Expr,
   expr_type: Type,
 }
 
-impl Parse for ColonAndType {
-  fn parse(input: ParseStream) -> Result<Self> {
-    Ok(Self { colon_token: input.parse()?, expr_type: input.parse()? })
-  }
-}
-
-#[derive(Clone)]
-struct VirtualMethodParam {
-  expr: Expr,
-  colon_and_type: Option<ColonAndType>,
-}
-
 impl Parse for VirtualMethodParam {
-  fn parse(input: ParseStream) -> Result<Self> {
-    Ok(Self { expr: input.parse()?, colon_and_type: input.parse().ok() })
+  fn parse(input: ParseStream) -> SynResult<Self> {
+    let expr = input.parse()?;
+    input.parse::<Colon>()?;
+    let expr_type = input.parse()?;
+
+    Ok(Self { expr, expr_type })
   }
 }
 
-#[allow(dead_code)]
-struct WhereAndParams {
-  where_token: Where,
-  params_paren_token: Paren,
-  params: Punctuated<VirtualMethodParam, Comma>,
-}
+struct VirtualMethodParams(Punctuated<VirtualMethodParam, Comma>);
 
-impl Parse for WhereAndParams {
-  fn parse(input: ParseStream) -> Result<Self> {
-    let params;
+impl Parse for VirtualMethodParams {
+  fn parse(input: ParseStream) -> SynResult<Self> {
+    input.parse::<Where>()?;
+    let params = parse_parens(input)
+      .map(|p| p.content)
+      .and_then(|i| i.parse_terminated(VirtualMethodParam::parse, Comma))?;
 
-    Ok(Self {
-      where_token: input.parse()?,
-      params_paren_token: parenthesized!(params in input),
-      params: params.parse_terminated(VirtualMethodParam::parse, Comma)?,
-    })
+    Ok(Self(params))
   }
 }
 
-#[allow(dead_code)]
 struct VirtualMethod {
-  vis_token: Option<Visibility>,
-  fn_token: Fn,
-  name: Ident,
+  visibility: Option<Visibility>,
+  ident: Ident,
   generics: Option<Generics>,
-  bracket_token: Bracket,
   virtual_index: LitInt,
-  args_paren_token: Paren,
   args: Punctuated<FnArg, Comma>,
   output: Option<ReturnType>,
-  where_and_params: Option<WhereAndParams>,
+  params: Option<VirtualMethodParams>,
 }
 
 impl Parse for VirtualMethod {
-  fn parse(input: ParseStream) -> Result<Self> {
-    let args;
-    let virtual_index;
+  fn parse(input: ParseStream) -> SynResult<Self> {
+    let visibility = input.parse().ok();
+    input.parse::<Fn>()?;
+    let ident = input.parse()?;
+    let generics = input.parse().ok();
+    let virtual_index = parse_brackets(input).map(|b| b.content).and_then(|i| i.parse())?;
+    let args = parse_parens(input)
+      .map(|p| p.content)
+      .and_then(|i| i.parse_terminated(FnArg::parse, Comma))?;
+    let output = input.parse().ok();
+    let params = input.parse().ok();
 
-    Ok(Self {
-      vis_token: input.parse().ok(),
-      fn_token: input.parse()?,
-      name: input.parse()?,
-      generics: input.parse().ok(),
-      bracket_token: bracketed!(virtual_index in input),
-      virtual_index: virtual_index.parse()?,
-      args_paren_token: parenthesized!(args in input),
-      args: args.parse_terminated(FnArg::parse, Comma)?,
-      output: input.parse().ok(),
-      where_and_params: input.parse().ok(),
-    })
+    Ok(Self { visibility, ident, generics, virtual_index, args, output, params })
   }
 }
 
@@ -102,24 +80,21 @@ pub fn macro_impl(item: TokenStream) -> TokenStream {
     fn_params_types.push(arg.ty.clone());
   }
 
-  let fn_params = item.where_and_params.as_ref().map(|x| x.params.clone()).unwrap_or_default();
+  let fn_params = item.params.map(|p| p.0).unwrap_or_default();
 
   let mut fn_params_exprs = Vec::new();
 
   for param in fn_params.iter() {
-    let Some(param_type) = param.colon_and_type.as_ref().map(|x| x.expr_type.clone()) else {
-      unreachable!();
-    };
-    fn_params_types.push(Box::new(param_type));
+    fn_params_types.push(Box::new(param.expr_type.clone()));
     fn_params_exprs.push(param.expr.clone());
   }
 
   let optional_comma = fn_params_names.is_empty().not().then_some(quote! { , });
   let fn_params_exprs = quote! { #optional_comma #(#fn_params_exprs),* };
 
-  let vis_token = item.vis_token;
+  let vis_token = item.visibility;
 
-  let fn_name = item.name;
+  let fn_name = item.ident;
   let fn_generics = item.generics;
   let fn_output = item.output;
 
