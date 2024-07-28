@@ -111,6 +111,7 @@ pub enum ChamsConfigKind {
 }
 
 #[derive(Default, Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]
+#[repr(usize)] // Guarantee for `mem::transmute` in `ui::menu`
 pub enum ChamsKind {
   #[default]
   Regular,

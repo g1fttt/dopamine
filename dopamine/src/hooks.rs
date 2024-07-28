@@ -75,8 +75,11 @@ impl Hooks {
 
   pub unsafe fn hook_all(&mut self) -> windows::core::Result<()> {
     self.wnd_proc = {
-      #[allow(clippy::fn_to_numeric_cast)]
-      mem::transmute(SetWindowLongPtrW(self.window, GWLP_WNDPROC, winapi::wnd_proc as _))
+      mem::transmute::<i32, WNDPROC>(SetWindowLongPtrW(
+        self.window,
+        GWLP_WNDPROC,
+        winapi::wnd_proc as *const () as _,
+      ))
     };
 
     self.override_view.hook(client_mode::override_view as _)?;
@@ -113,7 +116,7 @@ impl Hooks {
     self.is_cursor_visible.unhook()?;
     self.lock_cursor.unhook()?;
 
-    SetWindowLongPtrW(self.window, GWLP_WNDPROC, mem::transmute(self.wnd_proc));
+    SetWindowLongPtrW(self.window, GWLP_WNDPROC, mem::transmute::<WNDPROC, i32>(self.wnd_proc));
 
     Ok(())
   }

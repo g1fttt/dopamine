@@ -182,7 +182,7 @@ impl Menu {
         ui.checkbox("Wireframe", &mut current_layer.wireframe);
         ui.combo_simple_string(
           "Material",
-          unsafe { mem::transmute(&mut current_layer.material_kind) },
+          unsafe { mem::transmute::<&mut ChamsKind, &mut usize>(&mut current_layer.material_kind) },
           ChamsKind::VARIANTS,
         );
       });
