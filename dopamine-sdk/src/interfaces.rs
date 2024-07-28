@@ -6,8 +6,7 @@ use crate::game::render_view::RenderView;
 use crate::game::studio_render::StudioRender;
 use crate::game::surface::Surface;
 
-use crate::{cstr, ok_or_empty_err, pcstr};
-
+use dopamine_utils::{cstr, ok_or_empty_err, pcstr};
 use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
 
 use std::ffi::{c_char, c_void};

@@ -1,12 +1,12 @@
-use crate::interfaces::Interfaces;
 use crate::ui::ImGuiContext;
 use crate::App;
 
-use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
-use windows::Win32::UI::WindowsAndMessaging::CallWindowProcW;
-
+use dopamine_sdk::Interfaces;
 use imgui::Key;
 use imgui_win32_support::{imgui_win32_window_proc, ProcResponse};
+
+use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
+use windows::Win32::UI::WindowsAndMessaging::CallWindowProcW;
 
 pub unsafe extern "stdcall" fn wnd_proc(
   window: HWND,

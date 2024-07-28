@@ -1,10 +1,10 @@
+use super::FeatureContext;
 use crate::config::{AddFov, NoScopeCrosshairConfig};
-use crate::game::render_view::ViewSetup;
-use crate::game::Entity;
 
 use imgui::{DrawListMut, ImColor32, Io};
 
-use super::FeatureContext;
+use dopamine_sdk::game::render_view::ViewSetup;
+use dopamine_sdk::game::Entity;
 
 pub fn draw_sniper_crosshair(
   ctx: FeatureContext<'_, '_, NoScopeCrosshairConfig>,

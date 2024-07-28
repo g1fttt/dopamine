@@ -9,8 +9,11 @@ crate-type = ["cdylib"]
 [dependencies]
 windows = { workspace = true }
 imgui = { workspace = true }
+serde = { workspace = true }
 
 dopamine-macros = { path = "../dopamine-macros" }
+dopamine-sdk = { path = "../dopamine-sdk" }
+dopamine-utils = { path = "../dopamine-utils" }
 
 imgui-dx9-renderer = { path = "../imgui-dx9-renderer" }
 imgui-win32-support = { path = "../imgui-win32-support" }
@@ -18,9 +21,5 @@ imgui-win32-support = { path = "../imgui-win32-support" }
 educe = { version = "0.6.0", features = ["Default"] }
 strum = { version = "0.26.3", features = ["derive"] }
 enum-map = { version = "2.7.3", features = ["serde"] }
-num-traits = "0.2.19"
-derive_builder = "0.20.0"
-regex = "1.10.5"
 fastrand = "2.1.0"
-serde = { version = "1.0.204", features = ["derive"] }
 toml = "0.8.14"

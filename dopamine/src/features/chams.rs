@@ -1,13 +1,12 @@
-use crate::game::engine::ModelRenderInfo;
-use crate::game::material_system::{Material, MaterialFlag};
-use crate::game::{Entity, KeyValues};
-
+use super::FeatureContext;
 use crate::config::{ChamsConfigKind, ChamsGroupConfig, ChamsKind, ChamsLayerConfig};
-use crate::interfaces::Interfaces;
 
+use dopamine_sdk::Interfaces;
 use enum_map::EnumMap;
 
-use super::FeatureContext;
+use dopamine_sdk::game::engine::ModelRenderInfo;
+use dopamine_sdk::game::material_system::{Material, MaterialFlag};
+use dopamine_sdk::game::{Entity, KeyValues};
 
 pub struct Chams<'a> {
   materials: EnumMap<ChamsKind, &'a Material>,

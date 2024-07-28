@@ -1,5 +1,5 @@
-use crate::game::Entity;
-use crate::interfaces::Interfaces;
+use dopamine_sdk::game::Entity;
+use dopamine_sdk::Interfaces;
 
 pub type EntityIterator<'a> = Box<dyn Iterator<Item = &'a Entity>>;
 

@@ -2,6 +2,8 @@
 members = [
   "dopamine",
   "dopamine-macros",
+  "dopamine-sdk",
+  "dopamine-utils",
   "imgui-dx9-renderer",
   "imgui-win32-support",
 ]
@@ -29,3 +31,4 @@ windows = { version = "0.58.0", features = [
   "Foundation_Numerics",
 ] }
 imgui = "0.12.0"
+serde = { version = "1.0.204", features = ["derive"] }

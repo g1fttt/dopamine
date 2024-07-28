@@ -1,6 +1,5 @@
-use crate::utils::Color;
-
 use dopamine_macros::virtual_method;
+use dopamine_utils::Color;
 
 use std::mem::MaybeUninit;
 
@@ -34,6 +33,7 @@ impl RenderView {
   virtual_method!(fn color_raw[7](&self, color: *mut f32));
 }
 
+#[allow(dead_code)]
 #[repr(C)]
 pub struct ViewSetup {
   pad1: [u8; 16],

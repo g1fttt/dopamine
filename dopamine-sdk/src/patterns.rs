@@ -1,5 +1,6 @@
 use crate::game::{Entity, KeyValues};
-use crate::{get_last_err, pcstr};
+
+use dopamine_utils::{get_last_err, pcstr};
 
 use regex::bytes::Regex;
 use regex::Error;

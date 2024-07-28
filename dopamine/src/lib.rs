@@ -13,14 +13,8 @@ mod app;
 mod config;
 mod entities;
 mod features;
-mod game;
 mod hooks;
-mod interfaces;
-mod macros;
-mod netvar_manager;
-mod patterns;
 mod ui;
-mod utils;
 
 use windows::Win32::Foundation::{BOOL, HMODULE, TRUE};
 use windows::Win32::System::SystemServices::{DLL_PROCESS_ATTACH, DLL_PROCESS_DETACH};

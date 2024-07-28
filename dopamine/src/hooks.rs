@@ -5,10 +5,8 @@ mod model_render;
 mod surface;
 mod winapi;
 
-use crate::interfaces::Interfaces;
-use crate::patterns::Patterns;
-use crate::pcstr;
-use crate::utils::VMTHook;
+use dopamine_sdk::{Interfaces, Patterns};
+use dopamine_utils::{pcstr, VMTHook};
 
 use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::WindowsAndMessaging::{

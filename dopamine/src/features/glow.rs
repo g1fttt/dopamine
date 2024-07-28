@@ -1,13 +1,13 @@
-use crate::game::material_system::*;
-use crate::game::render_view::ViewSetup;
-use crate::game::KeyValues;
-
+use super::FeatureContext;
 use crate::config::{GlowConfigKind, GlowGroupConfig};
 use crate::entities;
-use crate::interfaces::Interfaces;
-use crate::utils::Color;
 
-use super::FeatureContext;
+use dopamine_sdk::Interfaces;
+use dopamine_utils::Color;
+
+use dopamine_sdk::game::material_system::*;
+use dopamine_sdk::game::render_view::ViewSetup;
+use dopamine_sdk::game::KeyValues;
 
 pub struct Glow<'a> {
   rt_quarter_size_1: &'a Texture,

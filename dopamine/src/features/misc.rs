@@ -1,7 +1,7 @@
-use crate::config::BunnyhopConfig;
-use crate::game::UserCommand;
-
 use super::FeatureContext;
+use crate::config::BunnyhopConfig;
+
+use dopamine_sdk::game::UserCommand;
 
 pub fn bunnyhop(ctx: FeatureContext<'_, '_, BunnyhopConfig>, cmd: &mut UserCommand) {
   if !ctx.config.enabled {

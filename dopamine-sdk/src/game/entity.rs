@@ -3,6 +3,7 @@ use crate::patterns::Patterns;
 
 use dopamine_macros::{netvar, virtual_method};
 
+#[allow(dead_code)]
 #[repr(C)]
 pub struct UserCommand {
   pad: [u8; 36],

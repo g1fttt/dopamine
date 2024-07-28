@@ -1,6 +1,6 @@
 use crate::config::*;
-use crate::game::input_system::InputSystem;
 
+use dopamine_sdk::game::input_system::InputSystem;
 use imgui::{ColorEditFlags, Io, Ui, WindowFlags};
 use strum::VariantNames;
 use windows::Win32::UI::WindowsAndMessaging::ShowCursor;

@@ -1,12 +1,13 @@
 use crate::config::Config;
 use crate::features::FeatureContext;
-use crate::game::Entity;
 use crate::hooks::Hooks;
-use crate::interfaces::Interfaces;
 use crate::ui::Menu;
 
 use crate::features::chams::Chams;
 use crate::features::glow::Glow;
+
+use dopamine_sdk::game::Entity;
+use dopamine_sdk::Interfaces;
 
 use windows::Win32::Foundation::{CloseHandle, HMODULE};
 use windows::Win32::System::Diagnostics::Debug::Beep;

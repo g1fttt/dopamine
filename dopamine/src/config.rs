@@ -1,5 +1,4 @@
-use crate::utils::Color;
-
+use dopamine_utils::Color;
 use educe::Educe;
 use enum_map::{Enum, EnumArray, EnumMap};
 use serde::{Deserialize, Serialize};

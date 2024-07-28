@@ -1,9 +1,8 @@
 use super::KeyValues;
-use crate::cstr;
-use crate::utils::Color;
 
 use derive_builder::Builder;
 use dopamine_macros::virtual_method;
+use dopamine_utils::{cstr, Color};
 
 use std::ffi::{c_char, c_void};
 use std::ptr;

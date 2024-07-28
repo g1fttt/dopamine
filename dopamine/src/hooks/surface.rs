@@ -1,5 +1,6 @@
-use crate::game::surface::Surface;
 use crate::App;
+
+use dopamine_sdk::game::surface::Surface;
 
 type IsCursorVisibleFn = extern "thiscall" fn(&Surface) -> bool;
 

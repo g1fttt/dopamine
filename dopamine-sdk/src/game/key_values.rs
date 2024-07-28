@@ -1,5 +1,6 @@
-use crate::cstr;
 use crate::patterns::Patterns;
+
+use dopamine_utils::cstr;
 
 #[repr(C)]
 pub struct KeyValues {

@@ -1,8 +1,8 @@
 use crate::features::visuals;
-use crate::interfaces::Interfaces;
 use crate::ui::ImGuiContext;
 use crate::App;
 
+use dopamine_sdk::Interfaces;
 use windows::core::HRESULT;
 
 use windows::Win32::Foundation::{HWND, RECT};

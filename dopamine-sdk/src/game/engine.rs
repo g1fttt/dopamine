@@ -13,6 +13,7 @@ impl Engine {
   virtual_method!(pub fn is_in_game[26](&self) -> bool);
 }
 
+#[allow(dead_code)]
 #[repr(C)]
 pub struct ModelRenderInfo<'a> {
   pad1: [u8; 28],

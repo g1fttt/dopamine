@@ -1,0 +1,13 @@
+[package]
+name = "dopamine-sdk"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+windows = { workspace = true }
+
+dopamine-macros = { path = "../dopamine-macros" }
+dopamine-utils = { path = "../dopamine-utils" }
+
+regex = "1.10.5"
+derive_builder = "0.20.0"

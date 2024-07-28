@@ -1,6 +1,7 @@
 use crate::app::App;
-use crate::game::client::Client;
-use crate::interfaces::Interfaces;
+
+use dopamine_sdk::game::client::Client;
+use dopamine_sdk::Interfaces;
 
 type LevelInitPostEntityFn = extern "thiscall" fn(&Client);
 

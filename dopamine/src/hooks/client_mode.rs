@@ -1,9 +1,9 @@
-use crate::game::client::ClientMode;
-use crate::game::render_view::ViewSetup;
-use crate::game::UserCommand;
-
 use crate::features::{misc, visuals};
 use crate::App;
+
+use dopamine_sdk::game::client::ClientMode;
+use dopamine_sdk::game::render_view::ViewSetup;
+use dopamine_sdk::game::UserCommand;
 
 type OverrideViewFn = extern "thiscall" fn(&ClientMode, &mut ViewSetup);
 

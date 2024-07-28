@@ -92,9 +92,9 @@ pub fn macro_impl(item: TokenStream) -> TokenStream {
   let optional_comma = fn_params_names.is_empty().not().then_some(quote! { , });
   let fn_params_exprs = quote! { #optional_comma #(#fn_params_exprs),* };
 
-  let vis_token = item.visibility;
+  let visibility = item.visibility;
 
-  let fn_name = item.ident;
+  let fn_ident = item.ident;
   let fn_generics = item.generics;
   let fn_output = item.output;
 
@@ -102,7 +102,7 @@ pub fn macro_impl(item: TokenStream) -> TokenStream {
 
   quote! {
     #[allow(clippy::too_many_arguments)]
-    #vis_token fn #fn_name #fn_generics(#fn_args) #fn_output {
+    #visibility fn #fn_ident #fn_generics(#fn_args) #fn_output {
       unsafe {
         (*(*(self as *const Self as *const *const extern "thiscall" fn(&Self, #(#fn_params_types),*) #fn_output))
           .add(#fn_virtual_index))(self, #(#fn_params_names),* #fn_params_exprs)
