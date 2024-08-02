@@ -5,7 +5,6 @@ use dopamine_macros::virtual_method;
 use dopamine_utils::{cstr, Color};
 
 use std::ffi::{c_char, c_void};
-use std::ptr;
 
 #[repr(C)]
 pub enum MaterialFlag {
@@ -133,7 +132,7 @@ impl RenderContext {
     texture_y1: f32,
     texture_width: i32,
     texture_height: i32
-  ) where (ptr::null_mut(): *mut c_void, 1: i32, 1: i32));
+  ) where (std::ptr::null_mut(): *mut c_void, 1: i32, 1: i32));
   virtual_method!(fn push_rt_and_viewport[107](&self, rt: &Texture));
 }
 

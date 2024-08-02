@@ -6,7 +6,13 @@ mod surface;
 mod winapi;
 
 use dopamine_sdk::{Interfaces, Patterns};
-use dopamine_utils::{pcstr, VMTHook};
+use dopamine_utils::{pcstr, Hook, HookResult, MinHook};
+
+use dopamine_sdk::game::client::{Client, ClientMode};
+use dopamine_sdk::game::engine::{ModelRender, ModelRenderInfo};
+use dopamine_sdk::game::render_view::ViewSetup;
+use dopamine_sdk::game::surface::Surface;
+use dopamine_sdk::game::UserCommand;
 
 use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::WindowsAndMessaging::{
@@ -22,17 +28,19 @@ pub struct Hooks {
   window: HWND,
   pub(self) wnd_proc: WNDPROC,
 
-  pub(self) override_view: VMTHook,
-  pub(self) create_move: VMTHook,
-  pub(self) do_post_screen_space_effects: VMTHook,
+  pub(self) override_view: Hook<extern "thiscall" fn(&ClientMode, &mut ViewSetup)>,
+  pub(self) create_move: Hook<extern "thiscall" fn(&ClientMode, f32, &mut UserCommand) -> bool>,
+  pub(self) do_post_screen_space_effects:
+    Hook<extern "thiscall" fn(&ClientMode, &ViewSetup) -> bool>,
 
-  pub(self) level_init_post_entity: VMTHook,
-  pub(self) level_shutdown: VMTHook,
+  pub(self) level_init_post_entity: Hook<extern "thiscall" fn(&Client)>,
+  pub(self) level_shutdown: Hook<extern "thiscall" fn(&Client)>,
 
-  pub(self) draw_model_execute: VMTHook,
+  pub(self) draw_model_execute:
+    Hook<extern "thiscall" fn(&ModelRender, *mut c_void, &ModelRenderInfo, *mut c_void)>,
 
-  pub(self) is_cursor_visible: VMTHook,
-  pub(self) lock_cursor: VMTHook,
+  pub(self) is_cursor_visible: Hook<extern "thiscall" fn(&Surface) -> bool>,
+  pub(self) lock_cursor: Hook<extern "thiscall" fn(&Surface)>,
 
   reset_raw: *mut c_void,
   present_raw: *mut c_void,
@@ -54,17 +62,17 @@ impl Hooks {
       window,
       wnd_proc: None,
 
-      override_view: VMTHook::new(interfaces.client_mode, 16),
-      create_move: VMTHook::new(interfaces.client_mode, 21),
-      do_post_screen_space_effects: VMTHook::new(interfaces.client_mode, 39),
+      override_view: Hook::new_virtual(interfaces.client_mode, 19),
+      create_move: Hook::new_virtual(interfaces.client_mode, 21),
+      do_post_screen_space_effects: Hook::new_virtual(interfaces.client_mode, 39),
 
-      level_init_post_entity: VMTHook::new(interfaces.client, 6),
-      level_shutdown: VMTHook::new(interfaces.client, 7),
+      level_init_post_entity: Hook::new_virtual(interfaces.client, 6),
+      level_shutdown: Hook::new_virtual(interfaces.client, 7),
 
-      draw_model_execute: VMTHook::new(interfaces.model_render, 19),
+      draw_model_execute: Hook::new_virtual(interfaces.model_render, 19),
 
-      is_cursor_visible: VMTHook::new(interfaces.surface, 53),
-      lock_cursor: VMTHook::new(interfaces.surface, 62),
+      is_cursor_visible: Hook::new_virtual(interfaces.surface, 53),
+      lock_cursor: Hook::new_virtual(interfaces.surface, 62),
 
       reset_raw: patterns.d3d9_reset,
       present_raw: patterns.d3d9_present,
@@ -73,7 +81,7 @@ impl Hooks {
     }
   }
 
-  pub unsafe fn hook_all(&mut self) -> windows::core::Result<()> {
+  pub unsafe fn hook_all(&mut self) -> HookResult<()> {
     self.wnd_proc = {
       mem::transmute::<i32, WNDPROC>(SetWindowLongPtrW(
         self.window,
@@ -82,17 +90,19 @@ impl Hooks {
       ))
     };
 
-    self.override_view.hook(client_mode::override_view as _)?;
-    self.create_move.hook(client_mode::create_move as _)?;
-    self.do_post_screen_space_effects.hook(client_mode::do_post_screen_space_effects as _)?;
+    self.override_view.detour_to(client_mode::override_view)?;
+    self.create_move.detour_to(client_mode::create_move)?;
+    self.do_post_screen_space_effects.detour_to(client_mode::do_post_screen_space_effects)?;
 
-    self.level_init_post_entity.hook(client::level_init_post_entity as _)?;
-    self.level_shutdown.hook(client::level_shutdown as _)?;
+    self.level_init_post_entity.detour_to(client::level_init_post_entity)?;
+    self.level_shutdown.detour_to(client::level_shutdown)?;
 
-    self.draw_model_execute.hook(model_render::draw_model_execute as _)?;
+    self.draw_model_execute.detour_to(model_render::draw_model_execute)?;
 
-    self.is_cursor_visible.hook(surface::is_cursor_visible as _)?;
-    self.lock_cursor.hook(surface::lock_cursor as _)?;
+    self.is_cursor_visible.detour_to(surface::is_cursor_visible)?;
+    self.lock_cursor.detour_to(surface::lock_cursor)?;
+
+    MinHook::enable_all_hooks()?;
 
     **self.reset_raw.cast::<*mut ResetFn>() = d3d9::reset;
     **self.present_raw.cast::<*mut PresentFn>() = d3d9::present;
@@ -100,21 +110,23 @@ impl Hooks {
     Ok(())
   }
 
-  pub unsafe fn unhook_all(&self) -> windows::core::Result<()> {
+  pub unsafe fn unhook_all(&self) -> HookResult<()> {
     **self.reset_raw.cast::<*mut ResetFn>() = self.reset;
     **self.present_raw.cast::<*mut PresentFn>() = self.present;
 
-    self.override_view.unhook()?;
-    self.create_move.unhook()?;
-    self.do_post_screen_space_effects.unhook()?;
+    MinHook::disable_all_hooks()?;
 
-    self.level_init_post_entity.unhook()?;
-    self.level_shutdown.unhook()?;
+    self.override_view.remove()?;
+    self.create_move.remove()?;
+    self.do_post_screen_space_effects.remove()?;
 
-    self.draw_model_execute.unhook()?;
+    self.level_init_post_entity.remove()?;
+    self.level_shutdown.remove()?;
 
-    self.is_cursor_visible.unhook()?;
-    self.lock_cursor.unhook()?;
+    self.draw_model_execute.remove()?;
+
+    self.is_cursor_visible.remove()?;
+    self.lock_cursor.remove()?;
 
     SetWindowLongPtrW(self.window, GWLP_WNDPROC, mem::transmute::<WNDPROC, i32>(self.wnd_proc));
 

@@ -46,7 +46,6 @@ impl Chams<'_> {
     self.applied = false;
 
     let model_name = ctx.interfaces.model_info.model_name(info.model);
-    let entity = ctx.interfaces.entity_list.get_entity_by_index(info.entity_index);
 
     if model_name.starts_with("models/weapons/v_") {
       self.apply_chams(
@@ -54,11 +53,15 @@ impl Chams<'_> {
         ctx.interfaces,
         &ctx.config[ChamsConfigKind::Viewmodel].layers,
       );
-    } else if let Some(entity) = entity
-      && entity.is_player()
-      && !entity.networkable().is_dormant()
-    {
-      self.apply_player_chams(ctx, original_dme, entity);
+    } else {
+      let entity = ctx.interfaces.entity_list.get_entity_by_index(info.entity_index);
+
+      if let Some(entity) = entity
+        && entity.is_player()
+        && !entity.networkable().is_dormant()
+      {
+        self.apply_player_chams(ctx, original_dme, entity);
+      }
     }
   }
 

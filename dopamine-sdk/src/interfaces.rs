@@ -11,7 +11,6 @@ use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
 
 use std::ffi::{c_char, c_void};
 use std::sync::LazyLock;
-use std::{mem, ptr};
 
 pub struct Interfaces<'a> {
   pub client: &'a Client,
@@ -59,9 +58,9 @@ fn find_interface<'a, T>(module_name: &str, interface_name: &str) -> windows::co
 
     let create_interface = GetProcAddress(module, pcstr!("CreateInterface"));
     let create_interface: extern "C" fn(*const c_char, *mut i32) -> *mut T =
-      mem::transmute(create_interface);
+      std::mem::transmute(create_interface);
 
-    ok_or_empty_err!(create_interface(cstr!(interface_name), ptr::null_mut()).as_ref())
+    ok_or_empty_err!(create_interface(cstr!(interface_name), std::ptr::null_mut()).as_ref())
   }
 }
 

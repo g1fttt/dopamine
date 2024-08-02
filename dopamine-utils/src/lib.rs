@@ -1,9 +1,9 @@
-// FIXME
-#![allow(clippy::missing_safety_doc)]
+#![allow(clippy::missing_safety_doc)] // FIXME
+#![feature(fn_ptr_trait, stmt_expr_attributes)]
 
 mod color;
+mod hook;
 pub mod macros;
-mod vmt_hook;
 
 pub use color::*;
-pub use vmt_hook::*;
+pub use hook::*;

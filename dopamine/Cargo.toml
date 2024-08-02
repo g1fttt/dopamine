@@ -11,7 +11,6 @@ windows = { workspace = true }
 imgui = { workspace = true }
 serde = { workspace = true }
 
-dopamine-macros = { path = "../dopamine-macros" }
 dopamine-sdk = { path = "../dopamine-sdk" }
 dopamine-utils = { path = "../dopamine-utils" }
 

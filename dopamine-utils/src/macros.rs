@@ -38,3 +38,11 @@ macro_rules! get_last_err {
     windows::core::Error::from_win32()
   };
 }
+
+#[macro_export]
+macro_rules! virtual_method {
+  ($base:expr, $idx:expr) => {
+    #[allow(clippy::useless_transmute)]
+    (*(*std::mem::transmute::<_, *mut *mut *mut std::ffi::c_void>($base)).add($idx))
+  };
+}

@@ -39,7 +39,7 @@ impl App {
   unsafe fn setup(&mut self) -> windows::core::Result<()> {
     DisableThreadLibraryCalls(self.module)?;
 
-    self.hooks.hook_all()?;
+    self.hooks.hook_all().expect("Failed to setup hooks");
 
     Beep(750, 200)
   }
@@ -62,7 +62,7 @@ impl App {
 
     ShowCursor(true);
 
-    self.hooks.unhook_all()?;
+    self.hooks.unhook_all().expect("Failed to remove hooks");
 
     let handle = CreateThread(
       None,

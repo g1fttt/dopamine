@@ -90,7 +90,7 @@ fn module_data(module_name: &str) -> windows::core::Result<(*mut u8, usize)> {
       GetCurrentProcess(),
       module,
       &mut module_info,
-      mem::size_of::<MODULEINFO>() as _,
+      size_of::<MODULEINFO>() as _,
     )?
   };
 

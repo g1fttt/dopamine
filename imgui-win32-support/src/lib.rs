@@ -9,7 +9,6 @@ use windows::Win32::UI::WindowsAndMessaging::*;
 use imgui::sys::*;
 use imgui::{BackendFlags, Context, Key};
 
-use std::ptr;
 use std::time::Instant;
 
 pub type WindowProc = unsafe extern "system" fn(HWND, u32, WPARAM, LPARAM) -> LRESULT;
@@ -239,7 +238,7 @@ unsafe fn update_cursor() -> bool {
 
   let mouse_cursor = igGetMouseCursor();
   let win32_cursor = if mouse_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor {
-    HCURSOR(ptr::null_mut())
+    HCURSOR(std::ptr::null_mut())
   } else {
     #[allow(non_upper_case_globals)]
     HCURSOR(

@@ -8,7 +8,7 @@ use windows::Win32::Graphics::Dxgi::DXGI_ERROR_INVALID_CALL;
 use imgui::internal::RawWrapper;
 use imgui::*;
 
-use std::{mem, ptr, slice};
+use std::{ptr, slice};
 
 const FONT_TEX_ID: usize = !0;
 const D3DFVF_CUSTOMVERTEX: u32 = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1;
@@ -271,14 +271,14 @@ impl Renderer {
 
     vb.Lock(
       0,
-      (vtx_count * mem::size_of::<CustomVertex>()) as u32,
+      (vtx_count * size_of::<CustomVertex>()) as u32,
       &mut vtx_dst as *mut _ as _,
       D3DLOCK_DISCARD as u32,
     )?;
 
     match ib.Lock(
       0,
-      (idx_count * mem::size_of::<DrawIdx>()) as u32,
+      (idx_count * size_of::<DrawIdx>()) as u32,
       &mut idx_dst as *mut _ as _,
       D3DLOCK_DISCARD as u32,
     ) {
@@ -317,12 +317,7 @@ impl Renderer {
     }
     self.vertex_buffer.0.Unlock()?;
     self.index_buffer.0.Unlock()?;
-    self.device.SetStreamSource(
-      0,
-      &self.vertex_buffer.0,
-      0,
-      mem::size_of::<CustomVertex>() as u32,
-    )?;
+    self.device.SetStreamSource(0, &self.vertex_buffer.0, 0, size_of::<CustomVertex>() as u32)?;
     self.device.SetIndices(&self.index_buffer.0)?;
     self.device.SetFVF(D3DFVF_CUSTOMVERTEX)?;
     Ok(())
@@ -335,7 +330,7 @@ impl Renderer {
     let len = vtx_count + VERTEX_BUF_ADD_CAPACITY;
     let mut vertex_buffer: Option<IDirect3DVertexBuffer9> = None;
     device.CreateVertexBuffer(
-      (len * mem::size_of::<CustomVertex>()) as u32,
+      (len * size_of::<CustomVertex>()) as u32,
       (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY) as u32,
       D3DFVF_CUSTOMVERTEX,
       D3DPOOL_DEFAULT,
@@ -353,9 +348,9 @@ impl Renderer {
     let mut index_buffer: Option<IDirect3DIndexBuffer9> = None;
 
     device.CreateIndexBuffer(
-      (len * mem::size_of::<DrawIdx>()) as u32,
+      (len * size_of::<DrawIdx>()) as u32,
       (D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY) as u32,
-      if mem::size_of::<DrawIdx>() == 2 { D3DFMT_INDEX16 } else { D3DFMT_INDEX32 },
+      if size_of::<DrawIdx>() == 2 { D3DFMT_INDEX16 } else { D3DFMT_INDEX32 },
       D3DPOOL_DEFAULT,
       &mut index_buffer,
       ptr::null_mut(),
