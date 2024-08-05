@@ -14,16 +14,16 @@ pub unsafe extern "stdcall" fn wnd_proc(
   wparam: WPARAM,
   lparam: LPARAM,
 ) -> LRESULT {
-  if let Ok(resp) = imgui_win32_window_proc(window, msg, wparam, lparam)
-    && resp == ProcResponse::ActionTaken
-  {
-    return LRESULT(1);
-  }
-
   App::with_mut(move |app| {
     if let Some(imgui_ctx) = ImGuiContext::get_mut()
       && let Some(ui) = imgui_ctx.ui()
     {
+      if let Ok(resp) = imgui_win32_window_proc(window, msg, wparam, lparam)
+        && resp == ProcResponse::ActionTaken
+      {
+        return LRESULT(1);
+      }
+
       if ui.is_key_down(Key::Home) {
         app.unload().expect("Failed to unload application");
       }
