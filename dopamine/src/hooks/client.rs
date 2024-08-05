@@ -1,4 +1,4 @@
-use crate::app::App;
+use crate::App;
 
 use dopamine_sdk::game::client::Client;
 use dopamine_sdk::Interfaces;

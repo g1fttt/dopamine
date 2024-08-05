@@ -6,7 +6,8 @@ mod surface;
 mod winapi;
 
 use dopamine_sdk::{Interfaces, Patterns};
-use dopamine_utils::{pcstr, Hook, HookResult, MinHook};
+use dopamine_utils::hooks::{self, Hook, HookResult, VmtHook};
+use dopamine_utils::pcstr;
 
 use dopamine_sdk::game::client::{Client, ClientMode};
 use dopamine_sdk::game::engine::{ModelRender, ModelRenderInfo};
@@ -28,19 +29,19 @@ pub struct Hooks {
   window: HWND,
   pub(self) wnd_proc: WNDPROC,
 
-  pub(self) override_view: Hook<extern "thiscall" fn(&ClientMode, &mut ViewSetup)>,
-  pub(self) create_move: Hook<extern "thiscall" fn(&ClientMode, f32, &mut UserCommand) -> bool>,
+  pub(self) override_view: VmtHook<extern "thiscall" fn(&ClientMode, &mut ViewSetup)>,
+  pub(self) create_move: VmtHook<extern "thiscall" fn(&ClientMode, f32, &mut UserCommand) -> bool>,
   pub(self) do_post_screen_space_effects:
-    Hook<extern "thiscall" fn(&ClientMode, &ViewSetup) -> bool>,
+    VmtHook<extern "thiscall" fn(&ClientMode, &ViewSetup) -> bool>,
 
-  pub(self) level_init_post_entity: Hook<extern "thiscall" fn(&Client)>,
-  pub(self) level_shutdown: Hook<extern "thiscall" fn(&Client)>,
+  pub(self) level_init_post_entity: VmtHook<extern "thiscall" fn(&Client)>,
+  pub(self) level_shutdown: VmtHook<extern "thiscall" fn(&Client)>,
 
   pub(self) draw_model_execute:
-    Hook<extern "thiscall" fn(&ModelRender, *mut c_void, &ModelRenderInfo, *mut c_void)>,
+    VmtHook<extern "thiscall" fn(&ModelRender, *mut c_void, &ModelRenderInfo, *mut c_void)>,
 
-  pub(self) is_cursor_visible: Hook<extern "thiscall" fn(&Surface) -> bool>,
-  pub(self) lock_cursor: Hook<extern "thiscall" fn(&Surface)>,
+  pub(self) is_cursor_visible: VmtHook<extern "thiscall" fn(&Surface) -> bool>,
+  pub(self) lock_cursor: VmtHook<extern "thiscall" fn(&Surface)>,
 
   reset_raw: *mut c_void,
   present_raw: *mut c_void,
@@ -62,17 +63,17 @@ impl Hooks {
       window,
       wnd_proc: None,
 
-      override_view: Hook::new_virtual(interfaces.client_mode, 19),
-      create_move: Hook::new_virtual(interfaces.client_mode, 21),
-      do_post_screen_space_effects: Hook::new_virtual(interfaces.client_mode, 39),
+      override_view: VmtHook::new(interfaces.client_mode, 16),
+      create_move: VmtHook::new(interfaces.client_mode, 21),
+      do_post_screen_space_effects: VmtHook::new(interfaces.client_mode, 39),
 
-      level_init_post_entity: Hook::new_virtual(interfaces.client, 6),
-      level_shutdown: Hook::new_virtual(interfaces.client, 7),
+      level_init_post_entity: VmtHook::new(interfaces.client, 6),
+      level_shutdown: VmtHook::new(interfaces.client, 7),
 
-      draw_model_execute: Hook::new_virtual(interfaces.model_render, 19),
+      draw_model_execute: VmtHook::new(interfaces.model_render, 19),
 
-      is_cursor_visible: Hook::new_virtual(interfaces.surface, 53),
-      lock_cursor: Hook::new_virtual(interfaces.surface, 62),
+      is_cursor_visible: VmtHook::new(interfaces.surface, 53),
+      lock_cursor: VmtHook::new(interfaces.surface, 62),
 
       reset_raw: patterns.d3d9_reset,
       present_raw: patterns.d3d9_present,
@@ -102,7 +103,7 @@ impl Hooks {
     self.is_cursor_visible.detour_to(surface::is_cursor_visible)?;
     self.lock_cursor.detour_to(surface::lock_cursor)?;
 
-    MinHook::enable_all_hooks()?;
+    hooks::enable_all_hooks()?;
 
     **self.reset_raw.cast::<*mut ResetFn>() = d3d9::reset;
     **self.present_raw.cast::<*mut PresentFn>() = d3d9::present;
@@ -114,7 +115,7 @@ impl Hooks {
     **self.reset_raw.cast::<*mut ResetFn>() = self.reset;
     **self.present_raw.cast::<*mut PresentFn>() = self.present;
 
-    MinHook::disable_all_hooks()?;
+    hooks::disable_all_hooks()?;
 
     self.override_view.remove()?;
     self.create_move.remove()?;

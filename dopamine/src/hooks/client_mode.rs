@@ -27,12 +27,12 @@ pub extern "thiscall" fn create_move(
   })
 }
 
-pub extern "thiscall" fn do_post_screen_space_effects(this: &ClientMode, view: &ViewSetup) -> bool {
-  App::with_mut(move |app| {
-    let result = (app.hooks.do_post_screen_space_effects.original)(this, view);
-    {
-      app.glow.draw(app.capture_context(&app.config.glow), view);
-    }
-    result
-  })
+// char __stdcall ClientModeShared::DoPostScreenSpaceEffects(int a1)
+// {
+//   return 1;
+// }
+pub extern "thiscall" fn do_post_screen_space_effects(_: &ClientMode, view: &ViewSetup) -> bool {
+  App::with_mut(move |app| app.glow.draw(app.capture_context(&app.config.glow), view));
+
+  true
 }

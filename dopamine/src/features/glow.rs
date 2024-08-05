@@ -86,11 +86,11 @@ impl Glow<'_> {
   }
 
   pub fn draw(&self, ctx: FeatureContext<'_, '_, GlowGroupConfig>, view: &ViewSetup) {
-    let render_ctx = ctx.interfaces.material_system.render_ctx();
-
     let should_glow = ctx.config.as_array().iter().any(|cfg| cfg.enabled);
 
     if should_glow {
+      let render_ctx = ctx.interfaces.material_system.render_ctx();
+
       self.apply_entity_glow_effects(ctx, view, render_ctx);
     }
   }
@@ -118,8 +118,9 @@ impl Glow<'_> {
         continue;
       }
 
-      let is_enemy = ctx.local_player.is_some_and(|lp| lp.team() != entity.team());
-      let config = if is_enemy {
+      let config = if let Some(lp) = ctx.local_player
+        && lp.team() != entity.team()
+      {
         &ctx.config[GlowConfigKind::Enemies]
       } else {
         &ctx.config[GlowConfigKind::Allies]
