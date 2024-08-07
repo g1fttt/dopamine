@@ -21,8 +21,8 @@ pub extern "thiscall" fn draw_model_execute(
       return original();
     }
 
-    // FIXME: Chams also applies onto world-model weapons (when rendering glow)
-    // FIXME: Player models flicker with single layer that use `cover`
+    // FIXME: If enabled at least one ignore-z layer along with glow,
+    //        then ignore-z chams will be visible even if model not occluded
     app.chams.draw(app.capture_context(&app.config.chams), &original, info);
 
     if !app.chams.applied() {

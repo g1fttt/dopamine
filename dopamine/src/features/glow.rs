@@ -103,8 +103,7 @@ impl Glow<'_> {
   ) {
     render_ctx.push_rt_and_set_viewport(self.rt_glow_buf_1, view.dimensions());
 
-    let orig_color = ctx.interfaces.render_view.color();
-    let orig_alpha = ctx.interfaces.render_view.blend();
+    let orig_color = ctx.interfaces.render_view.color_with_blend();
 
     render_ctx.clear_color_3u8(Color::black());
     ClearBuffersBuilder::default().clear_color(true).clear_depth(false).build_and_clear(render_ctx);
@@ -130,8 +129,7 @@ impl Glow<'_> {
         continue;
       }
 
-      ctx.interfaces.render_view.set_color(&config.color);
-      ctx.interfaces.render_view.set_blend(config.color.a);
+      ctx.interfaces.render_view.set_color_with_blend(&config.color);
 
       entity.renderable().draw_model();
 
@@ -143,10 +141,8 @@ impl Glow<'_> {
       }
     }
 
+    ctx.interfaces.render_view.set_color_with_blend(&orig_color);
     ctx.interfaces.model_render.reset_material();
-
-    ctx.interfaces.render_view.set_color(&orig_color);
-    ctx.interfaces.render_view.set_blend(orig_alpha);
 
     StencilState::default().set(render_ctx);
 

@@ -36,7 +36,7 @@ impl Chams<'_> {
   pub fn draw(
     &mut self,
     ctx: FeatureContext<'_, '_, ChamsGroupConfig>,
-    original_dme: &impl Fn(),
+    draw_model_execute: &impl Fn(),
     info: &ModelRenderInfo,
   ) {
     if ctx.local_player.is_none() {
@@ -49,7 +49,7 @@ impl Chams<'_> {
 
     if model_name.starts_with("models/weapons/v_") {
       self.apply_chams(
-        original_dme,
+        draw_model_execute,
         ctx.interfaces,
         &ctx.config[ChamsConfigKind::Viewmodel].layers,
       );
@@ -60,7 +60,7 @@ impl Chams<'_> {
         && entity.is_player()
         && !entity.networkable().is_dormant()
       {
-        self.apply_player_chams(ctx, original_dme, entity);
+        self.apply_player_chams(ctx, draw_model_execute, entity);
       }
     }
   }
@@ -68,7 +68,7 @@ impl Chams<'_> {
   fn apply_player_chams(
     &mut self,
     ctx: FeatureContext<'_, '_, ChamsGroupConfig>,
-    original_dme: &impl Fn(),
+    draw_model_execute: &impl Fn(),
     player_entity: &Entity,
   ) {
     let config_kind = if unsafe { ctx.local_player() }.team() != player_entity.team() {
@@ -76,12 +76,12 @@ impl Chams<'_> {
     } else {
       ChamsConfigKind::Allies
     };
-    self.apply_chams(original_dme, ctx.interfaces, &ctx.config[config_kind].layers);
+    self.apply_chams(draw_model_execute, ctx.interfaces, &ctx.config[config_kind].layers);
   }
 
   fn apply_chams(
     &mut self,
-    original_dme: &impl Fn(),
+    draw_model_execute: &impl Fn(),
     interfaces: &Interfaces,
     layers: &[ChamsLayerConfig],
   ) {
@@ -90,7 +90,7 @@ impl Chams<'_> {
         continue;
       }
 
-      self.apply_material(original_dme, interfaces, layer);
+      self.apply_material(draw_model_execute, interfaces, layer);
 
       interfaces.model_render.reset_material();
     }
@@ -101,17 +101,17 @@ impl Chams<'_> {
       }
 
       if layer.cover && !self.applied {
-        original_dme();
+        draw_model_execute();
       }
 
-      self.apply_material(original_dme, interfaces, layer);
+      self.apply_material(draw_model_execute, interfaces, layer);
       self.applied = true;
     }
   }
 
   fn apply_material(
     &self,
-    original_dme: &impl Fn(),
+    draw_model_execute: &impl Fn(),
     interfaces: &Interfaces,
     config: &ChamsLayerConfig,
   ) {
@@ -119,11 +119,15 @@ impl Chams<'_> {
     material.set_flag(MaterialFlag::IgnoreZ, config.ignore_z);
     material.set_flag(MaterialFlag::Wireframe, config.wireframe);
 
+    let orig_color = interfaces.render_view.color_with_blend();
+
     let color = &config.material_color;
     interfaces.render_view.set_color(color);
     interfaces.render_view.set_blend(color.a);
 
     interfaces.model_render.override_material(material);
-    original_dme();
+    draw_model_execute();
+
+    interfaces.render_view.set_color_with_blend(&orig_color);
   }
 }
