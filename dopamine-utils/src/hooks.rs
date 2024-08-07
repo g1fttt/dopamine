@@ -45,7 +45,6 @@ impl<F: FnPtr> Hook<F> for TrampolineHook<F> {
     Ok(())
   }
 
-  #[inline]
   unsafe fn remove(&self) -> HookResult<()> {
     MinHook::remove_hook(self.target).map_err(HookError::Trampoline)
   }

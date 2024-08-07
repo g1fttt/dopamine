@@ -9,6 +9,7 @@ use std::path::Path;
 use std::{fs, io};
 
 #[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Config {
   pub misc: MiscGroupConfig,
   pub visuals: VisualsGroupConfig,
@@ -49,6 +50,7 @@ impl Config {
 }
 
 #[derive(Educe, Serialize, Deserialize)]
+#[serde(default)]
 #[educe(Default)]
 pub struct BunnyhopConfig {
   pub enabled: bool,
@@ -57,11 +59,13 @@ pub struct BunnyhopConfig {
 }
 
 #[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct MiscGroupConfig {
   pub bunnyhop: BunnyhopConfig,
 }
 
 #[derive(Educe, Serialize, Deserialize)]
+#[serde(default)]
 #[educe(Default)]
 pub struct NoScopeCrosshairConfig {
   pub enabled: bool,
@@ -74,17 +78,19 @@ pub struct NoScopeCrosshairConfig {
 }
 
 #[derive(Educe, Serialize, Deserialize)]
+#[serde(default)]
 #[educe(Default)]
-pub struct AddFov {
+pub struct AddFovConfig {
   pub enabled: bool,
   #[educe(Default = 10.0)]
   pub amount: f32,
 }
 
 #[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct VisualsGroupConfig {
   pub no_scope_crosshair: NoScopeCrosshairConfig,
-  pub add_fov: AddFov,
+  pub add_fov: AddFovConfig,
 }
 
 #[derive(Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]
@@ -94,6 +100,7 @@ pub enum GlowConfigKind {
 }
 
 #[derive(Educe, Serialize, Deserialize)]
+#[serde(default)]
 #[educe(Default)]
 pub struct GlowConfig {
   pub enabled: bool,
@@ -119,6 +126,7 @@ pub enum ChamsKind {
 }
 
 #[derive(Educe, Serialize, Deserialize)]
+#[serde(default)]
 #[educe(Default)]
 pub struct ChamsLayerConfig {
   pub enabled: bool,
@@ -131,6 +139,7 @@ pub struct ChamsLayerConfig {
 }
 
 #[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct ChamsConfig {
   #[serde(skip)]
   pub current_layer_index: usize,
@@ -140,6 +149,7 @@ pub struct ChamsConfig {
 pub type ChamsGroupConfig = EnumMapConfig<ChamsConfigKind, ChamsConfig>;
 
 #[derive(Educe, Serialize, Deserialize)]
+#[serde(default)]
 #[educe(Default)]
 pub struct EnumMapConfig<K, V>
 where
