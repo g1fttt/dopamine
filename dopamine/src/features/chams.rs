@@ -39,29 +39,20 @@ impl Chams<'_> {
     draw_model_execute: &impl Fn(),
     info: &ModelRenderInfo,
   ) {
-    if ctx.local_player.is_none() {
-      return;
-    }
-
     self.applied = false;
 
-    let model_name = ctx.interfaces.model_info.model_name(info.model);
+    let Some(entity) = ctx.interfaces.entity_list.get_entity_by_index(info.entity_index) else {
+      return;
+    };
 
-    if model_name.starts_with("models/weapons/v_") {
+    if entity.animated().is_viewmodel() {
       self.apply_chams(
         draw_model_execute,
         ctx.interfaces,
         &ctx.config[ChamsConfigKind::Viewmodel].layers,
       );
-    } else {
-      let entity = ctx.interfaces.entity_list.get_entity_by_index(info.entity_index);
-
-      if let Some(entity) = entity
-        && entity.is_player()
-        && !entity.networkable().is_dormant()
-      {
-        self.apply_player_chams(ctx, draw_model_execute, entity);
-      }
+    } else if entity.is_player() && !entity.networkable().is_dormant() {
+      self.apply_player_chams(ctx, draw_model_execute, entity);
     }
   }
 
@@ -71,7 +62,9 @@ impl Chams<'_> {
     draw_model_execute: &impl Fn(),
     player_entity: &Entity,
   ) {
-    let config_kind = if unsafe { ctx.local_player() }.team() != player_entity.team() {
+    let config_kind = if let Some(lp) = ctx.local_player
+      && lp.team() != player_entity.team()
+    {
       ChamsConfigKind::Enemies
     } else {
       ChamsConfigKind::Allies

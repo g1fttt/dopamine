@@ -1,5 +1,5 @@
 use crate::game::client::{Client, ClientMode, EntityList};
-use crate::game::engine::{Engine, ModelInfo, ModelRender};
+use crate::game::engine::{Engine, ModelRender};
 use crate::game::input_system::InputSystem;
 use crate::game::material_system::MaterialSystem;
 use crate::game::render_view::RenderView;
@@ -22,7 +22,6 @@ pub struct Interfaces<'a> {
   pub model_render: &'a ModelRender,
   pub surface: &'a Surface,
   pub input_system: &'a InputSystem,
-  pub model_info: &'a ModelInfo,
   pub studio_render: &'a StudioRender<'a>,
 }
 
@@ -46,7 +45,6 @@ impl Interfaces<'_> {
       model_render: find_interface("engine.dll", "VEngineModel016")?,
       surface: find_interface("vguimatsurface.dll", "VGUI_Surface030")?,
       input_system: find_interface("inputsystem.dll", "InputSystemVersion001")?,
-      model_info: find_interface("engine.dll", "VModelInfoClient006")?,
       studio_render: find_interface("StudioRender.dll", "VStudioRender025")?,
     })
   }

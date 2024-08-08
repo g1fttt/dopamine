@@ -26,6 +26,13 @@ pub enum WeaponId {
 }
 
 #[repr(C)]
+pub struct AnimatedEntity;
+
+impl AnimatedEntity {
+  virtual_method!(pub fn is_viewmodel[199](&self) -> bool);
+}
+
+#[repr(C)]
 pub struct Entity;
 
 impl Entity {
@@ -68,11 +75,16 @@ impl Entity {
 impl Entity {
   virtual_method!(pub fn networkable[4](&self) -> &NetworkableEntity);
   virtual_method!(pub fn renderable[5](&self) -> &RenderableEntity);
+  virtual_method!(pub fn animated[39](&self) -> &AnimatedEntity);
   virtual_method!(pub fn is_player[131](&self) -> bool);
   virtual_method!(pub fn active_weapon[222](&self) -> Option<&Entity>);
-  virtual_method!(fn weapon_id[365](&self) -> WeaponId);
 
   netvar!(pub fn team -> i32 for CBaseEntity->m_iTeamNum);
+}
+
+impl Entity {
+  virtual_method!(fn weapon_id[365](&self) -> WeaponId);
+
   netvar!(fn flags -> i32 for CBasePlayer->m_fFlags);
   netvar!(fn weapon_mode -> i32 for CWeaponCSBase->m_weaponMode);
   netvar!(fn viewmodel_handle -> i32 for CBasePlayer->m_hViewModel[0]);
