@@ -21,4 +21,4 @@ educe = { version = "0.6.0", features = ["Default"] }
 strum = { version = "0.26.3", features = ["derive"] }
 enum-map = { version = "2.7.3", features = ["serde"] }
 fastrand = "2.1.0"
-toml = "0.8.14"
+toml = "0.8.19"

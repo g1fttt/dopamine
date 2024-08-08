@@ -30,9 +30,12 @@ impl Texture {
 }
 
 impl Texture {
+  virtual_method!(pub fn inc_ref_counter[10](&self));
+}
+
+impl Texture {
   virtual_method!(fn actual_width[3](&self) -> i32);
   virtual_method!(fn actual_height[4](&self) -> i32);
-  virtual_method!(pub fn inc_ref_counter[10](&self));
 }
 
 #[repr(C)]
@@ -56,6 +59,10 @@ impl MaterialSystem {
 }
 
 impl MaterialSystem {
+  virtual_method!(pub fn render_ctx[98](&self) -> &RenderContext);
+}
+
+impl MaterialSystem {
   virtual_method!(fn create_material_raw<'a>[70](&self, name: *const c_char, kv: &KeyValues) -> Option<&'a Material>);
   virtual_method!(fn find_texture_raw[79](&self, name: *const c_char, group: *const c_char) -> Option<&Texture> where (true: bool, 0: i32));
   virtual_method!(fn create_named_rt_ex[85](
@@ -64,10 +71,6 @@ impl MaterialSystem {
     width: i32,
     height: i32
   ) -> Option<&Texture> where (1: i32, 0: i32, 1: i32, 0x200C: u32, 1: u32));
-}
-
-impl MaterialSystem {
-  virtual_method!(pub fn render_ctx[98](&self) -> &RenderContext);
 }
 
 #[derive(Default, Clone, Copy)]
@@ -120,19 +123,9 @@ impl RenderContext {
   virtual_method!(fn clear_color_3u8_raw[72](&self, r: u8, g: u8, b: u8));
   virtual_method!(fn override_depth_enable[74](&self, enable: bool, depth_enable: bool));
   virtual_method!(fn draw_screen_space_rect[103](
-    &self,
-    material: &Material,
-    x: i32,
-    y: i32,
-    width: i32,
-    height: i32,
-    texture_x0: f32,
-    texture_y0: f32,
-    texture_x1: f32,
-    texture_y1: f32,
-    texture_width: i32,
-    texture_height: i32
-  ) where (std::ptr::null_mut(): *mut c_void, 1: i32, 1: i32));
+    &self, material: &Material, x: i32, y: i32, width: i32, height: i32,
+    texture_x0: f32, texture_y0: f32, texture_x1: f32, texture_y1: f32,
+    texture_width: i32, texture_height: i32) where (std::ptr::null_mut(): *mut c_void, 1: i32, 1: i32));
   virtual_method!(fn push_rt_and_viewport[107](&self, rt: &Texture));
 }
 

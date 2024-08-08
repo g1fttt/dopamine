@@ -1,9 +1,9 @@
 use crate::game::{Entity, KeyValues};
 
 use dopamine_utils::{get_last_err, pcstr};
-
 use regex::bytes::Regex;
 use regex::Error;
+use windows::core::Result as WindowsResult;
 
 use windows::Win32::System::LibraryLoader::GetModuleHandleA;
 use windows::Win32::System::ProcessStatus::{GetModuleInformation, MODULEINFO};
@@ -31,7 +31,7 @@ impl Patterns {
   }
 
   #[rustfmt::skip]
-  unsafe fn find() -> windows::core::Result<Self> {
+  unsafe fn find() -> WindowsResult<Self> {
     let key_values_new = find_pattern("StudioRender.dll", "55 8B EC 56 8B F1 6A")?;
     let key_values_set_string = find_pattern("client.dll", "55 8B EC 57 6A 01 FF 75 08 E8 ? ? ? ? 8B F8 85 FF 74 60")?;
 
@@ -57,7 +57,7 @@ impl Patterns {
 unsafe impl Send for Patterns {}
 unsafe impl Sync for Patterns {}
 
-unsafe fn find_pattern<T>(module_name: &str, pattern: &str) -> windows::core::Result<T> {
+unsafe fn find_pattern<T>(module_name: &str, pattern: &str) -> WindowsResult<T> {
   let (base, size) = module_data(module_name)?;
   let bytes = slice::from_raw_parts(base, size);
   let offset = regex_from_str(pattern)
@@ -81,7 +81,7 @@ fn regex_from_str(s: &str) -> Result<Regex, Error> {
   Regex::new(&re)
 }
 
-fn module_data(module_name: &str) -> windows::core::Result<(*mut u8, usize)> {
+fn module_data(module_name: &str) -> WindowsResult<(*mut u8, usize)> {
   let module = unsafe { GetModuleHandleA(pcstr!(module_name))? };
 
   let mut module_info = MODULEINFO::default();

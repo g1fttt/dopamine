@@ -26,7 +26,7 @@ impl Config {
   {
     let mut this = Config::default();
     // We defaulted config just now, so it doesn't matter if config file isn't exist
-    this.load_from(path).ok();
+    let _ = this.load_from(path);
     this
   }
 
@@ -34,8 +34,7 @@ impl Config {
   where
     P: AsRef<Path>,
   {
-    let pretty =
-      toml::to_string_pretty(self).expect("Failed to serialize config as pretty TOML string");
+    let pretty = toml::to_string_pretty(self).expect("Failed to serialize config as pretty string");
     fs::write(path, pretty)
   }
 

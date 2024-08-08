@@ -4,9 +4,11 @@ use crate::entities;
 
 use dopamine_sdk::Interfaces;
 use dopamine_utils::Color;
+use educe::Educe;
 
 use dopamine_sdk::game::material_system::*;
 use dopamine_sdk::game::render_view::ViewSetup;
+use dopamine_sdk::game::Entity;
 use dopamine_sdk::game::KeyValues;
 
 pub struct Glow<'a> {
@@ -67,7 +69,6 @@ impl Glow<'_> {
     let kv = KeyValues::new_leaked("BlurFilterY");
     {
       kv.set("$BaseTexture", "_rt_GlowBuf2");
-      kv.set("$BloomAmount", "1");
       kv.set("$IgnoreZ", "1");
       kv.set("$Translucent", "1");
       kv.set("$AlphaTest", "1");
@@ -91,7 +92,7 @@ impl Glow<'_> {
     if should_glow {
       let render_ctx = ctx.interfaces.material_system.render_ctx();
 
-      self.apply_entity_glow_effects(ctx, view, render_ctx);
+      self.apply_glow_effects(ctx, view, render_ctx);
     }
   }
 
@@ -113,32 +114,26 @@ impl Glow<'_> {
     StencilState { test_mask: 0xFF, ..Default::default() }.set(render_ctx);
 
     for entity in entities::players_iter() {
-      if !entity.renderable().should_draw() || entity.networkable().is_dormant() {
+      if !should_draw_model(entity) {
         continue;
       }
 
-      let config = if let Some(lp) = ctx.local_player
+      let config_kind = if let Some(lp) = ctx.local_player
         && lp.team() != entity.team()
       {
-        &ctx.config[GlowConfigKind::Enemies]
+        GlowConfigKind::Enemies
       } else {
-        &ctx.config[GlowConfigKind::Allies]
+        GlowConfigKind::Allies
       };
 
+      let config = &ctx.config[config_kind];
       if !config.enabled {
         continue;
       }
 
       ctx.interfaces.render_view.set_color_with_blend(&config.color);
 
-      entity.renderable().draw_model();
-
-      for attach in entity.attachments().map(|a| a.renderable()) {
-        if !attach.should_draw() {
-          continue;
-        }
-        attach.draw_model();
-      }
+      draw_model(entity);
     }
 
     ctx.interfaces.render_view.set_color_with_blend(&orig_color);
@@ -151,37 +146,33 @@ impl Glow<'_> {
 
   fn blur_glow_effects(&self, view: &ViewSetup, render_ctx: &RenderContext) {
     render_ctx.push_rt_and_set_viewport(self.rt_glow_buf_2, view.dimensions());
-    {
-      let (view_width, view_height) = view.dimensions();
 
-      let blur_screen_space_rect = ScreenSpaceRectBuilder::default()
-        .material(self.glow_blur_x_material)
-        .pos((0, 0))
-        .dimensions(view.dimensions())
-        .texture_x0_y0((0.0, 0.0))
-        .texture_x1_y1((view_width as f32, view_height as f32))
-        .texture_dimensions(view.dimensions());
-      blur_screen_space_rect.clone().build_and_draw(render_ctx);
+    let (view_width, view_height) = view.dimensions();
 
-      render_ctx.set_render_target(self.rt_glow_buf_1);
-      blur_screen_space_rect.material(self.glow_blur_y_material).build_and_draw(render_ctx);
-    }
+    let blur_screen_space_rect = ScreenSpaceRectBuilder::default()
+      .material(self.glow_blur_x_material)
+      .pos((0, 0))
+      .dimensions(view.dimensions())
+      .texture_x0_y0((0.0, 0.0))
+      .texture_x1_y1((view_width as f32, view_height as f32))
+      .texture_dimensions(view.dimensions());
+    blur_screen_space_rect.clone().build_and_draw(render_ctx);
+
+    render_ctx.set_render_target(self.rt_glow_buf_1);
+    blur_screen_space_rect.material(self.glow_blur_y_material).build_and_draw(render_ctx);
+
     render_ctx.pop_rt_and_viewport();
   }
 
-  fn apply_entity_glow_effects(
+  fn apply_glow_effects(
     &self,
     ctx: FeatureContext<'_, '_, GlowGroupConfig>,
     view: &ViewSetup,
     render_ctx: &RenderContext,
   ) {
-    ctx.interfaces.model_render.reset_material();
-
     OverrideDepthBuilder::default().enable(true).build_and_override(render_ctx);
 
-    StencilState::default().set(render_ctx);
-
-    let saved_blend = ctx.interfaces.render_view.blend();
+    let orig_blend = ctx.interfaces.render_view.blend();
     ctx.interfaces.render_view.set_blend(0.0);
 
     StencilState {
@@ -196,18 +187,12 @@ impl Glow<'_> {
     let mut drew_anything = false;
 
     for entity in entities::players_iter() {
-      if !entity.renderable().should_draw() || entity.networkable().is_dormant() {
+      if !should_draw_model(entity) {
         continue;
       }
 
-      entity.renderable().draw_model();
+      draw_model(entity);
 
-      for attach in entity.attachments().map(|a| a.renderable()) {
-        if !attach.should_draw() {
-          continue;
-        }
-        attach.draw_model();
-      }
       drew_anything = true;
     }
 
@@ -215,8 +200,7 @@ impl Glow<'_> {
 
     StencilState::default().set(render_ctx);
 
-    ctx.interfaces.render_view.set_blend(saved_blend);
-    ctx.interfaces.model_render.reset_material();
+    ctx.interfaces.render_view.set_blend(orig_blend);
 
     // https://github.com/ValveSoftware/source-sdk-2013/blob/0d8dceea4310fde5706b3ce1c70609d72a38efdf/sp/src/game/client/glow_outline_effect.cpp#L256-L260
     if !drew_anything {
@@ -255,6 +239,23 @@ impl Glow<'_> {
   }
 }
 
+fn should_draw_model(entity: &Entity) -> bool {
+  entity.renderable().should_draw() && !entity.networkable().is_dormant()
+}
+
+fn draw_model(entity: &Entity) {
+  entity.renderable().draw_model();
+
+  for attach in entity.attachments().map(|a| a.renderable()) {
+    if !attach.should_draw() {
+      continue;
+    }
+    attach.draw_model();
+  }
+}
+
+#[derive(Educe)]
+#[educe(Default)]
 struct StencilState {
   enable: bool,
   fail_op: StencilOp,
@@ -262,7 +263,9 @@ struct StencilState {
   pass_op: StencilOp,
   cmp_fn: StencilCmpFn,
   ref_value: i32,
+  #[educe(Default = u32::MAX)]
   test_mask: u32,
+  #[educe(Default = u32::MAX)]
   write_mask: u32,
 }
 
@@ -276,20 +279,5 @@ impl StencilState {
     render_ctx.set_stencil_ref_value(self.ref_value);
     render_ctx.set_stencil_test_mask(self.test_mask);
     render_ctx.set_stencil_write_mask(self.write_mask);
-  }
-}
-
-impl Default for StencilState {
-  fn default() -> Self {
-    Self {
-      enable: bool::default(),
-      fail_op: StencilOp::default(),
-      z_fail_op: StencilOp::default(),
-      pass_op: StencilOp::default(),
-      cmp_fn: StencilCmpFn::default(),
-      ref_value: i32::default(),
-      test_mask: 0xFFFFFFFF,
-      write_mask: 0xFFFFFFFF,
-    }
   }
 }
