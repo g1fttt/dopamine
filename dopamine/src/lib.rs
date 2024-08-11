@@ -1,5 +1,5 @@
 #![allow(internal_features)]
-#![feature(once_cell_get_mut, let_chains, ptr_as_ref_unchecked, core_intrinsics)]
+#![feature(once_cell_get_mut, let_chains, ptr_as_ref_unchecked, is_none_or, core_intrinsics)]
 
 mod app;
 mod config;

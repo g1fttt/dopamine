@@ -7,6 +7,8 @@ use crate::game::studio_render::StudioRender;
 use crate::game::surface::Surface;
 
 use dopamine_utils::{cstr, ok_or_empty_err, pcstr};
+
+use windows::core::Result as WindowsResult;
 use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
 
 use std::ffi::{c_char, c_void};
@@ -32,7 +34,7 @@ impl Interfaces<'_> {
     &INTERFACES
   }
 
-  fn find() -> windows::core::Result<Self> {
+  fn find() -> WindowsResult<Self> {
     let client = find_interface("client.dll", "VClient017")?;
 
     Ok(Self {
@@ -50,7 +52,7 @@ impl Interfaces<'_> {
   }
 }
 
-fn find_interface<'a, T>(module_name: &str, interface_name: &str) -> windows::core::Result<&'a T> {
+fn find_interface<'a, T>(module_name: &str, interface_name: &str) -> WindowsResult<&'a T> {
   unsafe {
     let module = GetModuleHandleA(pcstr!(module_name))?;
 

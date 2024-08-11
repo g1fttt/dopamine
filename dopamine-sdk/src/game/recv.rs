@@ -1,3 +1,5 @@
+use dopamine_utils::rstr;
+
 use std::ffi::c_char;
 
 #[derive(PartialEq)]
@@ -8,7 +10,7 @@ pub enum SendPropKind {
 
 #[repr(C)]
 pub struct RecvProp<'a> {
-  pub name: *const c_char,
+  name: *const c_char,
   pub kind: SendPropKind,
   pad1: [u8; 29],
   pub table: Option<&'a RecvTable<'a>>,
@@ -16,10 +18,22 @@ pub struct RecvProp<'a> {
   pad2: [u8; 12],
 }
 
+impl RecvProp<'_> {
+  pub fn name(&self) -> &str {
+    rstr!(self.name)
+  }
+}
+
 #[repr(C)]
 pub struct RecvTable<'a> {
   pub props: *const RecvProp<'a>,
   pub len: i32,
   pad: [u8; 4],
-  pub name: *const c_char,
+  name: *const c_char,
+}
+
+impl RecvTable<'_> {
+  pub fn name(&self) -> &str {
+    rstr!(self.name)
+  }
 }

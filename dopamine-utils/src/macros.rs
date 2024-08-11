@@ -26,6 +26,13 @@ macro_rules! cstr {
 }
 
 #[macro_export]
+macro_rules! rstr {
+  ($ptr:expr) => {
+    unsafe { std::ffi::CStr::from_ptr($ptr) }.to_str().unwrap()
+  };
+}
+
+#[macro_export]
 macro_rules! ok_or_empty_err {
   ($x:expr) => {
     $x.ok_or(windows::core::Error::empty())

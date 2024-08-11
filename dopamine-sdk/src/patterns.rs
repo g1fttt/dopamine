@@ -1,10 +1,11 @@
 use crate::game::{Entity, KeyValues};
 
 use dopamine_utils::{get_last_err, pcstr};
+
 use regex::bytes::Regex;
 use regex::Error;
-use windows::core::Result as WindowsResult;
 
+use windows::core::Result as WindowsResult;
 use windows::Win32::System::LibraryLoader::GetModuleHandleA;
 use windows::Win32::System::ProcessStatus::{GetModuleInformation, MODULEINFO};
 use windows::Win32::System::Threading::GetCurrentProcess;

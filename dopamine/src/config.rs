@@ -96,6 +96,7 @@ pub struct VisualsGroupConfig {
 pub enum GlowConfigKind {
   Enemies,
   Allies,
+  Weapons,
 }
 
 #[derive(Educe, Serialize, Deserialize)]

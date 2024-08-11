@@ -3,6 +3,7 @@ pub use minhook::MH_STATUS;
 use crate::get_last_err;
 
 use minhook::MinHook;
+
 use windows::core::{Error as WindowsError, Result as WindowsResult};
 use windows::Win32::System::Memory::{
   VirtualProtect, PAGE_EXECUTE_READWRITE, PAGE_PROTECTION_FLAGS,

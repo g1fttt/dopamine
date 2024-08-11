@@ -5,7 +5,8 @@ mod model_render;
 mod surface;
 mod winapi;
 
-use dopamine_sdk::{Interfaces, Patterns};
+use d3d9::{PresentFn, ResetFn};
+
 use dopamine_utils::hooks::{self, Hook, HookResult, VmtHook};
 use dopamine_utils::pcstr;
 
@@ -14,13 +15,12 @@ use dopamine_sdk::game::engine::{ModelRender, ModelRenderInfo};
 use dopamine_sdk::game::render_view::ViewSetup;
 use dopamine_sdk::game::surface::Surface;
 use dopamine_sdk::game::UserCommand;
+use dopamine_sdk::{Interfaces, Patterns};
 
 use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::WindowsAndMessaging::{
   FindWindowA, SetWindowLongPtrW, GWLP_WNDPROC, WNDPROC,
 };
-
-use d3d9::{PresentFn, ResetFn};
 
 use std::ffi::c_void;
 use std::mem;

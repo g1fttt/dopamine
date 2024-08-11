@@ -147,6 +147,7 @@ dependencies = [
  "dopamine-macros",
  "dopamine-utils",
  "regex",
+ "strum",
  "windows",
 ]
 

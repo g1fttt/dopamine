@@ -3,7 +3,7 @@ pub mod glow;
 pub mod misc;
 pub mod visuals;
 
-use crate::app::App;
+use crate::App;
 
 use dopamine_sdk::game::Entity;
 use dopamine_sdk::Interfaces;

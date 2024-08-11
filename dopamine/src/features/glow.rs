@@ -1,15 +1,14 @@
 use super::FeatureContext;
-use crate::config::{GlowConfigKind, GlowGroupConfig};
+use crate::config::{GlowConfig, GlowConfigKind, GlowGroupConfig};
 use crate::entities;
 
-use dopamine_sdk::Interfaces;
 use dopamine_utils::Color;
 use educe::Educe;
 
 use dopamine_sdk::game::material_system::*;
 use dopamine_sdk::game::render_view::ViewSetup;
-use dopamine_sdk::game::Entity;
-use dopamine_sdk::game::KeyValues;
+use dopamine_sdk::game::{Entity, KeyValues};
+use dopamine_sdk::Interfaces;
 
 pub struct Glow<'a> {
   rt_quarter_size_1: &'a Texture,
@@ -96,7 +95,7 @@ impl Glow<'_> {
     }
   }
 
-  fn draw_glow_models(
+  fn draw_glowing_models(
     &self,
     ctx: FeatureContext<'_, '_, GlowGroupConfig>,
     view: &ViewSetup,
@@ -113,23 +112,15 @@ impl Glow<'_> {
 
     StencilState { test_mask: 0xFF, ..Default::default() }.set(render_ctx);
 
-    for entity in entities::players_iter() {
+    for entity in entities::iter() {
       if !should_draw_model(entity) {
         continue;
       }
 
-      let config_kind = if let Some(lp) = ctx.local_player
-        && lp.team() != entity.team()
-      {
-        GlowConfigKind::Enemies
-      } else {
-        GlowConfigKind::Allies
+      let config = match determine_config(&ctx, entity) {
+        Some(cfg) if cfg.enabled => cfg,
+        Some(_) | None => continue,
       };
-
-      let config = &ctx.config[config_kind];
-      if !config.enabled {
-        continue;
-      }
 
       ctx.interfaces.render_view.set_color_with_blend(&config.color);
 
@@ -186,8 +177,13 @@ impl Glow<'_> {
 
     let mut drew_anything = false;
 
-    for entity in entities::players_iter() {
+    for entity in entities::iter() {
       if !should_draw_model(entity) {
+        continue;
+      }
+
+      let config = determine_config(&ctx, entity);
+      if config.is_none_or(|cfg| !cfg.enabled) {
         continue;
       }
 
@@ -207,7 +203,7 @@ impl Glow<'_> {
       return;
     }
 
-    self.draw_glow_models(ctx, view, render_ctx);
+    self.draw_glowing_models(ctx, view, render_ctx);
     self.blur_glow_effects(view, render_ctx);
 
     StencilState {
@@ -252,6 +248,26 @@ fn draw_model(entity: &Entity) {
     }
     attach.draw_model();
   }
+}
+
+fn determine_config<'config>(
+  ctx: &FeatureContext<'config, '_, GlowGroupConfig>,
+  entity: &Entity,
+) -> Option<&'config GlowConfig> {
+  let config_kind = if entity.is_player() {
+    if let Some(lp) = ctx.local_player
+      && lp.team() != entity.team()
+    {
+      GlowConfigKind::Enemies
+    } else {
+      GlowConfigKind::Allies
+    }
+  } else if entity.is_weapon() && entity.owner_handle() == u16::MAX {
+    GlowConfigKind::Weapons
+  } else {
+    return None;
+  };
+  Some(&ctx.config[config_kind])
 }
 
 #[derive(Educe)]

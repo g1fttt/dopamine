@@ -1,9 +1,8 @@
-use crate::interfaces::Interfaces;
-use crate::patterns::Patterns;
+use super::{ClientClass, WeaponClassId};
+use crate::{Interfaces, Patterns};
 
 use dopamine_macros::{netvar, virtual_method};
 
-#[allow(dead_code)]
 #[repr(C)]
 pub struct UserCommand {
   pad: [u8; 36],
@@ -14,7 +13,6 @@ impl UserCommand {
   pub const IN_JUMP: i32 = 1 << 1;
 }
 
-#[allow(dead_code)]
 #[repr(C)]
 pub enum WeaponId {
   Scout = 3,
@@ -70,6 +68,10 @@ impl Entity {
                                                           //
                                                           // enum with #[repr(C)] leading to crash
   }
+
+  pub fn is_weapon(&self) -> bool {
+    WeaponClassId::from_repr(self.networkable().client_class().id as usize).is_some()
+  }
 }
 
 impl Entity {
@@ -80,6 +82,7 @@ impl Entity {
   virtual_method!(pub fn active_weapon[222](&self) -> Option<&Entity>);
 
   netvar!(pub fn team -> i32 for CBaseEntity->m_iTeamNum);
+  netvar!(pub fn owner_handle -> u16 for CBaseCombatWeapon->m_hOwner);
 }
 
 impl Entity {
@@ -87,7 +90,6 @@ impl Entity {
 
   netvar!(fn flags -> i32 for CBasePlayer->m_fFlags);
   netvar!(fn weapon_mode -> i32 for CWeaponCSBase->m_weaponMode);
-  netvar!(fn viewmodel_handle -> i32 for CBasePlayer->m_hViewModel[0]);
 }
 
 impl Entity {
@@ -107,6 +109,7 @@ pub struct NetworkableEntity;
 
 impl NetworkableEntity {
   virtual_method!(pub fn is_dormant[8](&self) -> bool);
+  virtual_method!(pub fn client_class[2](&self) -> &ClientClass);
 }
 
 #[repr(C)]
