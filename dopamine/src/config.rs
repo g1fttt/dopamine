@@ -1,3 +1,4 @@
+use dopamine_math::Vector;
 use dopamine_utils::Color;
 use educe::Educe;
 use enum_map::{Enum, EnumArray, EnumMap};
@@ -87,9 +88,18 @@ pub struct AddFovConfig {
 
 #[derive(Default, Serialize, Deserialize)]
 #[serde(default)]
+pub struct ViewmodelOriginConfig {
+  pub enabled: bool,
+  #[serde(flatten)]
+  pub origin: Vector,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct VisualsGroupConfig {
   pub no_scope_crosshair: NoScopeCrosshairConfig,
   pub add_fov: AddFovConfig,
+  pub viewmodel_origin: ViewmodelOriginConfig,
 }
 
 #[derive(Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]

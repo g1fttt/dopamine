@@ -1,5 +1,5 @@
 #![allow(clippy::missing_safety_doc)] // FIXME
-#![feature(fn_ptr_trait, stmt_expr_attributes)]
+#![feature(fn_ptr_trait)]
 
 mod color;
 pub mod hooks;

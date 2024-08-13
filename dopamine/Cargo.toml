@@ -14,6 +14,7 @@ strum = { workspace = true }
 
 dopamine-sdk = { path = "../dopamine-sdk" }
 dopamine-utils = { path = "../dopamine-utils" }
+dopamine-math = { path = "../dopamine-math" }
 
 imgui-dx9-renderer = { path = "../imgui-dx9-renderer" }
 imgui-win32-support = { path = "../imgui-win32-support" }

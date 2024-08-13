@@ -30,6 +30,7 @@ pub type PresentFn = extern "stdcall" fn(
   Option<&RGNDATA>,
 ) -> HRESULT;
 
+// NOTE: Sometimes the game would crash on fullscreen switching
 pub extern "stdcall" fn present(
   device: IDirect3DDevice9,
   src: Option<&RECT>,

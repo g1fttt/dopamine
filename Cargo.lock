@@ -117,6 +117,7 @@ dependencies = [
 name = "dopamine"
 version = "0.1.0"
 dependencies = [
+ "dopamine-math",
  "dopamine-sdk",
  "dopamine-utils",
  "educe",
@@ -137,6 +138,13 @@ version = "0.1.0"
 dependencies = [
  "quote",
  "syn",
+]
+
+[[package]]
+name = "dopamine-math"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]

@@ -263,6 +263,7 @@ fn determine_config<'config>(
       GlowConfigKind::Allies
     }
   } else if entity.is_weapon() && entity.owner_handle() == u16::MAX {
+    // u16::MAX means that weapon doesn't have any owners
     GlowConfigKind::Weapons
   } else {
     return None;

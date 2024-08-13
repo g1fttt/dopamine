@@ -100,9 +100,17 @@ impl Menu {
 
         ui.separator();
 
-        ui.checkbox("Add Fov", &mut config.add_fov.enabled);
+        ui.checkbox("Add FOV", &mut config.add_fov.enabled);
         ui.same_line();
         ui.slider("Amount", -50.0, 50.0, &mut config.add_fov.amount);
+
+        ui.separator();
+
+        // TODO: Curve editor
+        ui.checkbox("Viewmodel origin", &mut config.viewmodel_origin.enabled);
+        ui.slider("X", -5.0, 5.0, &mut config.viewmodel_origin.origin.x);
+        ui.slider("Y", -5.0, 5.0, &mut config.viewmodel_origin.origin.y);
+        ui.slider("Z", -5.0, 5.0, &mut config.viewmodel_origin.origin.z);
       });
   }
 

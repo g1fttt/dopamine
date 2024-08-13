@@ -3,18 +3,20 @@ mod client_mode;
 mod d3d9;
 mod model_render;
 mod surface;
+mod viewmodel;
 mod winapi;
 
 use d3d9::{PresentFn, ResetFn};
 
-use dopamine_utils::hooks::{self, Hook, HookResult, VmtHook};
+use dopamine_math::{Angles, Vector};
+use dopamine_utils::hooks::{self, Hook, HookResult, TrampolineHook, VmtHook};
 use dopamine_utils::pcstr;
 
 use dopamine_sdk::game::client::{Client, ClientMode};
 use dopamine_sdk::game::engine::{ModelRender, ModelRenderInfo};
 use dopamine_sdk::game::render_view::ViewSetup;
 use dopamine_sdk::game::surface::Surface;
-use dopamine_sdk::game::UserCommand;
+use dopamine_sdk::game::{Entity, UserCommand};
 use dopamine_sdk::{Interfaces, Patterns};
 
 use windows::Win32::Foundation::HWND;
@@ -42,6 +44,9 @@ pub struct Hooks {
 
   pub(self) is_cursor_visible: VmtHook<extern "thiscall" fn(&Surface) -> bool>,
   pub(self) lock_cursor: VmtHook<extern "thiscall" fn(&Surface)>,
+
+  pub(self) calc_viewmodel_view:
+    TrampolineHook<extern "thiscall" fn(&Entity, &Entity, &Vector, &Angles)>,
 
   reset_raw: *mut c_void,
   present_raw: *mut c_void,
@@ -75,6 +80,8 @@ impl Hooks {
       is_cursor_visible: VmtHook::new(interfaces.surface, 53),
       lock_cursor: VmtHook::new(interfaces.surface, 62),
 
+      calc_viewmodel_view: TrampolineHook::new(patterns.calc_viewmodel_view),
+
       reset_raw: patterns.d3d9_reset,
       present_raw: patterns.d3d9_present,
       reset,
@@ -103,6 +110,8 @@ impl Hooks {
     self.is_cursor_visible.detour_to(surface::is_cursor_visible)?;
     self.lock_cursor.detour_to(surface::lock_cursor)?;
 
+    self.calc_viewmodel_view.detour_to(viewmodel::calc_viewmodel_view)?;
+
     hooks::enable_all_hooks()?;
 
     **self.reset_raw.cast::<*mut ResetFn>() = d3d9::reset;
@@ -128,6 +137,8 @@ impl Hooks {
 
     self.is_cursor_visible.remove()?;
     self.lock_cursor.remove()?;
+
+    self.calc_viewmodel_view.remove()?;
 
     SetWindowLongPtrW(self.window, GWLP_WNDPROC, mem::transmute::<WNDPROC, i32>(self.wnd_proc));
 

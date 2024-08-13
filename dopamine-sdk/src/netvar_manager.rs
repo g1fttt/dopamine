@@ -10,7 +10,7 @@ pub struct NetvarManager<'a> {
   pub offsets: Offsets<'a>,
 }
 
-impl<'a> NetvarManager<'a> {
+impl NetvarManager<'_> {
   pub fn get() -> &'static Self {
     static NETVAR_MANAGER: LazyLock<NetvarManager> = LazyLock::new(NetvarManager::precache);
     &NETVAR_MANAGER
@@ -44,6 +44,6 @@ fn walk_table<'a>(offsets: &mut Offsets<'a>, class_name: &'a str, table: &'a Rec
     {
       walk_table(offsets, class_name, t);
     }
-    offsets.insert((class_name, prop.name()), prop.offset as usize);
+    offsets.insert((class_name, prop_name), prop.offset as usize);
   }
 }

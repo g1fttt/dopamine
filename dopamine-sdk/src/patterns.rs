@@ -20,6 +20,8 @@ pub struct Patterns {
 
   pub is_local_player: extern "thiscall" fn(&Entity) -> bool,
 
+  pub calc_viewmodel_view: *mut c_void,
+
   pub d3d9_reset: *mut c_void,
   pub d3d9_present: *mut c_void,
 }
@@ -38,6 +40,8 @@ impl Patterns {
 
     let is_local_player = find_pattern("client.dll", "33 C0 39 0D ? ? ? ? 0F")?;
 
+    let calc_viewmodel_view = find_pattern("client.dll", "55 8B EC 83 EC ? 8B 55 ? 56 57 8B F9 8B 4D")?;
+
     let d3d9_reset = find_pattern::<*mut c_void>("GameOverlayRenderer.dll", "A1 ? ? ? ? 57 53 C7 45 FC 00 00 00 00")?
       .byte_add(1);
     let d3d9_present = find_pattern::<*mut c_void>("GameOverlayRenderer.dll", "A1 ? ? ? ? 51 FF 75 14")?
@@ -48,6 +52,8 @@ impl Patterns {
       key_values_set_string,
 
       is_local_player,
+
+      calc_viewmodel_view,
 
       d3d9_reset,
       d3d9_present,

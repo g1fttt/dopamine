@@ -1,6 +1,7 @@
 use super::FeatureContext;
-use crate::config::{AddFovConfig, NoScopeCrosshairConfig};
+use crate::config::{AddFovConfig, NoScopeCrosshairConfig, ViewmodelOriginConfig};
 
+use dopamine_math::{Angles, Vector};
 use imgui::{DrawListMut, ImColor32, Io};
 
 use dopamine_sdk::game::render_view::ViewSetup;
@@ -61,4 +62,23 @@ pub fn add_fov(config: &AddFovConfig, view: &mut ViewSetup) {
   if config.enabled {
     view.fov += config.amount;
   }
+}
+
+pub fn calc_viewmodel_origin(
+  config: &ViewmodelOriginConfig,
+  eye_origin: &Vector,
+  eye_angles: &Angles,
+) -> Option<Vector> {
+  if !config.enabled {
+    return None;
+  }
+
+  let forward = eye_angles.forward_vector();
+  let up = eye_angles.up_vector();
+  let ortho = forward.cross_product(&up);
+
+  let new_eye_origin =
+    eye_origin + (ortho * config.origin.x + forward * config.origin.y + up * config.origin.z);
+
+  Some(new_eye_origin)
 }
