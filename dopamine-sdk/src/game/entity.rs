@@ -31,7 +31,11 @@ impl AnimatedEntity {
 }
 
 #[repr(C)]
-pub struct Entity;
+pub struct Entity {
+  pad: [u8; 0x184],
+  move_child_handle: i32,
+  move_peer_handle: i32,
+}
 
 impl Entity {
   const ON_GROUND: i32 = 1 << 0;
@@ -94,13 +98,11 @@ impl Entity {
 
 impl Entity {
   fn move_child(&self) -> Option<&Self> {
-    let handle = unsafe { *(self as *const Self).byte_add(0x184).cast::<i32>() };
-    Interfaces::get().entity_list.get_entity_from_handle(handle)
+    Interfaces::get().entity_list.get_entity_from_handle(self.move_child_handle)
   }
 
   fn move_peer(&self) -> Option<&Self> {
-    let handle = unsafe { *(self as *const Self).byte_add(0x188).cast::<i32>() };
-    Interfaces::get().entity_list.get_entity_from_handle(handle)
+    Interfaces::get().entity_list.get_entity_from_handle(self.move_peer_handle)
   }
 }
 

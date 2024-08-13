@@ -6,11 +6,9 @@ use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Direct3D9::IDirect3DDevice9;
 
 use std::cell::{OnceCell, UnsafeCell};
-use std::mem;
 
 static mut IMGUI_CONTEXT: OnceCell<ImGuiContext> = OnceCell::new();
 
-// TODO: Deinitialization upon unloading
 pub struct ImGuiContext<'a> {
   ctx: Context,
   renderer: Renderer,
@@ -26,6 +24,11 @@ impl ImGuiContext<'_> {
   #[inline]
   pub fn get_mut() -> Option<&'static mut Self> {
     unsafe { IMGUI_CONTEXT.get_mut() }
+  }
+
+  #[inline]
+  pub fn destroy() {
+    unsafe { IMGUI_CONTEXT.take() };
   }
 
   fn new(device: IDirect3DDevice9, hwnd: HWND) -> Self {
@@ -47,12 +50,12 @@ impl ImGuiContext<'_> {
 
   pub fn new_frame(&mut self) -> &mut Ui {
     let ui = self.ctx.new_frame();
-    self.ui.replace(unsafe { mem::transmute_copy(&ui) });
+    self.ui.replace(unsafe { std::mem::transmute_copy(&ui) });
     ui
   }
 
   pub fn reset(&mut self, device: IDirect3DDevice9) {
-    self.renderer = unsafe { Renderer::new(&mut self.ctx, device).unwrap() };
+    self.renderer = unsafe { Renderer::new(&mut self.ctx, device) }.unwrap();
   }
 
   #[inline]

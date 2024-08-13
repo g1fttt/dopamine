@@ -1,7 +1,7 @@
 use crate::config::Config;
 use crate::features::FeatureContext;
 use crate::hooks::Hooks;
-use crate::ui::Menu;
+use crate::ui::{ImGuiContext, Menu};
 
 use crate::features::chams::Chams;
 use crate::features::glow::Glow;
@@ -53,6 +53,8 @@ impl App {
   pub unsafe fn unload(&mut self) -> windows::core::Result<()> {
     unsafe extern "system" fn free_library(app: *mut c_void) -> u32 {
       Beep(1500, 200).expect("Failed to make beep sound upon unhooking");
+
+      ImGuiContext::destroy();
 
       Interfaces::get().input_system.enable_input(true);
 
