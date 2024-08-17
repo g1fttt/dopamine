@@ -1,18 +1,14 @@
 use crate::game::{Entity, KeyValues};
 
-use dopamine_utils::{get_last_err, pcstr};
+use dopamine_utils::pcstr;
 
-use regex::bytes::Regex;
-use regex::Error;
-
-use windows::core::Result as WindowsResult;
+use windows::core::{Error as WindowsError, Result as WindowsResult};
 use windows::Win32::System::LibraryLoader::GetModuleHandleA;
 use windows::Win32::System::ProcessStatus::{GetModuleInformation, MODULEINFO};
 use windows::Win32::System::Threading::GetCurrentProcess;
 
 use std::ffi::{c_char, c_void};
 use std::sync::LazyLock;
-use std::{mem, slice};
 
 pub struct Patterns {
   pub key_values_new: extern "thiscall" fn(*mut KeyValues, shader: *const c_char) -> *mut KeyValues,
@@ -35,18 +31,18 @@ impl Patterns {
 
   #[rustfmt::skip]
   unsafe fn find() -> WindowsResult<Self> {
-    let key_values_new = find_pattern("StudioRender.dll", "55 8B EC 56 8B F1 6A")?;
-    let key_values_set_string = find_pattern("client.dll", "55 8B EC 57 6A 01 FF 75 08 E8 ? ? ? ? 8B F8 85 FF 74 60")?;
+    let key_values_new = find_pattern("StudioRender.dll", b"\x55\x8B\xEC\x56\x8B\xF1\x6A")?;
+    let key_values_set_string = find_pattern("client.dll", b"\x55\x8B\xEC\x57\x6A\x01\xFF\x75\x08\xE8????\x8B\xF8\x85\xFF\x74\x60")?;
 
-    let is_local_player = find_pattern("client.dll", "33 C0 39 0D ? ? ? ? 0F")?;
+    let is_local_player = find_pattern("client.dll", b"\x33\xC0\x39\x0D????\x0F")?;
 
-    let calc_viewmodel_view = find_pattern("client.dll", "55 8B EC 83 EC ? 8B 55 ? 56 57 8B F9 8B 4D")?;
+    let calc_viewmodel_view = find_pattern("client.dll", b"\x55\x8B\xEC\x83\xEC?\x8B\x55?\x56\x57\x8B\xF9\x8B\x4D")?;
 
-    let d3d9_reset = find_pattern::<*mut c_void>("GameOverlayRenderer.dll", "A1 ? ? ? ? 57 53 C7 45 FC 00 00 00 00")?
+    let d3d9_reset = find_pattern::<*mut c_void>("GameOverlayRenderer.dll", b"\xA1????\x57\x53\xC7\x45\xFC\x00\x00\x00\x00")?
       .byte_add(1);
-    let d3d9_present = find_pattern::<*mut c_void>("GameOverlayRenderer.dll", "A1 ? ? ? ? 51 FF 75 14")?
+    let d3d9_present = find_pattern::<*mut c_void>("GameOverlayRenderer.dll", b"\xA1????\x51\xFF\x75\x14")?
       .byte_add(1);
-
+  
     Ok(Self {
       key_values_new,
       key_values_set_string,
@@ -64,28 +60,44 @@ impl Patterns {
 unsafe impl Send for Patterns {}
 unsafe impl Sync for Patterns {}
 
-unsafe fn find_pattern<T>(module_name: &str, pattern: &str) -> WindowsResult<T> {
-  let (base, size) = module_data(module_name)?;
-  let bytes = slice::from_raw_parts(base, size);
-  let offset = regex_from_str(pattern)
-    .ok()
-    .and_then(|re| re.find(bytes))
-    .map(|mat| mat.start())
-    .ok_or(get_last_err!())?;
-  Ok(mem::transmute_copy(&&*base.byte_add(offset)))
+fn gen_bad_char_table(pattern: &[u8]) -> [usize; 256] {
+  let last_wildcard = pattern.iter().rposition(|&b| b == b'?').unwrap_or(0);
+  let default_shift = 1.max(pattern.len() - 1 - last_wildcard);
+
+  let mut table = [default_shift; _];
+  for i in last_wildcard..pattern.len() - 1 {
+    table[pattern[i] as usize] = pattern.len() - 1 - i;
+  }
+  table
 }
 
-fn regex_from_str(s: &str) -> Result<Regex, Error> {
-  let mut re = s
-    .split_whitespace()
-    .map(|b| match b {
-      "?" => ".".to_owned(),
-      b => format!("\\x{}", b),
-    })
-    .collect::<Vec<_>>()
-    .join("");
-  re.insert_str(0, "(?s-u)");
-  Regex::new(&re)
+fn find_pattern<T>(module_name: &str, pattern: &[u8]) -> WindowsResult<T> {
+  let (module_base, module_size) = module_data(module_name)?;
+
+  let last_index = pattern.len() - 1;
+  let bad_char_table = gen_bad_char_table(pattern);
+
+  let mut start = module_base.cast_const();
+  let end = unsafe { start.add(module_size).sub(pattern.len()) };
+
+  while start <= end {
+    let mut i = last_index as isize;    
+    while i >= 0
+      && (pattern[i as usize] == b'?' || unsafe { *start.add(i as usize) } == pattern[i as usize])
+    {
+      i -= 1;
+    }
+
+    if i < 0 {
+      return Ok(unsafe { std::mem::transmute_copy(&&*start) });
+    }
+
+    unsafe {
+      let char_index = *start.add(last_index) as usize;
+      start = start.add(bad_char_table[char_index]);
+    }
+  }
+  Err(WindowsError::empty())
 }
 
 fn module_data(module_name: &str) -> WindowsResult<(*mut u8, usize)> {

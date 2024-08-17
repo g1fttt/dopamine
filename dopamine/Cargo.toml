@@ -7,17 +7,17 @@ edition.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
-windows = { workspace = true }
-imgui = { workspace = true }
-serde = { workspace = true }
-strum = { workspace = true }
+windows.workspace = true
+imgui.workspace = true
+serde.workspace = true
+strum.workspace = true
 
-dopamine-sdk = { path = "../dopamine-sdk" }
-dopamine-utils = { path = "../dopamine-utils" }
-dopamine-math = { path = "../dopamine-math" }
+dopamine-sdk.path = "../dopamine-sdk"
+dopamine-utils.path = "../dopamine-utils"
+dopamine-math.path = "../dopamine-math"
 
-imgui-dx9-renderer = { path = "../imgui-dx9-renderer" }
-imgui-win32-support = { path = "../imgui-win32-support" }
+imgui-dx9-renderer.path = "../imgui-dx9-renderer"
+imgui-win32-support.path = "../imgui-win32-support"
 
 educe = { version = "0.6.0", features = ["Default"] }
 enum-map = { version = "2.7.3", features = ["serde"] }

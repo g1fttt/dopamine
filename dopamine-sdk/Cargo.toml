@@ -4,11 +4,10 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-windows = { workspace = true }
-strum = { workspace = true }
+windows.workspace = true
+strum.workspace = true
 
-dopamine-macros = { path = "../dopamine-macros" }
-dopamine-utils = { path = "../dopamine-utils" }
+dopamine-macros.path = "../dopamine-macros"
+dopamine-utils.path = "../dopamine-utils"
 
-regex = "1.10.5"
 derive_builder = "0.20.0"

@@ -54,7 +54,9 @@ impl Entity {
   pub fn attachments(&self) -> EntityAttachmentIterator {
     EntityAttachmentIterator::new(self)
   }
+}
 
+impl Entity {
   pub fn is_sniper_rifle(&self) -> bool {
     use WeaponId::*;
 
@@ -79,6 +81,8 @@ impl Entity {
 }
 
 impl Entity {
+  pub const INVALID_HANDLE: i32 = u16::MAX as i32;
+
   virtual_method!(pub fn networkable[4](&self) -> &NetworkableEntity);
   virtual_method!(pub fn renderable[5](&self) -> &RenderableEntity);
   virtual_method!(pub fn animated[39](&self) -> &AnimatedEntity);
@@ -86,7 +90,7 @@ impl Entity {
   virtual_method!(pub fn active_weapon[222](&self) -> Option<&Entity>);
 
   netvar!(pub fn team -> i32 for CBaseEntity->m_iTeamNum);
-  netvar!(pub fn owner_handle -> u16 for CBaseCombatWeapon->m_hOwner);
+  netvar!(pub fn owner_handle -> i32 for CBaseCombatWeapon->m_hOwner);
 }
 
 impl Entity {
@@ -97,10 +101,12 @@ impl Entity {
 }
 
 impl Entity {
+  #[inline]
   fn move_child(&self) -> Option<&Self> {
     Interfaces::get().entity_list.get_entity_from_handle(self.move_child_handle)
   }
 
+  #[inline]
   fn move_peer(&self) -> Option<&Self> {
     Interfaces::get().entity_list.get_entity_from_handle(self.move_peer_handle)
   }

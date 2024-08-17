@@ -14,7 +14,7 @@ enum ColorMode {
 
 /// Holds 4 components with type `T`. Each component represents one color attribute.
 ///
-/// Supports serializing and deserializing using crate-`serde`.
+/// Supports serializing and deserializing using `serde`.
 /// Has C-compatible memory layout.
 #[derive(Clone, Serialize, Deserialize)]
 #[repr(C)]
@@ -64,6 +64,13 @@ impl<T: NumCast + Clone + Copy> Color<T> {
   #[inline]
   pub fn as_mut_array(&mut self) -> &mut [T; 4] {
     unsafe { mem::transmute(self) }
+  }
+}
+
+impl<T: NumCast + Clone + Copy> Default for Color<T> {
+  #[inline(always)]
+  fn default() -> Self {
+    Self::white()
   }
 }
 

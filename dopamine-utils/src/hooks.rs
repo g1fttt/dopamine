@@ -1,7 +1,5 @@
 pub use minhook::MH_STATUS;
 
-use crate::get_last_err;
-
 use minhook::MinHook;
 
 use windows::core::{Error as WindowsError, Result as WindowsResult};
@@ -74,7 +72,7 @@ impl<F: FnPtr> VmtHook<F> {
       *self.ptr_to_target = mem::transmute_copy(&callback);
       VirtualProtect(self.ptr_to_target as _, size_of::<usize>(), old, ptr::null_mut())
     } else {
-      Err(get_last_err!())
+      Err(WindowsError::from_win32())
     }
   }
 }

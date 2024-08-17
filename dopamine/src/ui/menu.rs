@@ -1,11 +1,14 @@
-use crate::config::*;
+use crate::config::Config;
+
+use crate::features::chams::{ChamsConfig, ChamsConfigKind, ChamsMaterialKind};
+use crate::features::glow::{GlowConfig, GlowConfigKind};
+use crate::features::misc::MiscConfig;
+use crate::features::visuals::VisualsConfig;
 
 use dopamine_sdk::game::input_system::InputSystem;
 use imgui::{ColorEditFlags, Io, Ui, WindowFlags};
 use strum::VariantNames;
 use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
-
-use std::mem;
 
 #[derive(Default)]
 struct ShouldDrawWindow {
@@ -67,7 +70,7 @@ impl Menu {
     }
   }
 
-  fn render_misc_window(&mut self, ui: &mut Ui, config: &mut MiscGroupConfig) {
+  fn render_misc_window(&mut self, ui: &mut Ui, config: &mut MiscConfig) {
     if !self.should_draw_window.misc {
       return;
     }
@@ -81,7 +84,7 @@ impl Menu {
     );
   }
 
-  fn render_visuals_window(&mut self, ui: &mut Ui, config: &mut VisualsGroupConfig) {
+  fn render_visuals_window(&mut self, ui: &mut Ui, config: &mut VisualsConfig) {
     if !self.should_draw_window.visuals {
       return;
     }
@@ -114,7 +117,7 @@ impl Menu {
       });
   }
 
-  fn render_glow_window(&mut self, ui: &mut Ui, config: &mut GlowGroupConfig) {
+  fn render_glow_window(&mut self, ui: &mut Ui, config: &mut GlowConfig) {
     if !self.should_draw_window.glow {
       return;
     }
@@ -141,7 +144,7 @@ impl Menu {
     );
   }
 
-  fn render_chams_window(&mut self, ui: &mut Ui, config: &mut ChamsGroupConfig) {
+  fn render_chams_window(&mut self, ui: &mut Ui, config: &mut ChamsConfig) {
     if !self.should_draw_window.chams {
       return;
     }
@@ -190,8 +193,12 @@ impl Menu {
         ui.checkbox("Wireframe", &mut current_layer.wireframe);
         ui.combo_simple_string(
           "Material",
-          unsafe { mem::transmute::<&mut ChamsKind, &mut usize>(&mut current_layer.material_kind) },
-          ChamsKind::VARIANTS,
+          unsafe {
+            std::mem::transmute::<&mut ChamsMaterialKind, &mut usize>(
+              &mut current_layer.material_kind,
+            )
+          },
+          ChamsMaterialKind::VARIANTS,
         );
       });
   }

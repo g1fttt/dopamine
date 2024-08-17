@@ -1,11 +1,13 @@
 use super::FeatureContext;
-use crate::config::{AddFovConfig, NoScopeCrosshairConfig, ViewmodelOriginConfig};
 
 use dopamine_math::{Angles, Vector};
+use dopamine_utils::Color;
+use educe::Educe;
 use imgui::{DrawListMut, ImColor32, Io};
 
 use dopamine_sdk::game::render_view::ViewSetup;
 use dopamine_sdk::game::Entity;
+use serde::{Deserialize, Serialize};
 
 pub fn draw_no_scope_crosshair(
   ctx: FeatureContext<'_, '_, NoScopeCrosshairConfig>,
@@ -81,4 +83,41 @@ pub fn calc_viewmodel_origin(
     eye_origin + (ortho * config.origin.x + forward * config.origin.y + up * config.origin.z);
 
   Some(new_eye_origin)
+}
+
+#[derive(Educe, Serialize, Deserialize)]
+#[serde(default)]
+#[educe(Default)]
+pub struct NoScopeCrosshairConfig {
+  pub enabled: bool,
+  #[educe(Default = 5.0)]
+  pub size: f32,
+  #[educe(Default = 1.0)]
+  pub thickness: f32,
+  pub color: Color,
+}
+
+#[derive(Educe, Serialize, Deserialize)]
+#[serde(default)]
+#[educe(Default)]
+pub struct AddFovConfig {
+  pub enabled: bool,
+  #[educe(Default = 10.0)]
+  pub amount: f32,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ViewmodelOriginConfig {
+  pub enabled: bool,
+  #[serde(flatten)]
+  pub origin: Vector,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct VisualsConfig {
+  pub no_scope_crosshair: NoScopeCrosshairConfig,
+  pub add_fov: AddFovConfig,
+  pub viewmodel_origin: ViewmodelOriginConfig,
 }

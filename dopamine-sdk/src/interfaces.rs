@@ -6,9 +6,9 @@ use crate::game::render_view::RenderView;
 use crate::game::studio_render::StudioRender;
 use crate::game::surface::Surface;
 
-use dopamine_utils::{cstr, ok_or_empty_err, pcstr};
+use dopamine_utils::{cstr, pcstr};
 
-use windows::core::Result as WindowsResult;
+use windows::core::{Error as WindowsError, Result as WindowsResult};
 use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
 
 use std::ffi::{c_char, c_void};
@@ -39,7 +39,7 @@ impl Interfaces<'_> {
 
     Ok(Self {
       client,
-      client_mode: ok_or_empty_err!(unsafe { client_mode_from_client(client) })?,
+      client_mode: unsafe { client_mode_from_client(client) }.ok_or(WindowsError::empty())?,
       entity_list: find_interface("client.dll", "VClientEntityList003")?,
       engine: find_interface("engine.dll", "VEngineClient013")?,
       render_view: find_interface("engine.dll", "VEngineRenderView014")?,
@@ -60,7 +60,9 @@ fn find_interface<'a, T>(module_name: &str, interface_name: &str) -> WindowsResu
     let create_interface: extern "C" fn(*const c_char, *mut i32) -> *mut T =
       std::mem::transmute(create_interface);
 
-    ok_or_empty_err!(create_interface(cstr!(interface_name), std::ptr::null_mut()).as_ref())
+    create_interface(cstr!(interface_name), std::ptr::null_mut())
+      .as_ref()
+      .ok_or(WindowsError::empty())
   }
 }
 

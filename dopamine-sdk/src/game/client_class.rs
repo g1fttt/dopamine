@@ -15,6 +15,7 @@ pub struct ClientClass<'a> {
 }
 
 impl ClientClass<'_> {
+  #[inline]
   pub fn name(&self) -> &str {
     rstr!(self.name)
   }

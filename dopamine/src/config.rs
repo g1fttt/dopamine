@@ -1,9 +1,11 @@
-use dopamine_math::Vector;
-use dopamine_utils::Color;
+use crate::features::chams::ChamsConfig;
+use crate::features::glow::GlowConfig;
+use crate::features::misc::MiscConfig;
+use crate::features::visuals::VisualsConfig;
+
 use educe::Educe;
-use enum_map::{Enum, EnumArray, EnumMap};
+use enum_map::{EnumArray, EnumMap};
 use serde::{Deserialize, Serialize};
-use strum::VariantNames;
 
 use std::ops::{Deref, DerefMut};
 use std::path::Path;
@@ -12,10 +14,10 @@ use std::{fs, io};
 #[derive(Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Config {
-  pub misc: MiscGroupConfig,
-  pub visuals: VisualsGroupConfig,
-  pub glow: GlowGroupConfig,
-  pub chams: ChamsGroupConfig,
+  pub misc: MiscConfig,
+  pub visuals: VisualsConfig,
+  pub glow: GlowConfig,
+  pub chams: ChamsConfig,
 }
 
 impl Config {
@@ -48,115 +50,6 @@ impl Config {
     Ok(())
   }
 }
-
-#[derive(Educe, Serialize, Deserialize)]
-#[serde(default)]
-#[educe(Default)]
-pub struct BunnyhopConfig {
-  pub enabled: bool,
-  #[educe(Default = 100)]
-  pub chance: u8,
-}
-
-#[derive(Default, Serialize, Deserialize)]
-#[serde(default)]
-pub struct MiscGroupConfig {
-  pub bunnyhop: BunnyhopConfig,
-}
-
-#[derive(Educe, Serialize, Deserialize)]
-#[serde(default)]
-#[educe(Default)]
-pub struct NoScopeCrosshairConfig {
-  pub enabled: bool,
-  #[educe(Default = 5.0)]
-  pub size: f32,
-  #[educe(Default = 1.0)]
-  pub thickness: f32,
-  #[educe(Default = Color::white())]
-  pub color: Color,
-}
-
-#[derive(Educe, Serialize, Deserialize)]
-#[serde(default)]
-#[educe(Default)]
-pub struct AddFovConfig {
-  pub enabled: bool,
-  #[educe(Default = 10.0)]
-  pub amount: f32,
-}
-
-#[derive(Default, Serialize, Deserialize)]
-#[serde(default)]
-pub struct ViewmodelOriginConfig {
-  pub enabled: bool,
-  #[serde(flatten)]
-  pub origin: Vector,
-}
-
-#[derive(Default, Serialize, Deserialize)]
-#[serde(default)]
-pub struct VisualsGroupConfig {
-  pub no_scope_crosshair: NoScopeCrosshairConfig,
-  pub add_fov: AddFovConfig,
-  pub viewmodel_origin: ViewmodelOriginConfig,
-}
-
-#[derive(Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]
-pub enum GlowConfigKind {
-  Enemies,
-  Allies,
-  Weapons,
-}
-
-#[derive(Educe, Serialize, Deserialize)]
-#[serde(default)]
-#[educe(Default)]
-pub struct GlowConfig {
-  pub enabled: bool,
-  #[educe(Default = Color::white())]
-  pub color: Color,
-}
-
-pub type GlowGroupConfig = EnumMapConfig<GlowConfigKind, GlowConfig>;
-
-#[derive(Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]
-pub enum ChamsConfigKind {
-  Enemies,
-  Allies,
-  Viewmodel,
-}
-
-#[derive(Default, Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]
-#[repr(usize)] // Guarantee for `mem::transmute` in `ui::menu`
-pub enum ChamsKind {
-  #[default]
-  Regular,
-  Flat,
-}
-
-#[derive(Educe, Serialize, Deserialize)]
-#[serde(default)]
-#[educe(Default)]
-pub struct ChamsLayerConfig {
-  pub enabled: bool,
-  pub ignore_z: bool,
-  pub wireframe: bool,
-  pub cover: bool,
-  pub material_kind: ChamsKind,
-  #[educe(Default = Color::white())]
-  pub material_color: Color,
-}
-
-#[derive(Default, Serialize, Deserialize)]
-#[serde(default)]
-pub struct ChamsConfig {
-  #[serde(skip)]
-  pub current_layer_index: usize,
-  pub layers: [ChamsLayerConfig; 4],
-}
-
-pub type ChamsGroupConfig = EnumMapConfig<ChamsConfigKind, ChamsConfig>;
 
 #[derive(Educe, Serialize, Deserialize)]
 #[serde(default)]

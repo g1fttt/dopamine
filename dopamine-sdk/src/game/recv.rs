@@ -19,6 +19,7 @@ pub struct RecvProp<'a> {
 }
 
 impl RecvProp<'_> {
+  #[inline]
   pub fn name(&self) -> &str {
     rstr!(self.name)
   }
@@ -33,6 +34,7 @@ pub struct RecvTable<'a> {
 }
 
 impl RecvTable<'_> {
+  #[inline]
   pub fn name(&self) -> &str {
     rstr!(self.name)
   }

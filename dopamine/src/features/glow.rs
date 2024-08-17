@@ -1,5 +1,5 @@
 use super::FeatureContext;
-use crate::config::{GlowConfig, GlowConfigKind, GlowGroupConfig};
+use crate::config::EnumMapConfig;
 use crate::entities;
 
 use dopamine_utils::Color;
@@ -9,6 +9,9 @@ use dopamine_sdk::game::material_system::*;
 use dopamine_sdk::game::render_view::ViewSetup;
 use dopamine_sdk::game::{Entity, KeyValues};
 use dopamine_sdk::Interfaces;
+use enum_map::Enum;
+use serde::{Deserialize, Serialize};
+use strum::VariantNames;
 
 pub struct Glow<'a> {
   rt_quarter_size_1: &'a Texture,
@@ -85,7 +88,7 @@ impl Glow<'_> {
     }
   }
 
-  pub fn draw(&self, ctx: FeatureContext<'_, '_, GlowGroupConfig>, view: &ViewSetup) {
+  pub fn draw(&self, ctx: FeatureContext<'_, '_, GlowConfig>, view: &ViewSetup) {
     let should_glow = ctx.config.as_array().iter().any(|cfg| cfg.enabled);
 
     if should_glow {
@@ -97,7 +100,7 @@ impl Glow<'_> {
 
   fn draw_glowing_models(
     &self,
-    ctx: FeatureContext<'_, '_, GlowGroupConfig>,
+    ctx: FeatureContext<'_, '_, GlowConfig>,
     view: &ViewSetup,
     render_ctx: &RenderContext,
   ) {
@@ -157,7 +160,7 @@ impl Glow<'_> {
 
   fn apply_glow_effects(
     &self,
-    ctx: FeatureContext<'_, '_, GlowGroupConfig>,
+    ctx: FeatureContext<'_, '_, GlowConfig>,
     view: &ViewSetup,
     render_ctx: &RenderContext,
   ) {
@@ -251,9 +254,9 @@ fn draw_model(entity: &Entity) {
 }
 
 fn determine_config<'config>(
-  ctx: &FeatureContext<'config, '_, GlowGroupConfig>,
+  ctx: &FeatureContext<'config, '_, GlowConfig>,
   entity: &Entity,
-) -> Option<&'config GlowConfig> {
+) -> Option<&'config GlowItemConfig> {
   let config_kind = if entity.is_player() {
     if let Some(lp) = ctx.local_player
       && lp.team() != entity.team()
@@ -262,8 +265,7 @@ fn determine_config<'config>(
     } else {
       GlowConfigKind::Allies
     }
-  } else if entity.is_weapon() && entity.owner_handle() == u16::MAX {
-    // u16::MAX means that weapon doesn't have any owners
+  } else if entity.is_weapon() && entity.owner_handle() == Entity::INVALID_HANDLE {
     GlowConfigKind::Weapons
   } else {
     return None;
@@ -298,3 +300,19 @@ impl StencilState {
     render_ctx.set_stencil_write_mask(self.write_mask);
   }
 }
+
+#[derive(Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]
+pub enum GlowConfigKind {
+  Enemies,
+  Allies,
+  Weapons,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct GlowItemConfig {
+  pub enabled: bool,
+  pub color: Color,
+}
+
+pub type GlowConfig = EnumMapConfig<GlowConfigKind, GlowItemConfig>;

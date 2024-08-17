@@ -1,7 +1,10 @@
 use super::FeatureContext;
-use crate::config::{ChamsConfigKind, ChamsGroupConfig, ChamsKind, ChamsLayerConfig};
+use crate::config::EnumMapConfig;
 
-use enum_map::EnumMap;
+use dopamine_utils::Color;
+use enum_map::{Enum, EnumMap};
+use serde::{Deserialize, Serialize};
+use strum::VariantNames;
 
 use dopamine_sdk::game::engine::ModelRenderInfo;
 use dopamine_sdk::game::material_system::{Material, MaterialFlag};
@@ -9,7 +12,7 @@ use dopamine_sdk::game::{Entity, KeyValues};
 use dopamine_sdk::Interfaces;
 
 pub struct Chams<'a> {
-  materials: EnumMap<ChamsKind, &'a Material>,
+  materials: EnumMap<ChamsMaterialKind, &'a Material>,
   applied: bool,
 }
 
@@ -35,7 +38,7 @@ impl Chams<'_> {
 
   pub fn draw(
     &mut self,
-    ctx: FeatureContext<'_, '_, ChamsGroupConfig>,
+    ctx: FeatureContext<'_, '_, ChamsConfig>,
     draw_model_execute: &impl Fn(),
     info: &ModelRenderInfo,
   ) {
@@ -58,7 +61,7 @@ impl Chams<'_> {
 
   fn apply_player_chams(
     &mut self,
-    ctx: FeatureContext<'_, '_, ChamsGroupConfig>,
+    ctx: FeatureContext<'_, '_, ChamsConfig>,
     draw_model_execute: &impl Fn(),
     player_entity: &Entity,
   ) {
@@ -124,3 +127,39 @@ impl Chams<'_> {
     interfaces.render_view.set_color_with_blend(&orig_color);
   }
 }
+
+#[derive(Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]
+pub enum ChamsConfigKind {
+  Enemies,
+  Allies,
+  Viewmodel,
+}
+
+#[derive(Default, Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]
+#[repr(usize)] // Guarantee for `mem::transmute` in `ui::menu`
+pub enum ChamsMaterialKind {
+  #[default]
+  Regular,
+  Flat,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ChamsLayerConfig {
+  pub enabled: bool,
+  pub ignore_z: bool,
+  pub wireframe: bool,
+  pub cover: bool,
+  pub material_kind: ChamsMaterialKind,
+  pub material_color: Color,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ChamsLayersConfig {
+  #[serde(skip)]
+  pub current_layer_index: usize,
+  pub layers: [ChamsLayerConfig; 4],
+}
+
+pub type ChamsConfig = EnumMapConfig<ChamsConfigKind, ChamsLayersConfig>;
