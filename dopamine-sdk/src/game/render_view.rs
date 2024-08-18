@@ -1,5 +1,5 @@
 use dopamine_macros::virtual_method;
-use dopamine_utils::Color;
+use dopamine_misc::Color;
 
 use std::mem::MaybeUninit;
 

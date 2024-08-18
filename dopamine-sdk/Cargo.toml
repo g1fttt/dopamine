@@ -8,6 +8,6 @@ windows.workspace = true
 strum.workspace = true
 
 dopamine-macros.path = "../dopamine-macros"
-dopamine-utils.path = "../dopamine-utils"
+dopamine-misc.path = "../dopamine-misc"
 
 derive_builder = "0.20.0"

@@ -1,13 +1,14 @@
 use super::FeatureContext;
 
-use dopamine_math::{Angles, Vector};
-use dopamine_utils::Color;
 use educe::Educe;
 use imgui::{DrawListMut, ImColor32, Io};
+use serde::{Deserialize, Serialize};
+
+use dopamine_misc::math::{Angles, Vector};
+use dopamine_misc::Color;
 
 use dopamine_sdk::game::render_view::ViewSetup;
 use dopamine_sdk::game::Entity;
-use serde::{Deserialize, Serialize};
 
 pub fn draw_no_scope_crosshair(
   ctx: FeatureContext<'_, '_, NoScopeCrosshairConfig>,

@@ -21,7 +21,7 @@ pub struct Config {
 }
 
 impl Config {
-  pub const PATH: &'static str = "dopamine.toml";
+  pub const PATH: &'static str = "dopamine.yaml";
 
   pub fn create_and_load_from<P>(path: P) -> Self
   where
@@ -37,7 +37,8 @@ impl Config {
   where
     P: AsRef<Path>,
   {
-    let pretty = toml::to_string_pretty(self).expect("Failed to serialize config as pretty string");
+    let pretty =
+      serde_yaml_ng::to_string(self).expect("Failed to serialize config as pretty string");
     fs::write(path, pretty)
   }
 
@@ -46,13 +47,12 @@ impl Config {
     P: AsRef<Path>,
   {
     let raw = fs::read_to_string(path)?;
-    *self = toml::from_str(&raw).expect("Failed to deserialize config file");
+    *self = serde_yaml_ng::from_str(&raw).expect("Failed to deserialize config file");
     Ok(())
   }
 }
 
 #[derive(Educe, Serialize, Deserialize)]
-#[serde(default)]
 #[educe(Default)]
 pub struct EnumMapConfig<K, V>
 where

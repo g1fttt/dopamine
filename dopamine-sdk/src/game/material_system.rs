@@ -2,7 +2,7 @@ use super::KeyValues;
 
 use derive_builder::Builder;
 use dopamine_macros::virtual_method;
-use dopamine_utils::{cstr, Color};
+use dopamine_misc::{cstr, Color};
 
 use std::ffi::{c_char, c_void};
 

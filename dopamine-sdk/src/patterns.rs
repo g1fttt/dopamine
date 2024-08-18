@@ -1,6 +1,6 @@
 use crate::game::{Entity, KeyValues};
 
-use dopamine_utils::pcstr;
+use dopamine_misc::pcstr;
 
 use windows::core::{Error as WindowsError, Result as WindowsResult};
 use windows::Win32::System::LibraryLoader::GetModuleHandleA;
@@ -42,7 +42,7 @@ impl Patterns {
       .byte_add(1);
     let d3d9_present = find_pattern::<*mut c_void>("GameOverlayRenderer.dll", b"\xA1????\x51\xFF\x75\x14")?
       .byte_add(1);
-  
+
     Ok(Self {
       key_values_new,
       key_values_set_string,
@@ -81,7 +81,7 @@ fn find_pattern<T>(module_name: &str, pattern: &[u8]) -> WindowsResult<T> {
   let end = unsafe { start.add(module_size).sub(pattern.len()) };
 
   while start <= end {
-    let mut i = last_index as isize;    
+    let mut i = last_index as isize;
     while i >= 0
       && (pattern[i as usize] == b'?' || unsafe { *start.add(i as usize) } == pattern[i as usize])
     {

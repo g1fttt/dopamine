@@ -2,7 +2,7 @@ use super::FeatureContext;
 use crate::config::EnumMapConfig;
 use crate::entities;
 
-use dopamine_utils::Color;
+use dopamine_misc::Color;
 use educe::Educe;
 
 use dopamine_sdk::game::material_system::*;

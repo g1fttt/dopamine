@@ -1,6 +1,6 @@
 use super::RecvTable;
 
-use dopamine_utils::rstr;
+use dopamine_misc::rstr;
 use strum::FromRepr;
 
 use std::ffi::c_char;

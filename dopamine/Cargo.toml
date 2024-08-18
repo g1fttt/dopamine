@@ -13,8 +13,7 @@ serde.workspace = true
 strum.workspace = true
 
 dopamine-sdk.path = "../dopamine-sdk"
-dopamine-utils.path = "../dopamine-utils"
-dopamine-math.path = "../dopamine-math"
+dopamine-misc.path = "../dopamine-misc"
 
 imgui-dx9-renderer.path = "../imgui-dx9-renderer"
 imgui-win32-support.path = "../imgui-win32-support"
@@ -22,4 +21,4 @@ imgui-win32-support.path = "../imgui-win32-support"
 educe = { version = "0.6.0", features = ["Default"] }
 enum-map = { version = "2.7.3", features = ["serde"] }
 fastrand = "2.1.0"
-toml = "0.8.19"
+serde_yaml_ng = "0.10.0"

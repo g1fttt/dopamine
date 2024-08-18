@@ -1,4 +1,4 @@
-use dopamine_utils::rstr;
+use dopamine_misc::rstr;
 
 use std::ffi::c_char;
 

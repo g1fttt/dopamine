@@ -8,9 +8,10 @@ mod winapi;
 
 use d3d9::{PresentFn, ResetFn};
 
-use dopamine_math::{Angles, Vector};
-use dopamine_utils::hooks::{self, Hook, HookResult, TrampolineHook, VmtHook};
-use dopamine_utils::pcstr;
+use dopamine_misc::math::{Angles, Vector};
+
+use dopamine_misc::hooks::{self, Hook, HookResult, TrampolineHook, VmtHook};
+use dopamine_misc::pcstr;
 
 use dopamine_sdk::game::client::{Client, ClientMode};
 use dopamine_sdk::game::engine::{ModelRender, ModelRenderInfo};

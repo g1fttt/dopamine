@@ -1,7 +1,7 @@
 use super::FeatureContext;
 use crate::config::EnumMapConfig;
 
-use dopamine_utils::Color;
+use dopamine_misc::Color;
 use enum_map::{Enum, EnumMap};
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;

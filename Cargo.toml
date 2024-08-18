@@ -2,9 +2,8 @@
 members = [
   "dopamine",
   "dopamine-macros",
-  "dopamine-math",
   "dopamine-sdk",
-  "dopamine-utils",
+  "dopamine-misc",
   "imgui-dx9-renderer",
   "imgui-win32-support",
 ]
