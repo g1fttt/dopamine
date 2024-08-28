@@ -5,18 +5,18 @@ use imgui_win32_support::Win32;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Direct3D9::IDirect3DDevice9;
 
-use std::cell::{OnceCell, UnsafeCell};
+use std::cell::OnceCell;
 
 static mut IMGUI_CONTEXT: OnceCell<ImGuiContext> = OnceCell::new();
 
-pub struct ImGuiContext<'a> {
+pub struct ImGuiContext {
   ctx: Context,
   renderer: Renderer,
   win32: Win32,
-  ui: Option<&'a mut UnsafeCell<Ui>>,
+  ui: *mut Ui,
 }
 
-impl ImGuiContext<'_> {
+impl ImGuiContext {
   pub fn get_mut_or_init(device: IDirect3DDevice9, hwnd: HWND) -> &'static mut Self {
     unsafe { IMGUI_CONTEXT.get_mut_or_init(|| ImGuiContext::new(device, hwnd)) }
   }
@@ -27,8 +27,8 @@ impl ImGuiContext<'_> {
   }
 
   #[inline]
-  pub fn destroy() {
-    unsafe { IMGUI_CONTEXT.take() };
+  pub unsafe fn destroy() {
+    IMGUI_CONTEXT.take();
   }
 
   fn new(device: IDirect3DDevice9, hwnd: HWND) -> Self {
@@ -38,11 +38,11 @@ impl ImGuiContext<'_> {
     let renderer = unsafe { Renderer::new(&mut ctx, device).unwrap() };
     let win32 = Win32::new(&mut ctx, hwnd);
 
-    Self { ctx, renderer, win32, ui: None }
+    Self { ctx, renderer, win32, ui: std::ptr::null_mut() }
   }
 }
 
-impl ImGuiContext<'_> {
+impl ImGuiContext {
   #[inline]
   pub fn prepare_frame(&mut self) {
     let _ = unsafe { self.win32.prepare_frame(&mut self.ctx) };
@@ -50,7 +50,7 @@ impl ImGuiContext<'_> {
 
   pub fn new_frame(&mut self) -> &mut Ui {
     let ui = self.ctx.new_frame();
-    self.ui.replace(unsafe { std::mem::transmute_copy(&ui) });
+    self.ui = ui as *mut Ui;
     ui
   }
 
@@ -70,6 +70,6 @@ impl ImGuiContext<'_> {
 
   #[inline]
   pub fn ui(&mut self) -> Option<&mut Ui> {
-    self.ui.as_mut().map(|ui_cell| ui_cell.get_mut())
+    unsafe { self.ui.as_mut() }
   }
 }

@@ -71,36 +71,32 @@ fn gen_bad_char_table(pattern: &[u8]) -> [usize; 256] {
   table
 }
 
-fn find_pattern<T>(module_name: &str, pattern: &[u8]) -> WindowsResult<T> {
+unsafe fn find_pattern<T>(module_name: &str, pattern: &[u8]) -> WindowsResult<T> {
   let (module_base, module_size) = module_data(module_name)?;
 
   let last_index = pattern.len() - 1;
   let bad_char_table = gen_bad_char_table(pattern);
 
-  let mut start = module_base.cast_const();
-  let end = unsafe { start.add(module_size).sub(pattern.len()) };
+  let mut start = module_base;
+  let end = start.add(module_size).sub(pattern.len());
 
   while start <= end {
     let mut i = last_index as isize;
-    while i >= 0
-      && (pattern[i as usize] == b'?' || unsafe { *start.add(i as usize) } == pattern[i as usize])
-    {
+    while i >= 0 && (pattern[i as usize] == b'?' || *start.add(i as usize) == pattern[i as usize]) {
       i -= 1;
     }
 
     if i < 0 {
-      return Ok(unsafe { std::mem::transmute_copy(&&*start) });
+      return Ok(std::mem::transmute_copy(&&*start));
     }
 
-    unsafe {
-      let char_index = *start.add(last_index) as usize;
-      start = start.add(bad_char_table[char_index]);
-    }
+    let char_index = *start.add(last_index) as usize;
+    start = start.add(bad_char_table[char_index]);
   }
   Err(WindowsError::empty())
 }
 
-fn module_data(module_name: &str) -> WindowsResult<(*mut u8, usize)> {
+fn module_data(module_name: &str) -> WindowsResult<(*const u8, usize)> {
   let module = unsafe { GetModuleHandleA(pcstr!(module_name))? };
 
   let mut module_info = MODULEINFO::default();
@@ -113,7 +109,7 @@ fn module_data(module_name: &str) -> WindowsResult<(*mut u8, usize)> {
     )?
   };
 
-  let base = module_info.lpBaseOfDll as *mut u8;
+  let base = module_info.lpBaseOfDll as *const u8;
   let size = module_info.SizeOfImage as usize;
 
   Ok((base, size))
