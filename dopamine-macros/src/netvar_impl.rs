@@ -61,11 +61,14 @@ pub fn macro_impl(item: TokenStream) -> TokenStream {
 
   quote! {
     #visibility fn #fn_ident(&self) #fn_output {
+      const PROP_CLASS: &str = stringify!(#prop_class);
+      const PROP_FIELD: &str = concat!(stringify!(#prop_field_ident), #prop_field_index);
+
       let offset = crate::netvar_manager::NetvarManager::get()
         .offsets
-        .get(&(stringify!(#prop_class), concat!(stringify!(#prop_field_ident), #prop_field_index)))
+        .get(&(PROP_CLASS, PROP_FIELD))
         .cloned()
-        .expect("Failed to find netvar");
+        .unwrap_or_else(|| { log::error!("Failed to find netvar: {}->{}", PROP_CLASS, PROP_FIELD); panic!() });
       unsafe { *(self as *const Self).byte_add(offset).cast() }
     }
   }

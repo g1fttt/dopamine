@@ -24,8 +24,9 @@ pub struct Patterns {
 
 impl Patterns {
   pub fn get() -> &'static Self {
-    static PATTERNS: LazyLock<Patterns> =
-      LazyLock::new(|| unsafe { Patterns::find().expect("Failed to find patterns") });
+    static PATTERNS: LazyLock<Patterns> = LazyLock::new(|| unsafe {
+      Patterns::find().inspect_err(|err| log::error!("Failed to find patterns: {}", err)).unwrap()
+    });
     &PATTERNS
   }
 

@@ -6,12 +6,14 @@ mod config;
 mod entities;
 mod features;
 mod hooks;
+mod logger;
 mod ui;
 
 use windows::Win32::Foundation::{BOOL, HMODULE, TRUE};
 use windows::Win32::System::SystemServices::{DLL_PROCESS_ATTACH, DLL_PROCESS_DETACH};
 
 use app::App;
+use logger::Logger;
 
 use std::ffi::c_void;
 
@@ -19,7 +21,12 @@ use std::ffi::c_void;
 extern "system" fn DllMain(module: HMODULE, reason: u32, _reserved: *mut c_void) -> BOOL {
   match reason {
     DLL_PROCESS_ATTACH => {
-      App::on_process_attach(module).expect("Failed to create and setup application")
+      let _ = std::fs::create_dir("dopamine");
+
+      logger::init(Logger::PATH).unwrap();
+
+      let _ = App::on_process_attach(module)
+        .inspect_err(|err| log::error!("Failed to create and setup App instance: {}", err));
     }
     DLL_PROCESS_DETACH => App::on_process_detach(),
     _ => (),

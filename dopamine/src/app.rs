@@ -1,10 +1,10 @@
 use crate::config::Config;
-use crate::features::FeatureContext;
 use crate::hooks::Hooks;
 use crate::ui::{ImGuiContext, Menu};
 
 use crate::features::chams::Chams;
 use crate::features::glow::Glow;
+use crate::features::FeatureContext;
 
 use dopamine_sdk::game::Entity;
 use dopamine_sdk::Interfaces;
@@ -39,20 +39,24 @@ impl App {
   unsafe fn setup(&mut self) -> windows::core::Result<()> {
     DisableThreadLibraryCalls(self.module)?;
 
-    self.hooks.hook_all().expect("Failed to setup hooks");
+    let _ =
+      self.hooks.hook_all().inspect_err(|err| log::error!("Failed to setup hooks: {:?}", err));
 
     Beep(750, 200)
   }
 
   pub fn on_process_detach() {
     Self::with(|app| {
-      app.config.save_to(Config::PATH).expect("Failed to write config");
+      let _ = app
+        .config
+        .save_to(Config::PATH)
+        .inspect_err(|err| log::error!("Failed to write config: {}", err));
     });
   }
 
   pub unsafe fn unload(&mut self) -> windows::core::Result<()> {
     unsafe extern "system" fn free_library(app: *mut c_void) -> u32 {
-      Beep(1500, 200).expect("Failed to make beep sound upon unhooking");
+      let _ = Beep(1500, 200);
 
       ImGuiContext::destroy();
 
@@ -64,7 +68,8 @@ impl App {
 
     ShowCursor(true);
 
-    self.hooks.unhook_all().expect("Failed to remove hooks");
+    let _ =
+      self.hooks.unhook_all().inspect_err(|err| log::error!("Failed to remove hooks: {:?}", err));
 
     let handle = CreateThread(
       None,

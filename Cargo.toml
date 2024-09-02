@@ -31,6 +31,7 @@ windows = { version = "0.58.0", features = [
   "Foundation_Numerics",
 ] }
 imgui = "0.12.0"
+log = "0.4.22"
 serde = { version = "1.0.208", features = ["derive"] }
 strum = { version = "0.26.3", features = ["derive"] }
 

@@ -63,7 +63,9 @@ impl Hooks {
     let reset = **patterns.d3d9_reset.cast::<*const ResetFn>();
     let present = **patterns.d3d9_present.cast::<*const PresentFn>();
 
-    let window = FindWindowA(pcstr!("Valve001"), pcstr!()).expect("Failed to find game window");
+    let window = FindWindowA(pcstr!("Valve001"), pcstr!())
+      .inspect_err(|err| log::error!("Failed to find game window: {}", err))
+      .unwrap();
 
     Self {
       window,

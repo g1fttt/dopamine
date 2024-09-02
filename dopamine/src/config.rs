@@ -21,7 +21,7 @@ pub struct Config {
 }
 
 impl Config {
-  pub const PATH: &'static str = "dopamine.yaml";
+  pub const PATH: &str = "dopamine/config.yaml";
 
   pub fn create_and_load_from<P>(path: P) -> Self
   where
@@ -37,8 +37,9 @@ impl Config {
   where
     P: AsRef<Path>,
   {
-    let pretty =
-      serde_yaml_ng::to_string(self).expect("Failed to serialize config as pretty string");
+    let pretty = serde_yaml_ng::to_string(self)
+      .inspect_err(|err| log::error!("Failed to serialize config as pretty string: {}", err))
+      .unwrap();
     fs::write(path, pretty)
   }
 
@@ -47,7 +48,9 @@ impl Config {
     P: AsRef<Path>,
   {
     let raw = fs::read_to_string(path)?;
-    *self = serde_yaml_ng::from_str(&raw).expect("Failed to deserialize config file");
+    *self = serde_yaml_ng::from_str(&raw)
+      .inspect_err(|err| log::error!("Failed to deserialize config file: {}", err))
+      .unwrap();
     Ok(())
   }
 }

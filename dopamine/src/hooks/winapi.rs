@@ -25,7 +25,9 @@ pub unsafe extern "stdcall" fn wnd_proc(
       }
 
       if ui.is_key_down(Key::Home) {
-        app.unload().expect("Failed to unload application");
+        let _ = app.unload().inspect_err(|err| {
+          log::error!("Failed to deinitialize and unload App instance: {}", err)
+        });
       }
 
       if ui.is_key_down(Key::Insert) {

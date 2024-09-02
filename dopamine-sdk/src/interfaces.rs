@@ -29,8 +29,11 @@ pub struct Interfaces<'a> {
 
 impl Interfaces<'_> {
   pub fn get() -> &'static Self {
-    static INTERFACES: LazyLock<Interfaces> =
-      LazyLock::new(|| Interfaces::find().expect("Failed to find interfaces"));
+    static INTERFACES: LazyLock<Interfaces> = LazyLock::new(|| {
+      Interfaces::find()
+        .inspect_err(|err| log::error!("Failed to find interfaces: {}", err))
+        .unwrap()
+    });
     &INTERFACES
   }
 

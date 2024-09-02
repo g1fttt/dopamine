@@ -142,7 +142,10 @@ pub struct ScreenSpaceRect<'a> {
 
 impl ScreenSpaceRectBuilder<'_> {
   pub fn build_and_draw(self, render_ctx: &RenderContext) {
-    let rect = self.build().expect("Failed to build ScreenSpaceRect");
+    let rect = self
+      .build()
+      .inspect_err(|err| log::error!("Failed to build ScreenSpaceRect: {}", err))
+      .unwrap();
     render_ctx.draw_screen_space_rect(
       rect.material,
       rect.pos.0,
@@ -170,7 +173,8 @@ pub struct ClearBuffers {
 
 impl ClearBuffersBuilder {
   pub fn build_and_clear(self, render_ctx: &RenderContext) {
-    let buffers = self.build().expect("Failed to build ClearBuffers");
+    let buffers =
+      self.build().inspect_err(|err| log::error!("Failed to build ClearBuffers: {}", err)).unwrap();
     render_ctx.clear_buffers(buffers.clear_color, buffers.clear_depth, buffers.clear_stencil);
   }
 }
@@ -185,7 +189,10 @@ pub struct OverrideDepth {
 
 impl OverrideDepthBuilder {
   pub fn build_and_override(self, render_ctx: &RenderContext) {
-    let overrides = self.build().expect("Failed to build OverrideDepth");
+    let overrides = self
+      .build()
+      .inspect_err(|err| log::error!("Failed to build OverrideDepth: {}", err))
+      .unwrap();
     render_ctx.override_depth_enable(overrides.enable, overrides.depth_enable);
   }
 }

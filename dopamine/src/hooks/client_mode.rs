@@ -13,6 +13,32 @@ pub extern "thiscall" fn override_view(this: &ClientMode, view: &mut ViewSetup) 
   })
 }
 
+/*
+local ctx = require('dopamine')
+
+local config = {
+  enabled = false,
+  chance = 100,
+}
+
+function do_bunnyhop(cmd)
+  local should_bunnyhop = random_in_range(1, 100) <= config.chance
+  if not ctx.local_player.is_on_ground() or not should_bunnyhop then
+    cmd.buttons.remove(IN_JUMP)
+  end
+end
+
+function on_create_move(input_sample_frame_time, cmd)
+  if config.enabled and ctx.local_player.valid() then
+    do_bunnyhop()
+  end
+end
+
+function on_config_register()
+  return config
+end
+*/
+
 pub extern "thiscall" fn create_move(
   this: &ClientMode,
   input_sample_frame_time: f32,
