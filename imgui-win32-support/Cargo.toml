@@ -3,6 +3,9 @@ name = "imgui-win32-support"
 version = "0.12.0"
 edition.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 windows = { workspace = true }
 imgui = { workspace = true }

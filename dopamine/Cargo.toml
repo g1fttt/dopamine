@@ -6,6 +6,9 @@ edition.workspace = true
 [lib]
 crate-type = ["cdylib"]
 
+[lints]
+workspace = true
+
 [dependencies]
 windows.workspace = true
 imgui.workspace = true

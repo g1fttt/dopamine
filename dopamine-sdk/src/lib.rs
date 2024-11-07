@@ -1,6 +1,5 @@
 #![feature(
   let_chains,
-  new_uninit,
   maybe_uninit_uninit_array,
   maybe_uninit_array_assume_init,
   generic_arg_infer

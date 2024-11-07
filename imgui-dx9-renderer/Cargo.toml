@@ -4,6 +4,9 @@ version = "0.12.0"
 authors = ["Lukas Wirth <lukastw97@gmail.com>"]
 edition.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 windows = { workspace = true }
 imgui = { workspace = true }

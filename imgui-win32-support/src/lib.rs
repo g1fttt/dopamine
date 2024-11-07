@@ -77,7 +77,6 @@ impl Win32 {
     Self { hwnd, time, last_cursor }
   }
 
-  #[allow(clippy::missing_safety_doc)]
   pub unsafe fn prepare_frame(&mut self, context: &mut Context) -> Result<()> {
     let io = context.io_mut();
 
@@ -141,7 +140,6 @@ impl Win32 {
   }
 }
 
-#[allow(clippy::missing_safety_doc)]
 pub unsafe fn imgui_win32_window_proc(
   window: HWND,
   msg: u32,

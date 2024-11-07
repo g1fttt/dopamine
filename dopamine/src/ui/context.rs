@@ -5,9 +5,9 @@ use imgui_win32_support::Win32;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Direct3D9::IDirect3DDevice9;
 
-use std::cell::OnceCell;
+use std::sync::OnceLock;
 
-static mut IMGUI_CONTEXT: OnceCell<ImGuiContext> = OnceCell::new();
+static mut IMGUI_CONTEXT: OnceLock<ImGuiContext> = OnceLock::new();
 
 pub struct ImGuiContext {
   ctx: Context,

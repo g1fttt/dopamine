@@ -3,6 +3,9 @@ name = "dopamine-misc"
 version.workspace = true
 edition.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 windows.workspace = true
 serde.workspace = true

@@ -14,7 +14,7 @@ pub struct FeatureContext<'config, 'rest, T> {
   pub(self) config: &'config T,
 }
 
-impl<'config, 'rest, T> FeatureContext<'config, 'rest, T> {
+impl<'config, T> FeatureContext<'config, '_, T> {
   pub fn new(app: &App, config: &'config T) -> Self {
     Self { interfaces: Interfaces::get(), local_player: app.local_player, config }
   }
