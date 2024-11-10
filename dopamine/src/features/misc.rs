@@ -1,6 +1,6 @@
 use super::FeatureContext;
 
-use dopamine_sdk::game::UserCommand;
+use dopamine_sdk::UserCommand;
 use educe::Educe;
 use serde::{Deserialize, Serialize};
 

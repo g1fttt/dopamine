@@ -1,4 +1,4 @@
-use super::{ClientClass, Entity};
+use crate::{ClientClass, Entity};
 
 use dopamine_macros::virtual_method;
 

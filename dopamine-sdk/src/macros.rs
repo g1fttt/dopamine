@@ -46,17 +46,19 @@ macro_rules! cstr {
 
 /// Converts C-ABI compatible null-terminated string into `&str`.
 ///
+/// Consider this macro as potentially unsafe, because the string might not contain null-terminator.
+///
 /// # Examples
 ///
 /// ```
 /// #[inline]
 /// pub fn name(&self) -> &str {
-///     rstr!(self.name)
+///     unsafe { rstr!(self.name) }
 /// }
 /// ```
 #[macro_export]
 macro_rules! rstr {
   ($ptr:expr) => {
-    unsafe { std::ffi::CStr::from_ptr($ptr) }.to_str().unwrap()
+    std::ffi::CStr::from_ptr($ptr).to_str().unwrap()
   };
 }

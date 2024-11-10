@@ -8,17 +8,15 @@ mod winapi;
 
 use d3d9::{PresentFn, ResetFn};
 
-use dopamine_misc::math::{Angles, Vector};
+use dopamine_sdk::math::{Angles, Vector};
+use dopamine_sdk::utils::{Interfaces, Patterns};
+use dopamine_sdk::{pcstr, Hook, HookResult, TrampolineHook, VmtHook};
 
-use dopamine_misc::hooks::{self, Hook, HookResult, TrampolineHook, VmtHook};
-use dopamine_misc::pcstr;
-
-use dopamine_sdk::game::client::{Client, ClientMode};
-use dopamine_sdk::game::engine::{ModelRender, ModelRenderInfo};
-use dopamine_sdk::game::render_view::ViewSetup;
-use dopamine_sdk::game::surface::Surface;
-use dopamine_sdk::game::{Entity, UserCommand};
-use dopamine_sdk::{Interfaces, Patterns};
+use dopamine_sdk::client::{Client, ClientMode};
+use dopamine_sdk::engine::{ModelRender, ModelRenderInfo};
+use dopamine_sdk::render_view::ViewSetup;
+use dopamine_sdk::surface::Surface;
+use dopamine_sdk::{Entity, UserCommand};
 
 use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::WindowsAndMessaging::{
@@ -115,7 +113,7 @@ impl Hooks {
 
     self.calc_viewmodel_view.detour_to(viewmodel::calc_viewmodel_view)?;
 
-    hooks::enable_all_hooks()?;
+    dopamine_sdk::enable_all_hooks()?;
 
     **self.reset_raw.cast::<*mut ResetFn>() = d3d9::reset;
     **self.present_raw.cast::<*mut PresentFn>() = d3d9::present;
@@ -127,7 +125,7 @@ impl Hooks {
     **self.reset_raw.cast::<*mut ResetFn>() = self.reset;
     **self.present_raw.cast::<*mut PresentFn>() = self.present;
 
-    hooks::disable_all_hooks()?;
+    dopamine_sdk::disable_all_hooks()?;
 
     self.override_view.remove()?;
     self.create_move.remove()?;

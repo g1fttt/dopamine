@@ -5,7 +5,7 @@ use crate::features::glow::{GlowConfig, GlowConfigKind};
 use crate::features::misc::MiscConfig;
 use crate::features::visuals::VisualsConfig;
 
-use dopamine_sdk::game::input_system::InputSystem;
+use dopamine_sdk::input_system::InputSystem;
 use imgui::{ColorEditFlags, Io, Ui, WindowFlags};
 use strum::VariantNames;
 use windows::Win32::UI::WindowsAndMessaging::ShowCursor;

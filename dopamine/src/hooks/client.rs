@@ -1,7 +1,7 @@
 use crate::App;
 
-use dopamine_sdk::game::client::Client;
-use dopamine_sdk::Interfaces;
+use dopamine_sdk::client::Client;
+use dopamine_sdk::utils::Interfaces;
 
 pub extern "thiscall" fn level_init_post_entity(this: &Client) {
   App::with_mut(move |app| {

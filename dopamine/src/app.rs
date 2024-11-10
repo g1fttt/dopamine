@@ -6,8 +6,8 @@ use crate::features::chams::Chams;
 use crate::features::glow::Glow;
 use crate::features::FeatureContext;
 
-use dopamine_sdk::game::Entity;
-use dopamine_sdk::Interfaces;
+use dopamine_sdk::utils::Interfaces;
+use dopamine_sdk::Entity;
 
 use windows::Win32::Foundation::{CloseHandle, HMODULE};
 use windows::Win32::System::Diagnostics::Debug::Beep;

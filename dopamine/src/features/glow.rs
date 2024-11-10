@@ -2,13 +2,12 @@ use super::FeatureContext;
 use crate::config::EnumMapConfig;
 use crate::entities;
 
-use dopamine_misc::Color;
-use educe::Educe;
+use dopamine_sdk::material_system::*;
+use dopamine_sdk::render_view::ViewSetup;
+use dopamine_sdk::utils::Interfaces;
+use dopamine_sdk::{Color, Entity, KeyValues};
 
-use dopamine_sdk::game::material_system::*;
-use dopamine_sdk::game::render_view::ViewSetup;
-use dopamine_sdk::game::{Entity, KeyValues};
-use dopamine_sdk::Interfaces;
+use educe::Educe;
 use enum_map::Enum;
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;

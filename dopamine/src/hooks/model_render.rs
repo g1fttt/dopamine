@@ -1,7 +1,7 @@
 use crate::App;
 
-use dopamine_sdk::game::engine::{ModelRender, ModelRenderInfo};
-use dopamine_sdk::Interfaces;
+use dopamine_sdk::engine::{ModelRender, ModelRenderInfo};
+use dopamine_sdk::utils::Interfaces;
 
 use std::ffi::c_void;
 

@@ -4,11 +4,9 @@ use educe::Educe;
 use imgui::{DrawListMut, ImColor32, Io};
 use serde::{Deserialize, Serialize};
 
-use dopamine_misc::math::{Angles, Vector};
-use dopamine_misc::Color;
-
-use dopamine_sdk::game::render_view::ViewSetup;
-use dopamine_sdk::game::Entity;
+use dopamine_sdk::math::{Angles, Vector};
+use dopamine_sdk::render_view::ViewSetup;
+use dopamine_sdk::{Color, Entity};
 
 pub fn draw_no_scope_crosshair(
   ctx: FeatureContext<'_, '_, NoScopeCrosshairConfig>,

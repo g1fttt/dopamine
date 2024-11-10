@@ -2,9 +2,9 @@ use crate::features::visuals;
 use crate::ui::ImGuiContext;
 use crate::App;
 
-use dopamine_sdk::Interfaces;
-use windows::core::HRESULT;
+use dopamine_sdk::utils::Interfaces;
 
+use windows::core::HRESULT;
 use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::Graphics::Direct3D9::*;
 use windows::Win32::Graphics::Gdi::RGNDATA;

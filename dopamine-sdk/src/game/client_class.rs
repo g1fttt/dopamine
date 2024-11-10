@@ -1,6 +1,6 @@
 use super::RecvTable;
+use crate::rstr;
 
-use dopamine_misc::rstr;
 use strum::FromRepr;
 
 use std::ffi::c_char;
@@ -17,7 +17,7 @@ pub struct ClientClass<'a> {
 impl ClientClass<'_> {
   #[inline]
   pub fn name(&self) -> &str {
-    rstr!(self.name)
+    unsafe { rstr!(self.name) }
   }
 }
 

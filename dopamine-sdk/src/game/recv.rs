@@ -1,4 +1,4 @@
-use dopamine_misc::rstr;
+use crate::rstr;
 
 use std::ffi::c_char;
 
@@ -21,7 +21,7 @@ pub struct RecvProp<'a> {
 impl RecvProp<'_> {
   #[inline]
   pub fn name(&self) -> &str {
-    rstr!(self.name)
+    unsafe { rstr!(self.name) }
   }
 }
 
@@ -36,6 +36,6 @@ pub struct RecvTable<'a> {
 impl RecvTable<'_> {
   #[inline]
   pub fn name(&self) -> &str {
-    rstr!(self.name)
+    unsafe { rstr!(self.name) }
   }
 }

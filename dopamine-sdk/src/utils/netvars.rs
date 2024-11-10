@@ -1,18 +1,18 @@
 use crate::game::{RecvTable, SendPropKind};
-use crate::interfaces::Interfaces;
+use crate::utils::Interfaces;
 
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
 pub type Offsets<'a> = HashMap<(&'a str, &'a str), usize>;
 
-pub struct NetvarManager<'a> {
+pub struct Netvars<'a> {
   pub offsets: Offsets<'a>,
 }
 
-impl NetvarManager<'_> {
+impl Netvars<'_> {
   pub fn get() -> &'static Self {
-    static NETVAR_MANAGER: LazyLock<NetvarManager> = LazyLock::new(NetvarManager::precache);
+    static NETVAR_MANAGER: LazyLock<Netvars> = LazyLock::new(Netvars::precache);
     &NETVAR_MANAGER
   }
 

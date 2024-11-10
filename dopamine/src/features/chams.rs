@@ -1,15 +1,14 @@
 use super::FeatureContext;
 use crate::config::EnumMapConfig;
 
-use dopamine_misc::Color;
 use enum_map::{Enum, EnumMap};
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 
-use dopamine_sdk::game::engine::ModelRenderInfo;
-use dopamine_sdk::game::material_system::{Material, MaterialFlag};
-use dopamine_sdk::game::{Entity, KeyValues};
-use dopamine_sdk::Interfaces;
+use dopamine_sdk::engine::ModelRenderInfo;
+use dopamine_sdk::material_system::{Material, MaterialFlag};
+use dopamine_sdk::utils::Interfaces;
+use dopamine_sdk::{Color, Entity, KeyValues};
 
 pub struct Chams<'a> {
   materials: EnumMap<ChamsMaterialKind, &'a Material>,

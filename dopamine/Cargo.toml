@@ -17,7 +17,6 @@ strum.workspace = true
 log.workspace = true
 
 dopamine-sdk.path = "../dopamine-sdk"
-dopamine-misc.path = "../dopamine-misc"
 
 imgui-dx9-renderer.path = "../imgui-dx9-renderer"
 imgui-win32-support.path = "../imgui-win32-support"

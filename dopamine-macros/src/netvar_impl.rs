@@ -64,7 +64,7 @@ pub fn macro_impl(item: TokenStream) -> TokenStream {
       const PROP_CLASS: &str = stringify!(#prop_class);
       const PROP_FIELD: &str = concat!(stringify!(#prop_field_ident), #prop_field_index);
 
-      let offset = crate::netvar_manager::NetvarManager::get()
+      let offset = crate::utils::Netvars::get()
         .offsets
         .get(&(PROP_CLASS, PROP_FIELD))
         .cloned()

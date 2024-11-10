@@ -1,7 +1,7 @@
 use crate::{features::visuals, App};
 
-use dopamine_misc::math::{Angles, Vector};
-use dopamine_sdk::game::Entity;
+use dopamine_sdk::math::{Angles, Vector};
+use dopamine_sdk::Entity;
 
 pub extern "thiscall" fn calc_viewmodel_view(
   this: &Entity,

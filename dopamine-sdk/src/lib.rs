@@ -2,14 +2,17 @@
   let_chains,
   maybe_uninit_uninit_array,
   maybe_uninit_array_assume_init,
-  generic_arg_infer
+  generic_arg_infer,
+  fn_ptr_trait
 )]
 
-pub mod game;
-mod interfaces;
-mod netvar_manager;
-mod patterns;
+mod color;
+mod game;
+mod hooks;
+mod macros;
+pub mod math;
+pub mod utils;
 
-pub use interfaces::*;
-pub use netvar_manager::*;
-pub use patterns::*;
+pub use color::*;
+pub use game::*;
+pub use hooks::*;

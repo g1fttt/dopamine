@@ -10,8 +10,10 @@ workspace = true
 windows.workspace = true
 strum.workspace = true
 log.workspace = true
+serde.workspace = true
 
 dopamine-macros.path = "../dopamine-macros"
-dopamine-misc.path = "../dopamine-misc"
 
 derive_builder = "0.20.0"
+num-traits = "0.2.19"
+minhook = "0.5.0"

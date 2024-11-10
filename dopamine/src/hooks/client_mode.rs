@@ -1,9 +1,9 @@
 use crate::features::{misc, visuals};
 use crate::App;
 
-use dopamine_sdk::game::client::ClientMode;
-use dopamine_sdk::game::render_view::ViewSetup;
-use dopamine_sdk::game::UserCommand;
+use dopamine_sdk::client::ClientMode;
+use dopamine_sdk::render_view::ViewSetup;
+use dopamine_sdk::UserCommand;
 
 pub extern "thiscall" fn override_view(this: &ClientMode, view: &mut ViewSetup) {
   App::with(move |app| {

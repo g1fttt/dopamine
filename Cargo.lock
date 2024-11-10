@@ -153,7 +153,6 @@ name = "dopamine"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "dopamine-misc",
  "dopamine-sdk",
  "educe",
  "enum-map",
@@ -177,23 +176,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "dopamine-misc"
-version = "0.1.0"
-dependencies = [
- "minhook",
- "num-traits",
- "serde",
- "windows",
-]
-
-[[package]]
 name = "dopamine-sdk"
 version = "0.1.0"
 dependencies = [
  "derive_builder",
  "dopamine-macros",
- "dopamine-misc",
  "log",
+ "minhook",
+ "num-traits",
+ "serde",
  "strum",
  "windows",
 ]

@@ -1,6 +1,6 @@
 use crate::App;
 
-use dopamine_sdk::game::surface::Surface;
+use dopamine_sdk::surface::Surface;
 
 pub extern "thiscall" fn is_cursor_visible(this: &Surface) -> bool {
   App::with(move |app| (app.hooks.is_cursor_visible.original)(this) || app.menu.is_open())

@@ -1,6 +1,6 @@
 use crate::game::{Entity, KeyValues};
 
-use dopamine_misc::pcstr;
+use crate::pcstr;
 
 use windows::core::{Error as WindowsError, Result as WindowsResult};
 use windows::Win32::System::LibraryLoader::GetModuleHandleA;

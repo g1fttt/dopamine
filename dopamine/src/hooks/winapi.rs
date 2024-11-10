@@ -1,7 +1,7 @@
 use crate::ui::ImGuiContext;
 use crate::App;
 
-use dopamine_sdk::Interfaces;
+use dopamine_sdk::utils::Interfaces;
 use imgui::Key;
 use imgui_win32_support::{imgui_win32_window_proc, ProcResponse};
 

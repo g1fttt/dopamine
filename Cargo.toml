@@ -3,7 +3,6 @@ members = [
   "dopamine",
   "dopamine-macros",
   "dopamine-sdk",
-  "dopamine-misc",
   "imgui-dx9-renderer",
   "imgui-win32-support",
 ]

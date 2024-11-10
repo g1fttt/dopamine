@@ -6,7 +6,7 @@ use crate::game::render_view::RenderView;
 use crate::game::studio_render::StudioRender;
 use crate::game::surface::Surface;
 
-use dopamine_misc::{cstr, pcstr};
+use crate::{cstr, pcstr};
 
 use windows::core::{Error as WindowsError, Result as WindowsResult};
 use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};

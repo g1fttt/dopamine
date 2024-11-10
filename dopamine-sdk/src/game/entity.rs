@@ -1,5 +1,6 @@
 use super::{ClientClass, WeaponClassId};
-use crate::{Interfaces, Patterns};
+
+use crate::utils::{Interfaces, Patterns};
 
 use dopamine_macros::{netvar, virtual_method};
 
