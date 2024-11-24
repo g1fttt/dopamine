@@ -9,7 +9,7 @@ add_defines(
 add_cxflags('-xc++', { force = true }) -- Fix for clangd treating .h files as C files
 
 add_requires('vcpkg::toml11 3.7.1', { alias = 'toml11' })
-add_requires('vcpkg::serdepp 0.1.4.1', { alias = 'serdepp' })
+add_requires('vcpkg::serdepp 0.1.4', { alias = 'serdepp' })
 
 add_requires('vcpkg::imgui 1.90', {
   alias = 'imgui',
