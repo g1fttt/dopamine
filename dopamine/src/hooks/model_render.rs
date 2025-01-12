@@ -22,7 +22,7 @@ pub extern "thiscall" fn draw_model_execute(
     }
 
     // FIXME: If enabled at least one ignore-z layer along with a glow,
-    //        then ignore-z chams shall be visible even if model is not occluded
+    //        then ignore-z chams shall be visible even if model isn't occluded
     app.chams.draw(app.capture_context(&app.config.chams), &original, info);
 
     if !app.chams.applied() {

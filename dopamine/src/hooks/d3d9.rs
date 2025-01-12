@@ -30,7 +30,7 @@ pub type PresentFn = extern "stdcall" fn(
   Option<&RGNDATA>,
 ) -> HRESULT;
 
-// FIXME: Sometimes the game would crash upon fullscreen switching
+// FIXME: Sometimes the game would crash upon entering/leaving fullscreen mode
 pub extern "stdcall" fn present(
   device: IDirect3DDevice9,
   src: Option<&RECT>,
@@ -45,7 +45,7 @@ pub extern "stdcall" fn present(
     let imgui_ctx = ImGuiContext::get_mut_or_init(device.clone(), params.hFocusWindow);
     imgui_ctx.prepare_frame();
 
-    // ImGui::NewFrame with Drop at the end of the block
+    // ImGui::NewFrame with RAII
     let ui = imgui_ctx.new_frame();
 
     let interfaces = Interfaces::get();
@@ -67,7 +67,7 @@ pub extern "stdcall" fn present(
     if let Ok(state_block) = device.CreateStateBlock(D3DSBT_ALL) {
       let _ = state_block.Capture();
 
-      // Fix menu not rendering without `net_graph` or `cl_showfps`
+      // Fix menu doesn't render without `net_graph` or `cl_showfps`
       let _ = device.SetRenderState(D3DRS_COLORWRITEENABLE, u32::MAX);
 
       // Fix broken ImGui menu colors with Source engine gamma correction

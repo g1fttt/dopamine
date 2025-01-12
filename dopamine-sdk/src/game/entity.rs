@@ -82,7 +82,7 @@ impl Entity {
 }
 
 impl Entity {
-  pub const INVALID_HANDLE: i32 = u16::MAX as i32;
+  pub const INVALID_HANDLE: i32 = -1;
 
   virtual_method!(pub fn networkable[4](&self) -> &NetworkableEntity);
   virtual_method!(pub fn renderable[5](&self) -> &RenderableEntity);
