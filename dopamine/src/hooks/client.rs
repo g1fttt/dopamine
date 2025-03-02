@@ -3,7 +3,7 @@ use crate::App;
 use dopamine_sdk::client::Client;
 use dopamine_sdk::utils::Interfaces;
 
-pub extern "thiscall" fn level_init_post_entity(this: &Client) {
+pub extern "fastcall" fn level_init_post_entity(this: &Client) {
   App::with_mut(move |app| {
     (app.hooks.level_init_post_entity.original)(this);
 
@@ -13,7 +13,7 @@ pub extern "thiscall" fn level_init_post_entity(this: &Client) {
   });
 }
 
-pub extern "thiscall" fn level_shutdown(this: &Client) {
+pub extern "fastcall" fn level_shutdown(this: &Client) {
   App::with_mut(move |app| {
     (app.hooks.level_shutdown.original)(this);
 

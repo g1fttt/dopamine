@@ -6,7 +6,7 @@ use dopamine_macros::{netvar, virtual_method};
 
 #[repr(C)]
 pub struct UserCommand {
-  pad: [u8; 36],
+  pad: [u8; 40],
   pub buttons: i32,
 }
 
@@ -25,17 +25,10 @@ pub enum WeaponId {
 }
 
 #[repr(C)]
-pub struct AnimatedEntity;
-
-impl AnimatedEntity {
-  virtual_method!(pub fn is_viewmodel[199](&self) -> bool);
-}
-
-#[repr(C)]
 pub struct Entity {
-  pad: [u8; 0x184],
-  move_child_handle: i32,
-  move_peer_handle: i32,
+  pad: [u8; 0x200],
+  move_child_handle: EntityHandle,
+  move_peer_handle: EntityHandle,
 }
 
 impl Entity {
@@ -51,13 +44,17 @@ impl Entity {
     (Patterns::get().is_local_player)(self)
   }
 
-  #[inline]
+  #[inline(always)]
   pub fn attachments(&self) -> EntityAttachmentIterator {
     EntityAttachmentIterator::new(self)
   }
 }
 
 impl Entity {
+  pub fn is_viewmodel(&self) -> bool {
+    self.networkable().client_class().id == 89 /* CPredictedViewModel */
+  }
+
   pub fn is_sniper_rifle(&self) -> bool {
     use WeaponId::*;
 
@@ -82,20 +79,17 @@ impl Entity {
 }
 
 impl Entity {
-  pub const INVALID_HANDLE: i32 = -1;
-
   virtual_method!(pub fn networkable[4](&self) -> &NetworkableEntity);
   virtual_method!(pub fn renderable[5](&self) -> &RenderableEntity);
-  virtual_method!(pub fn animated[39](&self) -> &AnimatedEntity);
-  virtual_method!(pub fn is_player[131](&self) -> bool);
-  virtual_method!(pub fn active_weapon[222](&self) -> Option<&Entity>);
+  virtual_method!(pub fn is_player[132](&self) -> bool);
+  virtual_method!(pub fn active_weapon[227](&self) -> Option<&Entity>);
 
   netvar!(pub fn team -> i32 for CBaseEntity->m_iTeamNum);
-  netvar!(pub fn owner_handle -> i32 for CBaseCombatWeapon->m_hOwner);
+  netvar!(pub fn owner_handle -> EntityHandle for CBaseCombatWeapon->m_hOwner);
 }
 
 impl Entity {
-  virtual_method!(fn weapon_id[365](&self) -> WeaponId);
+  virtual_method!(fn weapon_id[371](&self) -> WeaponId);
 
   netvar!(fn flags -> i32 for CBasePlayer->m_fFlags);
   netvar!(fn weapon_mode -> i32 for CWeaponCSBase->m_weaponMode);
@@ -104,12 +98,12 @@ impl Entity {
 impl Entity {
   #[inline]
   fn move_child(&self) -> Option<&Self> {
-    Interfaces::get().entity_list.get_entity_from_handle(self.move_child_handle)
+    Interfaces::get().entity_list.get_entity_from_handle(&self.move_child_handle)
   }
 
   #[inline]
   fn move_peer(&self) -> Option<&Self> {
-    Interfaces::get().entity_list.get_entity_from_handle(self.move_peer_handle)
+    Interfaces::get().entity_list.get_entity_from_handle(&self.move_peer_handle)
   }
 }
 
@@ -127,6 +121,17 @@ pub struct RenderableEntity;
 impl RenderableEntity {
   virtual_method!(pub fn should_draw[3](&self) -> bool);
   virtual_method!(pub fn draw_model[10](&self) -> i32 where (1: i32 /* StudioRender */));
+}
+
+#[derive(Clone, Copy)]
+#[repr(transparent)]
+pub struct EntityHandle(u32);
+
+impl EntityHandle {
+  #[inline]
+  pub fn is_invalid(self) -> bool {
+    self.0 == u32::MAX
+  }
 }
 
 pub struct EntityAttachmentIterator<'a> {

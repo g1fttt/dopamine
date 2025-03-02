@@ -264,7 +264,7 @@ fn determine_config<'config>(
     } else {
       GlowConfigKind::Allies
     }
-  } else if entity.is_weapon() && entity.owner_handle() == Entity::INVALID_HANDLE {
+  } else if entity.is_weapon() && entity.owner_handle().is_invalid() {
     GlowConfigKind::Weapons
   } else {
     return None;

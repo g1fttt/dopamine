@@ -30,7 +30,7 @@ impl Chams<'_> {
     Self { materials, applied: false }
   }
 
-  #[inline]
+  #[inline(always)]
   pub fn applied(&self) -> bool {
     self.applied
   }
@@ -47,7 +47,7 @@ impl Chams<'_> {
       return;
     };
 
-    if entity.animated().is_viewmodel() {
+    if entity.is_viewmodel() {
       self.apply_chams(
         draw_model_execute,
         ctx.interfaces,

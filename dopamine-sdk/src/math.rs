@@ -4,18 +4,18 @@ use std::ops::{Add, Mul};
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 #[repr(C)]
-pub struct Vector {
+pub struct Vector3D {
   pub x: f32,
   pub y: f32,
   pub z: f32,
 }
 
-impl Vector {
+impl Vector3D {
   pub fn new(x: f32, y: f32, z: f32) -> Self {
     Self { x, y, z }
   }
 
-  pub fn cross_product(&self, other: &Vector) -> Self {
+  pub fn cross_product(&self, other: &Vector3D) -> Self {
     Self {
       x: self.y * other.z - self.z * other.y,
       y: self.z * other.x - self.x * other.z,
@@ -24,7 +24,7 @@ impl Vector {
   }
 }
 
-impl Mul<f32> for Vector {
+impl Mul<f32> for Vector3D {
   type Output = Self;
 
   fn mul(self, rhs: f32) -> Self::Output {
@@ -32,24 +32,24 @@ impl Mul<f32> for Vector {
   }
 }
 
-fn add_two_vectors(a: &Vector, b: &Vector) -> Vector {
-  Vector { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z }
+fn add_two_vectors(a: &Vector3D, b: &Vector3D) -> Vector3D {
+  Vector3D { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z }
 }
 
-impl Add<Vector> for Vector {
+impl Add<Vector3D> for Vector3D {
   type Output = Self;
 
   #[inline(always)]
-  fn add(self, rhs: Vector) -> Self::Output {
+  fn add(self, rhs: Vector3D) -> Self::Output {
     add_two_vectors(&self, &rhs)
   }
 }
 
-impl Add<Vector> for &Vector {
-  type Output = Vector;
+impl Add<Vector3D> for &Vector3D {
+  type Output = Vector3D;
 
   #[inline(always)]
-  fn add(self, rhs: Vector) -> Self::Output {
+  fn add(self, rhs: Vector3D) -> Self::Output {
     add_two_vectors(self, &rhs)
   }
 }
@@ -66,19 +66,19 @@ impl Angles {
     Self { yaw, pitch, roll }
   }
 
-  pub fn to_vector(&self) -> Vector {
+  pub fn to_vector(&self) -> Vector3D {
     let yaw = self.yaw.to_radians();
     let pitch = self.pitch.to_radians();
 
-    Vector::new(yaw.cos() * pitch.cos(), yaw.cos() * pitch.sin(), -yaw.sin())
+    Vector3D::new(yaw.cos() * pitch.cos(), yaw.cos() * pitch.sin(), -yaw.sin())
   }
 
   #[inline(always)]
-  pub fn forward_vector(&self) -> Vector {
+  pub fn forward_vector(&self) -> Vector3D {
     self.to_vector()
   }
 
-  pub fn up_vector(&self) -> Vector {
+  pub fn up_vector(&self) -> Vector3D {
     Self::new(self.yaw - 90.0, self.pitch, self.roll).to_vector()
   }
 }

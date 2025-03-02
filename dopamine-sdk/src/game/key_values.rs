@@ -4,7 +4,7 @@ use crate::cstr;
 
 #[repr(C)]
 pub struct KeyValues {
-  pad: [u8; 40],
+  pad: [u8; 68],
 }
 
 impl KeyValues {
@@ -14,7 +14,7 @@ impl KeyValues {
     unsafe { this.assume_init() }
   }
 
-  // FIXME: It's better to store it somewhere and then free on unload
+  // FIXME: It's better to store this somewhere and then free on unload
   pub fn new_leaked(shader: &str) -> &mut Self {
     Box::leak(Self::new_boxed(shader))
   }

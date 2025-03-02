@@ -7,7 +7,7 @@ use std::ffi::c_char;
 
 #[repr(C)]
 pub struct ClientClass<'a> {
-  pad: [u8; 8],
+  pad: [u8; 16],
   name: *const c_char,
   pub recv_table: &'a RecvTable<'a>,
   pub next: Option<&'a ClientClass<'a>>,
@@ -27,9 +27,9 @@ pub enum WeaponClassId {
   Ak47 = 1,
   C4 = 23,
   DEagle = 31,
-  Aug = 162,
+  Aug = 163,
   AWP,
-  Elite = 167,
+  Elite = 168,
   Famas,
   FiveSeven,
   G3SG1,

@@ -2,7 +2,7 @@ use super::material_system::Material;
 
 #[repr(C)]
 pub struct StudioRender<'a> {
-  pad: [u8; 596],
+  pad: [u8; 608],
   forced_material: Option<&'a Material>,
 }
 

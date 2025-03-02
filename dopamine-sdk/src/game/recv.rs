@@ -12,10 +12,10 @@ pub enum SendPropKind {
 pub struct RecvProp<'a> {
   name: *const c_char,
   pub kind: SendPropKind,
-  pad1: [u8; 29],
+  pad1: [u8; 49],
   pub table: Option<&'a RecvTable<'a>>,
   pub offset: i32,
-  pad2: [u8; 12],
+  pad2: [u8; 16],
 }
 
 impl RecvProp<'_> {
@@ -29,7 +29,7 @@ impl RecvProp<'_> {
 pub struct RecvTable<'a> {
   pub props: *const RecvProp<'a>,
   pub len: i32,
-  pad: [u8; 4],
+  pad1: [u8; 8],
   name: *const c_char,
 }
 

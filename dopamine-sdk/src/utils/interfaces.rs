@@ -6,6 +6,7 @@ use crate::game::render_view::RenderView;
 use crate::game::studio_render::StudioRender;
 use crate::game::surface::Surface;
 
+use super::rip_offset_value;
 use crate::{cstr, pcstr};
 
 use windows::core::{Error as WindowsError, Result as WindowsResult};
@@ -71,5 +72,6 @@ fn find_interface<'a, T>(module_name: &str, interface_name: &str) -> WindowsResu
 
 unsafe fn client_mode_from_client(client: &Client) -> Option<&ClientMode> {
   let client_vtable = *(client as *const Client as *const *const *const c_void);
-  (**(*client_vtable.add(10)).byte_add(5).cast::<*const *const ClientMode>()).as_ref()
+  let client_mode = rip_offset_value((*client_vtable.add(10)).cast_mut());
+  client_mode.cast::<ClientMode>().as_ref()
 }

@@ -1,5 +1,6 @@
 use crate::game::{Entity, KeyValues};
 
+use super::rip_offset_value;
 use crate::pcstr;
 
 use windows::core::{Error as WindowsError, Result as WindowsResult};
@@ -11,10 +12,10 @@ use std::ffi::{c_char, c_void};
 use std::sync::LazyLock;
 
 pub struct Patterns {
-  pub key_values_new: extern "thiscall" fn(*mut KeyValues, shader: *const c_char) -> *mut KeyValues,
-  pub key_values_set_string: extern "thiscall" fn(&mut KeyValues, *const c_char, *const c_char),
+  pub key_values_new: extern "fastcall" fn(*mut KeyValues, shader: *const c_char) -> *mut KeyValues,
+  pub key_values_set_string: extern "fastcall" fn(&mut KeyValues, *const c_char, *const c_char),
 
-  pub is_local_player: extern "thiscall" fn(&Entity) -> bool,
+  pub is_local_player: extern "fastcall" fn(&Entity) -> bool,
 
   pub calc_viewmodel_view: *mut c_void,
 
@@ -30,19 +31,26 @@ impl Patterns {
     &PATTERNS
   }
 
-  #[rustfmt::skip]
   unsafe fn find() -> WindowsResult<Self> {
-    let key_values_new = find_pattern("StudioRender.dll", b"\x55\x8B\xEC\x56\x8B\xF1\x6A")?;
-    let key_values_set_string = find_pattern("client.dll", b"\x55\x8B\xEC\x57\x6A\x01\xFF\x75\x08\xE8????\x8B\xF8\x85\xFF\x74\x60")?;
+    let key_values_new =
+      find_pattern("studiorender.dll", b"\x40\x53\x48\x83\xEC?\x48\x8B\xD9\xC7\x01")?;
+    let key_values_set_string =
+      find_pattern("client.dll", b"\x48\x89\x5C\x24?\x55\x48\x83\xEC?\x49\x8B\xD8")?;
 
-    let is_local_player = find_pattern("client.dll", b"\x33\xC0\x39\x0D????\x0F")?;
+    let is_local_player = find_pattern("client.dll", b"\x48\x39\x0D????\x0F\x94\xC0\xC3\xCC")?;
 
-    let calc_viewmodel_view = find_pattern("client.dll", b"\x55\x8B\xEC\x83\xEC?\x8B\x55?\x56\x57\x8B\xF9\x8B\x4D")?;
+    let calc_viewmodel_view =
+      find_pattern("client.dll", b"\x48\x89\x5C\x24?\x56\x48\x83\xEC?\xF2\x41\x0F\x10\x01")?;
 
-    let d3d9_reset = find_pattern::<*mut c_void>("GameOverlayRenderer.dll", b"\xA1????\x57\x53\xC7\x45\xFC\x00\x00\x00\x00")?
-      .byte_add(1);
-    let d3d9_present = find_pattern::<*mut c_void>("GameOverlayRenderer.dll", b"\xA1????\x51\xFF\x75\x14")?
-      .byte_add(1);
+    let d3d9_reset = rip_offset_value(find_pattern::<*mut c_void>(
+      "GameOverlayRenderer64.dll",
+      b"\x48\x8B\x05????\x48\x8B\xD6\x48\x8B\xCF\xFF\xD0\x8B\xF8",
+    )?);
+
+    let d3d9_present = rip_offset_value(find_pattern::<*mut c_void>(
+      "GameOverlayRenderer64.dll",
+      b"\x48\x8B\x05????\x4D\x8B\xCE\x4C\x8B\xC5",
+    )?);
 
     Ok(Self {
       key_values_new,
@@ -94,6 +102,9 @@ unsafe fn find_pattern<T>(module_name: &str, pattern: &[u8]) -> WindowsResult<T>
     let char_index = *start.add(last_index) as usize;
     start = start.add(bad_char_table[char_index]);
   }
+
+  log::error!("Failed to find {:?} in {}", pattern, module_name);
+
   Err(WindowsError::empty())
 }
 

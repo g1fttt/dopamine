@@ -4,7 +4,7 @@ use educe::Educe;
 use imgui::{DrawListMut, ImColor32, Io};
 use serde::{Deserialize, Serialize};
 
-use dopamine_sdk::math::{Angles, Vector};
+use dopamine_sdk::math::{Angles, Vector3D};
 use dopamine_sdk::render_view::ViewSetup;
 use dopamine_sdk::{Color, Entity};
 
@@ -67,9 +67,9 @@ pub fn add_fov(config: &AddFovConfig, view: &mut ViewSetup) {
 
 pub fn calc_viewmodel_origin(
   config: &ViewmodelOriginConfig,
-  eye_origin: &Vector,
+  eye_origin: &Vector3D,
   eye_angles: &Angles,
-) -> Option<Vector> {
+) -> Option<Vector3D> {
   if !config.enabled {
     return None;
   }
@@ -110,7 +110,7 @@ pub struct AddFovConfig {
 pub struct ViewmodelOriginConfig {
   pub enabled: bool,
   #[serde(flatten)]
-  pub origin: Vector,
+  pub origin: Vector3D,
 }
 
 #[derive(Default, Serialize, Deserialize)]

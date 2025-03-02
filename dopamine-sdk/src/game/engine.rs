@@ -13,7 +13,7 @@ impl Engine {
 
 #[repr(C)]
 pub struct ModelRenderInfo {
-  pad: [u8; 48],
+  pad: [u8; 68],
   pub entity_index: i32,
 }
 

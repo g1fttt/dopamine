@@ -5,7 +5,7 @@ use dopamine_sdk::client::ClientMode;
 use dopamine_sdk::render_view::ViewSetup;
 use dopamine_sdk::UserCommand;
 
-pub extern "thiscall" fn override_view(this: &ClientMode, view: &mut ViewSetup) {
+pub extern "fastcall" fn override_view(this: &ClientMode, view: &mut ViewSetup) {
   App::with(move |app| {
     (app.hooks.override_view.original)(this, view);
 
@@ -13,7 +13,7 @@ pub extern "thiscall" fn override_view(this: &ClientMode, view: &mut ViewSetup) 
   })
 }
 
-pub extern "thiscall" fn create_move(
+pub extern "fastcall" fn create_move(
   this: &ClientMode,
   input_sample_frame_time: f32,
   cmd: &mut UserCommand,
@@ -27,11 +27,7 @@ pub extern "thiscall" fn create_move(
   })
 }
 
-// char __stdcall ClientModeShared::DoPostScreenSpaceEffects(int a1)
-// {
-//   return 1;
-// }
-pub extern "thiscall" fn do_post_screen_space_effects(_: &ClientMode, view: &ViewSetup) -> bool {
+pub extern "fastcall" fn do_post_screen_space_effects(_: &ClientMode, view: &ViewSetup) -> bool {
   App::with_mut(move |app| app.glow.draw(app.capture_context(&app.config.glow), view));
 
   true

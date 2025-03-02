@@ -13,7 +13,7 @@ pub type ResetFn = extern "stdcall" fn(IDirect3DDevice9, &D3DPRESENT_PARAMETERS)
 
 pub extern "stdcall" fn reset(device: IDirect3DDevice9, params: &D3DPRESENT_PARAMETERS) -> HRESULT {
   App::with(move |app| {
-    let result = (app.hooks.reset)(device.clone(), params);
+    let result = (app.hooks.reset.original)(device.clone(), params);
 
     if let Some(imgui_ctx) = ImGuiContext::get_mut() {
       imgui_ctx.reset(device.clone());
@@ -79,6 +79,6 @@ pub extern "stdcall" fn present(
       }
       let _ = state_block.Apply();
     }
-    (app.hooks.present)(device.clone(), src, dest, window_override, dirty_region)
+    (app.hooks.present.original)(device.clone(), src, dest, window_override, dirty_region)
   })
 }
