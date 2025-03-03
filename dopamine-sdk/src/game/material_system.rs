@@ -3,9 +3,11 @@ use crate::{cstr, Color};
 
 use derive_builder::Builder;
 use dopamine_macros::virtual_method;
+use open_enum::open_enum;
 
 use std::ffi::{c_char, c_void};
 
+#[open_enum]
 #[repr(C)]
 pub enum MaterialFlag {
   IgnoreZ = 1 << 15,
@@ -74,6 +76,7 @@ impl MaterialSystem {
 }
 
 #[derive(Default, Clone, Copy)]
+#[open_enum]
 #[repr(C)]
 pub enum StencilOp {
   #[default]
@@ -82,6 +85,7 @@ pub enum StencilOp {
 }
 
 #[derive(Default, Clone, Copy)]
+#[open_enum]
 #[repr(C)]
 pub enum StencilCmpFn {
   Equal = 3,

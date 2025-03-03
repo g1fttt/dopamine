@@ -1,8 +1,10 @@
 use crate::rstr;
 
+use open_enum::open_enum;
+
 use std::ffi::c_char;
 
-#[derive(PartialEq)]
+#[open_enum]
 #[repr(C)]
 pub enum SendPropKind {
   NumSendPropKinds = 6,
@@ -19,7 +21,6 @@ pub struct RecvProp<'a> {
 }
 
 impl RecvProp<'_> {
-  #[inline]
   pub fn name(&self) -> &str {
     unsafe { rstr!(self.name) }
   }
@@ -34,7 +35,6 @@ pub struct RecvTable<'a> {
 }
 
 impl RecvTable<'_> {
-  #[inline]
   pub fn name(&self) -> &str {
     unsafe { rstr!(self.name) }
   }
