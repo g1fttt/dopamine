@@ -15,6 +15,8 @@ use windows::Win32::System::LibraryLoader::{DisableThreadLibraryCalls, FreeLibra
 use windows::Win32::System::Threading::{CreateThread, THREAD_CREATION_FLAGS};
 use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
 
+use windows::core::Result as WindowsResult;
+
 use std::cell::OnceCell;
 use std::ffi::c_void;
 
@@ -32,11 +34,11 @@ pub struct App {
 }
 
 impl App {
-  pub fn on_process_attach(module: HMODULE) -> windows::core::Result<()> {
+  pub fn on_process_attach(module: HMODULE) -> WindowsResult<()> {
     unsafe { Self::get_mut_or_init(Some(module)).setup() }
   }
 
-  unsafe fn setup(&mut self) -> windows::core::Result<()> {
+  unsafe fn setup(&mut self) -> WindowsResult<()> {
     DisableThreadLibraryCalls(self.module)?;
 
     let _ =
@@ -54,7 +56,7 @@ impl App {
     });
   }
 
-  pub unsafe fn unload(&mut self) -> windows::core::Result<()> {
+  pub unsafe fn unload(&mut self) -> WindowsResult<()> {
     unsafe extern "system" fn free_library(app: *mut c_void) -> u32 {
       let _ = Beep(1500, 200);
 
