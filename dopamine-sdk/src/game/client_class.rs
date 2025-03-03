@@ -1,7 +1,7 @@
 use super::RecvTable;
 use crate::rstr;
 
-use strum::FromRepr;
+use open_enum::open_enum;
 
 use std::ffi::c_char;
 
@@ -11,22 +11,23 @@ pub struct ClientClass<'a> {
   name: *const c_char,
   pub recv_table: &'a RecvTable<'a>,
   pub next: Option<&'a ClientClass<'a>>,
-  pub id: i32,
+  pub id: ClassId,
 }
 
 impl ClientClass<'_> {
-  #[inline]
   pub fn name(&self) -> &str {
     unsafe { rstr!(self.name) }
   }
 }
 
-#[derive(FromRepr)]
+#[derive(Clone, Copy)]
+#[open_enum]
 #[repr(C)]
-pub enum WeaponClassId {
+pub enum ClassId {
   Ak47 = 1,
   C4 = 23,
   DEagle = 31,
+  PredictedViewModel = 89,
   Aug = 163,
   AWP,
   Elite = 168,

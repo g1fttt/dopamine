@@ -17,3 +17,4 @@ dopamine-macros.path = "../dopamine-macros"
 derive_builder = "0.20.0"
 num-traits = "0.2.19"
 minhook = "0.5.0"
+open-enum = { version = "0.5.2", features = ["std"] }

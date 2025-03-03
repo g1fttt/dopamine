@@ -1,6 +1,8 @@
-use super::{ClientClass, WeaponClassId};
-
 use crate::utils::{Interfaces, Patterns};
+
+use super::{ClassId, ClientClass};
+
+use open_enum::open_enum;
 
 use dopamine_macros::{netvar, virtual_method};
 
@@ -14,6 +16,7 @@ impl UserCommand {
   pub const IN_JUMP: i32 = 1 << 1;
 }
 
+#[open_enum]
 #[repr(C)]
 pub enum WeaponId {
   Scout = 3,
@@ -22,6 +25,13 @@ pub enum WeaponId {
   Awp = 17,
   G3SG1 = 23,
   SG552 = 26,
+}
+
+#[derive(Clone, Copy)]
+#[open_enum]
+#[repr(C)]
+enum WeaponMode {
+  Secondary = 1,
 }
 
 #[repr(C)]
@@ -52,29 +62,50 @@ impl Entity {
 
 impl Entity {
   pub fn is_viewmodel(&self) -> bool {
-    self.networkable().client_class().id == 89 /* CPredictedViewModel */
+    self.networkable().client_class().id == ClassId::PredictedViewModel
   }
 
   pub fn is_sniper_rifle(&self) -> bool {
-    use WeaponId::*;
-
-    matches!(self.weapon_id(), Scout | Awp | G3SG1 | SG550)
+    matches!(self.weapon_id(), WeaponId::Scout | WeaponId::Awp | WeaponId::G3SG1 | WeaponId::SG550)
   }
 
   pub fn is_rifle_with_scope(&self) -> bool {
-    use WeaponId::*;
-
-    self.is_sniper_rifle() || matches!(self.weapon_id(), Aug | SG552)
+    self.is_sniper_rifle() || matches!(self.weapon_id(), WeaponId::Aug | WeaponId::SG552)
   }
 
   pub fn is_in_scope(&self) -> bool {
-    self.is_rifle_with_scope() && self.weapon_mode() == 1 // Secondary
-                                                          //
-                                                          // enum with #[repr(C)] leading to crash
+    self.is_rifle_with_scope() && self.weapon_mode() == WeaponMode::Secondary
   }
 
   pub fn is_weapon(&self) -> bool {
-    WeaponClassId::from_repr(self.networkable().client_class().id as usize).is_some()
+    matches!(
+      self.networkable().client_class().id,
+      ClassId::Ak47
+        | ClassId::C4
+        | ClassId::DEagle
+        | ClassId::Aug
+        | ClassId::AWP
+        | ClassId::Elite
+        | ClassId::Famas
+        | ClassId::FiveSeven
+        | ClassId::G3SG1
+        | ClassId::Galil
+        | ClassId::Glock
+        | ClassId::M249
+        | ClassId::M3
+        | ClassId::M4A1
+        | ClassId::Mac10
+        | ClassId::Mp5N
+        | ClassId::P228
+        | ClassId::P90
+        | ClassId::Scout
+        | ClassId::Sg550
+        | ClassId::Sg552
+        | ClassId::Tmp
+        | ClassId::Ump45
+        | ClassId::Usp
+        | ClassId::Xm1014
+    )
   }
 }
 
@@ -92,16 +123,14 @@ impl Entity {
   virtual_method!(fn weapon_id[371](&self) -> WeaponId);
 
   netvar!(fn flags -> i32 for CBasePlayer->m_fFlags);
-  netvar!(fn weapon_mode -> i32 for CWeaponCSBase->m_weaponMode);
+  netvar!(fn weapon_mode -> WeaponMode for CWeaponCSBase->m_weaponMode);
 }
 
 impl Entity {
-  #[inline]
   fn move_child(&self) -> Option<&Self> {
     Interfaces::get().entity_list.get_entity_from_handle(&self.move_child_handle)
   }
 
-  #[inline]
   fn move_peer(&self) -> Option<&Self> {
     Interfaces::get().entity_list.get_entity_from_handle(&self.move_peer_handle)
   }
