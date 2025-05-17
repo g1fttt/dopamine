@@ -3,6 +3,7 @@ use crate::game::engine::{Engine, ModelRender};
 use crate::game::input_system::InputSystem;
 use crate::game::material_system::MaterialSystem;
 use crate::game::render_view::RenderView;
+use crate::game::server::Server;
 use crate::game::studio_render::StudioRender;
 use crate::game::surface::Surface;
 
@@ -17,6 +18,7 @@ use std::sync::LazyLock;
 
 pub struct Interfaces<'a> {
   pub client: &'a Client,
+  pub server: &'a Server,
   pub client_mode: &'a ClientMode,
   pub entity_list: &'a EntityList,
   pub engine: &'a Engine,
@@ -43,6 +45,7 @@ impl Interfaces<'_> {
 
     Ok(Self {
       client,
+      server: find_interface("server.dll", "PlayerInfoManager002")?,
       client_mode: unsafe { client_mode_from_client(client) }.ok_or(WindowsError::empty())?,
       entity_list: find_interface("client.dll", "VClientEntityList003")?,
       engine: find_interface("engine.dll", "VEngineClient013")?,

@@ -44,6 +44,9 @@ fn walk_table<'a>(offsets: &mut Offsets<'a>, class_name: &'a str, table: &'a Rec
     {
       walk_table(offsets, class_name, t);
     }
+
+    // TODO: Dump netvars in Debug mode
+
     offsets.insert((class_name, prop_name), prop.offset as usize);
   }
 }

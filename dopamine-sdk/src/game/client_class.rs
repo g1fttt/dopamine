@@ -26,6 +26,7 @@ impl ClientClass<'_> {
 pub enum ClassId {
   Ak47 = 1,
   C4 = 23,
+  PlayerResource = 28,
   DEagle = 31,
   PredictedViewModel = 89,
   Aug = 163,

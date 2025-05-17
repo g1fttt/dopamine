@@ -5,12 +5,14 @@ use crate::entities;
 use dopamine_sdk::material_system::*;
 use dopamine_sdk::render_view::ViewSetup;
 use dopamine_sdk::utils::Interfaces;
-use dopamine_sdk::{Color, Entity, KeyValues};
+use dopamine_sdk::{ClassId, Color, Entity, KeyValues};
 
 use educe::Educe;
 use enum_map::Enum;
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
+
+use std::cell::RefCell;
 
 pub struct Glow<'a> {
   rt_quarter_size_1: &'a Texture,
@@ -124,7 +126,33 @@ impl Glow<'_> {
         Some(_) | None => continue,
       };
 
-      ctx.interfaces.render_view.set_color_with_blend(&config.color);
+      let color = if config.fade_out_when_spotted {
+        // TODO: Precache right after joining a server
+        let player_resource = entities::iter()
+          .find(|&ent| ent.networkable().client_class().id == ClassId::PlayerResource)
+          .unwrap();
+
+        let mut color = config.color.clone();
+
+        let real_time = ctx.interfaces.server.global_vars().real_time;
+        let entity_index = entity.networkable().index();
+
+        if entity.is_player() && player_resource.is_spotted(entity_index) {
+          config.spotted_time.borrow_mut()[entity_index] = real_time;
+        } else {
+          let spotted_time = config.spotted_time.borrow()[entity_index];
+          let time_since_spotted = real_time - spotted_time;
+          let fade_progress = time_since_spotted / config.fade_out_rate;
+
+          color.a = (color.a - fade_progress).clamp(0.0, 1.0);
+        }
+
+        color
+      } else {
+        config.color.clone()
+      };
+
+      ctx.interfaces.render_view.set_color_with_blend(&color);
 
       draw_model(entity);
     }
@@ -307,11 +335,18 @@ pub enum GlowConfigKind {
   Weapons,
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Educe, Serialize, Deserialize)]
 #[serde(default)]
+#[educe(Default)]
 pub struct GlowItemConfig {
   pub enabled: bool,
   pub color: Color,
+  pub fade_out_when_spotted: bool,
+  #[educe(Default = 1.0)]
+  pub fade_out_rate: f32,
+  #[serde(skip)]
+  #[educe(Default = RefCell::new([0.0; _]))]
+  spotted_time: RefCell<[f32; 65]>,
 }
 
 pub type GlowConfig = EnumMapConfig<GlowConfigKind, GlowItemConfig>;

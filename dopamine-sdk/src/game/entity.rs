@@ -65,6 +65,11 @@ impl Entity {
     self.networkable().client_class().id == ClassId::PredictedViewModel
   }
 
+  #[inline]
+  pub fn is_spotted(&self, index: usize) -> bool {
+    self.player_spotted()[index]
+  }
+
   pub fn is_sniper_rifle(&self) -> bool {
     matches!(self.weapon_id(), WeaponId::Scout | WeaponId::Awp | WeaponId::G3SG1 | WeaponId::SG550)
   }
@@ -117,6 +122,7 @@ impl Entity {
 
   netvar!(pub fn team -> i32 for CBaseEntity->m_iTeamNum);
   netvar!(pub fn owner_handle -> EntityHandle for CBaseCombatWeapon->m_hOwner);
+  netvar!(fn player_spotted -> [bool; 65] for CCSPlayerResource->m_bPlayerSpotted);
 }
 
 impl Entity {
@@ -140,8 +146,19 @@ impl Entity {
 pub struct NetworkableEntity;
 
 impl NetworkableEntity {
+  #[inline]
+  pub fn index(&self) -> usize {
+    self.index_raw() as usize
+  }
+}
+
+impl NetworkableEntity {
   virtual_method!(pub fn is_dormant[8](&self) -> bool);
   virtual_method!(pub fn client_class[2](&self) -> &ClientClass);
+}
+
+impl NetworkableEntity {
+  virtual_method!(fn index_raw[9](&self) -> i32);
 }
 
 #[repr(C)]

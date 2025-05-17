@@ -6,6 +6,7 @@ use crate::features::misc::MiscConfig;
 use crate::features::visuals::VisualsConfig;
 
 use dopamine_sdk::input_system::InputSystem;
+use enum_map::Enum;
 use imgui::{ColorEditFlags, Io, Ui, WindowFlags};
 use strum::VariantNames;
 use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
@@ -140,6 +141,13 @@ impl Menu {
         ui.color_edit4_config("##Color", cfg.color.as_mut_array())
           .flags(Self::color_edit_flags())
           .build();
+
+        let config_kind = GlowConfigKind::from_usize(current_config_index);
+        if matches!(config_kind, GlowConfigKind::Enemies) {
+          ui.checkbox("Fade out when spotted", &mut cfg.fade_out_when_spotted);
+          ui.same_line();
+          ui.slider("Rate", 0.3, 3.0, &mut cfg.fade_out_rate);
+        }
       },
     );
   }
