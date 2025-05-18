@@ -20,7 +20,7 @@ A fast, lightweight and (almost) feature-complete internal gamehack for Counter-
 <ul>
   <li><b>Misc</b></li>
   <ul>
-    <li>Bunnyhop</li>
+    <li>Bunnyhop with ability to edit bounce chance</li>
   </ul>
   <li><b>Visuals</b></li>
   <ul>

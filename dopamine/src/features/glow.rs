@@ -127,11 +127,18 @@ impl Glow<'_> {
       };
 
       let real_time = ctx.interfaces.server.global_vars().real_time;
-      let fade_out_alpha =
-        self.calc_fade_out_alpha(real_time, entity, ctx.player_resource.unwrap(), config);
-      let color = config.color.with_alpha(fade_out_alpha);
+      let player_resource = ctx.player_resource.unwrap();
 
-      ctx.interfaces.render_view.set_color_with_blend(&color);
+      let color = match self.calc_fade_out_alpha(real_time, entity, player_resource, config) {
+        Some(a) => &config.color.with_alpha(a),
+        None => &config.color,
+      };
+
+      if color.a == 0.0 {
+        continue;
+      }
+
+      ctx.interfaces.render_view.set_color_with_blend(color);
 
       draw_model(entity);
     }
@@ -150,26 +157,27 @@ impl Glow<'_> {
     entity: &Entity,
     player_resource: &Entity,
     config: &GlowItemConfig,
-  ) -> f32 {
-    let mut alpha = config.color.a;
-
+  ) -> Option<f32> {
     if !config.fade_out_when_spotted {
-      return alpha;
+      return None;
     }
 
     let entity_index = entity.networkable().index();
 
     if entity.is_player() && player_resource.is_spotted(entity_index) {
       self.spotted_time[entity_index] = real_time;
+
+      None
     } else {
       let spotted_time = self.spotted_time[entity_index];
+
       let time_since_spotted = real_time - spotted_time;
       let fade_progress = time_since_spotted / config.fade_out_rate;
 
-      alpha = (alpha - fade_progress).clamp(0.0, 1.0);
-    }
+      let alpha = (config.color.a - fade_progress).clamp(0.0, 1.0);
 
-    alpha
+      Some(alpha)
+    }
   }
 
   fn blur_glow_effects(&self, view: &ViewSetup, render_ctx: &RenderContext) {
