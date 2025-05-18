@@ -5,14 +5,12 @@ use crate::entities;
 use dopamine_sdk::material_system::*;
 use dopamine_sdk::render_view::ViewSetup;
 use dopamine_sdk::utils::Interfaces;
-use dopamine_sdk::{ClassId, Color, Entity, KeyValues};
+use dopamine_sdk::{Color, Entity, KeyValues};
 
 use educe::Educe;
 use enum_map::Enum;
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
-
-use std::cell::RefCell;
 
 pub struct Glow<'a> {
   rt_quarter_size_1: &'a Texture,
@@ -22,6 +20,7 @@ pub struct Glow<'a> {
   halo_material: &'a Material,
   glow_blur_x_material: &'a Material,
   glow_blur_y_material: &'a Material,
+  spotted_time: [f32; 65],
 }
 
 impl Glow<'_> {
@@ -86,10 +85,11 @@ impl Glow<'_> {
       halo_material,
       glow_blur_x_material,
       glow_blur_y_material,
+      spotted_time: [Default::default(); _],
     }
   }
 
-  pub fn draw(&self, ctx: FeatureContext<'_, '_, GlowConfig>, view: &ViewSetup) {
+  pub fn draw(&mut self, ctx: FeatureContext<'_, '_, GlowConfig>, view: &ViewSetup) {
     let should_glow = ctx.config.as_array().iter().any(|cfg| cfg.enabled);
 
     if should_glow {
@@ -100,7 +100,7 @@ impl Glow<'_> {
   }
 
   fn draw_glowing_models(
-    &self,
+    &mut self,
     ctx: FeatureContext<'_, '_, GlowConfig>,
     view: &ViewSetup,
     render_ctx: &RenderContext,
@@ -126,31 +126,10 @@ impl Glow<'_> {
         Some(_) | None => continue,
       };
 
-      let color = if config.fade_out_when_spotted {
-        // TODO: Precache right after joining a server
-        let player_resource = entities::iter()
-          .find(|&ent| ent.networkable().client_class().id == ClassId::PlayerResource)
-          .unwrap();
-
-        let mut color = config.color.clone();
-
-        let real_time = ctx.interfaces.server.global_vars().real_time;
-        let entity_index = entity.networkable().index();
-
-        if entity.is_player() && player_resource.is_spotted(entity_index) {
-          config.spotted_time.borrow_mut()[entity_index] = real_time;
-        } else {
-          let spotted_time = config.spotted_time.borrow()[entity_index];
-          let time_since_spotted = real_time - spotted_time;
-          let fade_progress = time_since_spotted / config.fade_out_rate;
-
-          color.a = (color.a - fade_progress).clamp(0.0, 1.0);
-        }
-
-        color
-      } else {
-        config.color.clone()
-      };
+      let real_time = ctx.interfaces.server.global_vars().real_time;
+      let fade_out_alpha =
+        self.calc_fade_out_alpha(real_time, entity, ctx.player_resource.unwrap(), config);
+      let color = config.color.with_alpha(fade_out_alpha);
 
       ctx.interfaces.render_view.set_color_with_blend(&color);
 
@@ -163,6 +142,34 @@ impl Glow<'_> {
     StencilState::default().set(render_ctx);
 
     render_ctx.pop_rt_and_viewport();
+  }
+
+  fn calc_fade_out_alpha(
+    &mut self,
+    real_time: f32,
+    entity: &Entity,
+    player_resource: &Entity,
+    config: &GlowItemConfig,
+  ) -> f32 {
+    let mut alpha = config.color.a;
+
+    if !config.fade_out_when_spotted {
+      return alpha;
+    }
+
+    let entity_index = entity.networkable().index();
+
+    if entity.is_player() && player_resource.is_spotted(entity_index) {
+      self.spotted_time[entity_index] = real_time;
+    } else {
+      let spotted_time = self.spotted_time[entity_index];
+      let time_since_spotted = real_time - spotted_time;
+      let fade_progress = time_since_spotted / config.fade_out_rate;
+
+      alpha = (alpha - fade_progress).clamp(0.0, 1.0);
+    }
+
+    alpha
   }
 
   fn blur_glow_effects(&self, view: &ViewSetup, render_ctx: &RenderContext) {
@@ -186,7 +193,7 @@ impl Glow<'_> {
   }
 
   fn apply_glow_effects(
-    &self,
+    &mut self,
     ctx: FeatureContext<'_, '_, GlowConfig>,
     view: &ViewSetup,
     render_ctx: &RenderContext,
@@ -342,11 +349,8 @@ pub struct GlowItemConfig {
   pub enabled: bool,
   pub color: Color,
   pub fade_out_when_spotted: bool,
-  #[educe(Default = 1.0)]
+  #[educe(Default = 3.0)]
   pub fade_out_rate: f32,
-  #[serde(skip)]
-  #[educe(Default = RefCell::new([0.0; _]))]
-  spotted_time: RefCell<[f32; 65]>,
 }
 
 pub type GlowConfig = EnumMapConfig<GlowConfigKind, GlowItemConfig>;

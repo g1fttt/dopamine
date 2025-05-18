@@ -146,7 +146,7 @@ impl Menu {
         if matches!(config_kind, GlowConfigKind::Enemies) {
           ui.checkbox("Fade out when spotted", &mut cfg.fade_out_when_spotted);
           ui.same_line();
-          ui.slider("Rate", 0.3, 3.0, &mut cfg.fade_out_rate);
+          ui.slider("Rate", 1.0, 8.0, &mut cfg.fade_out_rate);
         }
       },
     );

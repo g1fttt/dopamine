@@ -20,20 +20,21 @@ use windows::core::Result as WindowsResult;
 use std::cell::OnceCell;
 use std::ffi::c_void;
 
-pub struct App {
+pub struct App<'s: 'static> {
   module: HMODULE,
 
   pub config: Config,
   pub hooks: Hooks,
   pub menu: Menu,
 
-  pub local_player: Option<&'static Entity>,
+  pub local_player: Option<&'s Entity>,
+  pub player_resource: Option<&'s Entity>,
 
-  pub glow: Glow<'static>,
-  pub chams: Chams<'static>,
+  pub glow: Glow<'s>,
+  pub chams: Chams<'s>,
 }
 
-impl App {
+impl App<'_> {
   pub fn on_process_attach(module: HMODULE) -> WindowsResult<()> {
     unsafe { Self::get_mut_or_init(Some(module)).setup() }
   }
@@ -89,14 +90,14 @@ impl App {
   }
 }
 
-impl App {
+impl App<'_> {
   #[inline]
   pub fn capture_context<'a, T>(&self, config: &'a T) -> FeatureContext<'a, 'static, T> {
     FeatureContext::new(self, config)
   }
 }
 
-impl App {
+impl App<'_> {
   #[inline]
   pub fn with_mut<T, F>(mut f: F) -> T
   where
@@ -134,6 +135,7 @@ impl App {
       menu: Menu::new(),
 
       local_player: None,
+      player_resource: None,
 
       glow: Glow::new(),
       chams: Chams::new(),

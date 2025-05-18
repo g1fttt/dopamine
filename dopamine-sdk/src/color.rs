@@ -43,6 +43,10 @@ impl<T: NumCast + Clone + Copy> Color<T> {
     Self::rgba(r, g, b, T::from(1.0).unwrap())
   }
 
+  pub fn with_alpha(&self, a: T) -> Self {
+    Self::rgba(self.r, self.g, self.b, a)
+  }
+
   pub fn white() -> Self {
     Self::rgba(
       T::from(1.0).unwrap(),

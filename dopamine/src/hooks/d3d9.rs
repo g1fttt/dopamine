@@ -30,7 +30,6 @@ pub type PresentFn = extern "stdcall" fn(
   Option<&RGNDATA>,
 ) -> HRESULT;
 
-// FIXME: Sometimes the game would crash upon entering/leaving fullscreen mode
 pub extern "stdcall" fn present(
   device: IDirect3DDevice9,
   src: Option<&RECT>,

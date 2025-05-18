@@ -21,7 +21,7 @@ pub extern "fastcall" fn draw_model_execute(
       return original();
     }
 
-    // FIXME: If enabled at least one ignore-z layer along with a glow,
+    // FIXME: If enabled at least one ignore-z layer along with a glow
     //        then ignore-z chams shall be visible even if model isn't occluded
     app.chams.draw(app.capture_context(&app.config.chams), &original, info);
 
