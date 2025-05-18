@@ -52,7 +52,12 @@ A fast, lightweight and (almost) feature-complete internal gamehack for Counter-
     <li>Color & alpha modulation</li>
     <li>Fade out when spotted with ability to edit fading rate</li>
   </ul>
-  <li><b>Stream-proof menu powered by [ImGui](https://github.com/ocornut/imgui/)</b></li>
+  <li>
+    <b>
+      Stream-proof menu powered by
+        <a href="https://github.com/ocornut/imgui/">ImGui</a>
+    </b>
+  </li>
   <li><b>Unload at any moment</b></li>
 </ul>
 
