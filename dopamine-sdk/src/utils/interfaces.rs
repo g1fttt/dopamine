@@ -10,8 +10,8 @@ use crate::game::surface::Surface;
 use super::rip_offset_value;
 use crate::{cstr, pcstr};
 
-use windows::core::{Error as WindowsError, Result as WindowsResult};
 use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
+use windows::core::{Error as WindowsError, Result as WindowsResult};
 
 use std::ffi::{c_char, c_void};
 use std::sync::LazyLock;
@@ -64,8 +64,7 @@ fn find_interface<'a, T>(module_name: &str, interface_name: &str) -> WindowsResu
     let module = GetModuleHandleA(pcstr!(module_name))?;
 
     let create_interface = GetProcAddress(module, pcstr!("CreateInterface"));
-    let create_interface: extern "C" fn(*const c_char, *mut i32) -> *mut T =
-      std::mem::transmute(create_interface);
+    let create_interface: extern "C" fn(*const c_char, *mut i32) -> *mut T = std::mem::transmute(create_interface);
 
     create_interface(cstr!(interface_name), std::ptr::null_mut())
       .as_ref()
@@ -74,7 +73,9 @@ fn find_interface<'a, T>(module_name: &str, interface_name: &str) -> WindowsResu
 }
 
 unsafe fn client_mode_from_client(client: &Client) -> Option<&ClientMode> {
-  let client_vtable = *(client as *const Client as *const *const *const c_void);
-  let client_mode = rip_offset_value((*client_vtable.add(10)).cast_mut());
-  client_mode.cast::<ClientMode>().as_ref()
+  unsafe {
+    let client_vtable = *(client as *const Client as *const *const *const c_void);
+    let client_mode = rip_offset_value((*client_vtable.add(10)).cast_mut());
+    client_mode.cast::<ClientMode>().as_ref()
+  }
 }

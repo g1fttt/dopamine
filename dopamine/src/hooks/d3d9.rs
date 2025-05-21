@@ -1,13 +1,13 @@
+use crate::App;
 use crate::features::visuals;
 use crate::ui::ImGuiContext;
-use crate::App;
 
 use dopamine_sdk::utils::Interfaces;
 
-use windows::core::HRESULT;
 use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::Graphics::Direct3D9::*;
 use windows::Win32::Graphics::Gdi::RGNDATA;
+use windows::core::HRESULT;
 
 pub type ResetFn = extern "stdcall" fn(IDirect3DDevice9, &D3DPRESENT_PARAMETERS) -> HRESULT;
 
@@ -42,7 +42,9 @@ pub extern "stdcall" fn present(
     let _ = device.GetCreationParameters(&mut params);
 
     let imgui_ctx = ImGuiContext::get_mut_or_init(device.clone(), params.hFocusWindow);
-    imgui_ctx.prepare_frame();
+    let _ = imgui_ctx
+      .prepare_frame()
+      .inspect_err(|err| log::error!("Failed to prepare ImGui frame: {}", err));
 
     // ImGui::NewFrame with RAII
     let ui = imgui_ctx.new_frame();
@@ -73,7 +75,8 @@ pub extern "stdcall" fn present(
       let _ = device.SetRenderState(D3DRS_SRGBWRITEENABLE, 0);
 
       if device.BeginScene().is_ok() {
-        imgui_ctx.render();
+        let _ =
+          imgui_ctx.render().inspect_err(|err| log::error!("Failed to render ImGui: {}", err));
         let _ = device.EndScene();
       }
       let _ = state_block.Apply();

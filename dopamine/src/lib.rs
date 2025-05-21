@@ -17,7 +17,7 @@ use logger::Logger;
 
 use std::ffi::c_void;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "system" fn DllMain(module: HMODULE, reason: u32, _reserved: *mut c_void) -> BOOL {
   match reason {
     DLL_PROCESS_ATTACH => {

@@ -1,3 +1,5 @@
+// TODO: Full recode needed for DX9 and Win32 backends
+
 use imgui::{Context, Io, Ui};
 use imgui_dx9_renderer::Renderer;
 use imgui_win32_support::Win32;
@@ -5,15 +7,18 @@ use imgui_win32_support::Win32;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Direct3D9::IDirect3DDevice9;
 
+use windows::core::Result as WindowsResult;
+
+use std::cell::{Cell, RefCell};
 use std::sync::OnceLock;
 
 static mut IMGUI_CONTEXT: OnceLock<ImGuiContext> = OnceLock::new();
 
 pub struct ImGuiContext {
-  ctx: Context,
-  renderer: Renderer,
-  win32: Win32,
-  ui: *mut Ui,
+  ctx: RefCell<Context>,
+  renderer: RefCell<Renderer>,
+  win32: RefCell<Win32>,
+  ui: Cell<*mut Ui>,
 }
 
 impl ImGuiContext {
@@ -28,48 +33,51 @@ impl ImGuiContext {
 
   #[inline]
   pub unsafe fn destroy() {
-    IMGUI_CONTEXT.take();
+    unsafe { IMGUI_CONTEXT.take() };
   }
 
   fn new(device: IDirect3DDevice9, hwnd: HWND) -> Self {
-    let mut ctx = Context::create();
-    ctx.set_ini_filename(None);
+    let ctx = RefCell::new(Context::create());
 
-    let renderer = unsafe { Renderer::new(&mut ctx, device).unwrap() };
-    let win32 = Win32::new(&mut ctx, hwnd);
+    let (renderer, win32) = {
+      let ctx_ref = &mut ctx.borrow_mut();
 
-    Self { ctx, renderer, win32, ui: std::ptr::null_mut() }
+      ctx_ref.set_ini_filename(None);
+
+      let renderer = unsafe { Renderer::new(ctx_ref, device).unwrap() };
+      let win32 = Win32::new(ctx_ref, hwnd);
+
+      (RefCell::new(renderer), RefCell::new(win32))
+    };
+
+    Self { ctx, renderer, win32, ui: Cell::new(std::ptr::null_mut()) }
   }
 }
 
 impl ImGuiContext {
-  #[inline]
-  pub fn prepare_frame(&mut self) {
-    let _ = unsafe { self.win32.prepare_frame(&mut self.ctx) };
+  pub unsafe fn prepare_frame(&self) -> WindowsResult<()> {
+    self.win32.borrow_mut().prepare_frame(&mut self.ctx.borrow_mut(), self.ui())
   }
 
-  pub fn new_frame(&mut self) -> &mut Ui {
-    let ui = self.ctx.new_frame();
-    self.ui = ui as *mut Ui;
-    ui
+  pub fn new_frame(&self) -> &'static mut Ui {
+    self.ui.set(self.ctx.borrow_mut().new_frame() as *mut Ui);
+    unsafe { self.ui().unwrap_unchecked() }
   }
 
-  pub fn reset(&mut self, device: IDirect3DDevice9) {
-    self.renderer = unsafe { Renderer::new(&mut self.ctx, device) }.unwrap();
+  pub fn reset(&self, device: IDirect3DDevice9) {
+    self.renderer.replace(unsafe { Renderer::new(&mut self.ctx.borrow_mut(), device) }.unwrap());
   }
 
-  #[inline]
-  pub fn render(&mut self) {
-    let _ = self.renderer.render(self.ctx.render());
+  pub fn render(&self) -> WindowsResult<()> {
+    self.renderer.borrow_mut().render(self.ctx.borrow_mut().render())
   }
 
-  #[inline]
-  pub fn io_mut(&mut self) -> &mut Io {
-    self.ctx.io_mut()
+  pub fn io_mut(&self) -> &'static mut Io {
+    unsafe { (self.ctx.borrow_mut().io_mut() as *mut Io).as_mut_unchecked() }
   }
 
   #[inline]
-  pub fn ui(&mut self) -> Option<&mut Ui> {
-    unsafe { self.ui.as_mut() }
+  pub fn ui(&self) -> Option<&'static mut Ui> {
+    unsafe { self.ui.get().as_mut() }
   }
 }
