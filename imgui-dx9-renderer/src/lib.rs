@@ -64,7 +64,8 @@ impl Renderer {
       let font_tex = Self::create_font_texture(ctx.fonts(), &device)?;
 
       ctx.io_mut().backend_flags |= BackendFlags::RENDERER_HAS_VTX_OFFSET;
-      ctx.set_renderer_name(String::from(concat!("imgui_dx9_renderer@", env!("CARGO_PKG_VERSION"))));
+      ctx
+        .set_renderer_name(String::from(concat!("imgui_dx9_renderer@", env!("CARGO_PKG_VERSION"))));
 
       Ok(Renderer {
         vertex_buffer: Self::create_vertex_buffer(&device, 0)?,
@@ -98,15 +99,20 @@ impl Renderer {
   ///
   /// [`Ui`]: https://docs.rs/imgui/*/imgui/struct.Ui.html
   pub fn render(&mut self, draw_data: &DrawData) -> WindowsResult<()> {
-    if draw_data.display_size[0] <= 0.0 || draw_data.display_size[1] <= 0.0 || draw_data.draw_lists_count() == 0 {
+    if draw_data.display_size[0] <= 0.0
+      || draw_data.display_size[1] <= 0.0
+      || draw_data.draw_lists_count() == 0
+    {
       return Ok(());
     }
     unsafe {
       if self.vertex_buffer.1 < draw_data.total_vtx_count as usize {
-        self.vertex_buffer = Self::create_vertex_buffer(&self.device, draw_data.total_vtx_count as usize)?;
+        self.vertex_buffer =
+          Self::create_vertex_buffer(&self.device, draw_data.total_vtx_count as usize)?;
       }
       if self.index_buffer.1 < draw_data.total_idx_count as usize {
-        self.index_buffer = Self::create_index_buffer(&self.device, draw_data.total_idx_count as usize)?;
+        self.index_buffer =
+          Self::create_index_buffer(&self.device, draw_data.total_idx_count as usize)?;
       }
 
       if let Ok(state_block) = self.device.CreateStateBlock(D3DSBT_ALL) {
@@ -305,7 +311,9 @@ impl Renderer {
       )?
     };
 
-    for (vbuf, ibuf) in draw_data.draw_lists().map(|draw_list| (draw_list.vtx_buffer(), draw_list.idx_buffer())) {
+    for (vbuf, ibuf) in
+      draw_data.draw_lists().map(|draw_list| (draw_list.vtx_buffer(), draw_list.idx_buffer()))
+    {
       for (vertex, vtx_dst) in vbuf.iter().zip(vtx_dst.iter_mut()) {
         *vtx_dst = CustomVertex {
           pos: [vertex.pos[0], vertex.pos[1], 0.0],
@@ -321,9 +329,7 @@ impl Renderer {
     unsafe {
       self.vertex_buffer.0.Unlock()?;
       self.index_buffer.0.Unlock()?;
-      self
-        .device
-        .SetStreamSource(0, &self.vertex_buffer.0, 0, size_of::<CustomVertex>() as u32)?;
+      self.device.SetStreamSource(0, &self.vertex_buffer.0, 0, size_of::<CustomVertex>() as u32)?;
       self.device.SetIndices(&self.index_buffer.0)?;
       self.device.SetFVF(D3DFVF_CUSTOMVERTEX)?;
     }
@@ -331,7 +337,10 @@ impl Renderer {
     Ok(())
   }
 
-  unsafe fn create_vertex_buffer(device: &IDirect3DDevice9, vtx_count: usize) -> WindowsResult<(IDirect3DVertexBuffer9, usize)> {
+  unsafe fn create_vertex_buffer(
+    device: &IDirect3DDevice9,
+    vtx_count: usize,
+  ) -> WindowsResult<(IDirect3DVertexBuffer9, usize)> {
     let len = vtx_count + VERTEX_BUF_ADD_CAPACITY;
     let mut vertex_buffer: Option<IDirect3DVertexBuffer9> = None;
 
@@ -349,7 +358,10 @@ impl Renderer {
     Ok((vertex_buffer.unwrap(), len))
   }
 
-  unsafe fn create_index_buffer(device: &IDirect3DDevice9, idx_count: usize) -> WindowsResult<(IDirect3DIndexBuffer9, usize)> {
+  unsafe fn create_index_buffer(
+    device: &IDirect3DDevice9,
+    idx_count: usize,
+  ) -> WindowsResult<(IDirect3DIndexBuffer9, usize)> {
     let len = idx_count + INDEX_BUF_ADD_CAPACITY;
     let mut index_buffer: Option<IDirect3DIndexBuffer9> = None;
 
@@ -369,7 +381,10 @@ impl Renderer {
 
   // FIXME, imgui hands us an rgba texture while we make dx9 think it receives an
   // argb texture
-  unsafe fn create_font_texture(fonts: &mut imgui::FontAtlas, device: &IDirect3DDevice9) -> WindowsResult<IDirect3DTexture9> {
+  unsafe fn create_font_texture(
+    fonts: &mut imgui::FontAtlas,
+    device: &IDirect3DDevice9,
+  ) -> WindowsResult<IDirect3DTexture9> {
     let texture = fonts.build_rgba32_texture();
     let mut texture_handle: Option<IDirect3DTexture9> = None;
 
@@ -386,10 +401,7 @@ impl Renderer {
       )?;
     }
 
-    let mut locked_rect: D3DLOCKED_RECT = D3DLOCKED_RECT {
-      Pitch: 0,
-      pBits: ptr::null_mut(),
-    };
+    let mut locked_rect: D3DLOCKED_RECT = D3DLOCKED_RECT { Pitch: 0, pBits: ptr::null_mut() };
     let result_texture = texture_handle.unwrap();
 
     unsafe {

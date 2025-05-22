@@ -21,7 +21,7 @@ pub unsafe extern "stdcall" fn wnd_proc(
       let io = imgui_ctx.io_mut();
 
       if let Ok(ProcResponse::ActionTaken) =
-        imgui_win32_window_proc(window, msg, wparam, lparam, Some(ui), io)
+        imgui_win32_window_proc(window, msg, wparam, lparam, ui, io)
       {
         return LRESULT(1);
       }

@@ -1,5 +1,5 @@
-use dopamine_sdk::utils::Interfaces;
 use dopamine_sdk::Entity;
+use dopamine_sdk::utils::Interfaces;
 
 /// Returns iterator over all players (except _local player_)
 #[expect(dead_code)] // Reserved for Aimbot and Esp

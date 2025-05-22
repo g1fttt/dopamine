@@ -1,5 +1,5 @@
 use super::KeyValues;
-use crate::{cstr, Color};
+use crate::{Color, cstr};
 
 use derive_builder::Builder;
 use dopamine_macros::virtual_method;

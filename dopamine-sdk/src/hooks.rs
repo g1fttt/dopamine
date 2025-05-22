@@ -31,10 +31,7 @@ pub struct TrampolineHook<F: FnPtr> {
 
 impl<F: FnPtr> TrampolineHook<F> {
   pub unsafe fn new(target: *mut c_void) -> Self {
-    Self {
-      target,
-      original: unsafe { mem::transmute_copy(&ptr::null::<c_void>()) },
-    }
+    Self { target, original: unsafe { mem::transmute_copy(&ptr::null::<c_void>()) } }
   }
 }
 
@@ -67,10 +64,7 @@ impl<F: FnPtr> VmtHook<F> {
       let vtable = *base.cast::<*mut *mut c_void>();
       let ptr_to_target = vtable.add(index);
 
-      Self {
-        ptr_to_target,
-        original: mem::transmute_copy(&(*ptr_to_target)),
-      }
+      Self { ptr_to_target, original: mem::transmute_copy(&(*ptr_to_target)) }
     }
   }
 
@@ -87,12 +81,7 @@ impl<F: FnPtr> VmtHook<F> {
 
       *self.ptr_to_target = mem::transmute_copy(&callback);
 
-      VirtualProtect(
-        self.ptr_to_target as *mut c_void,
-        size_of::<usize>(),
-        old,
-        ptr::null_mut(),
-      )
+      VirtualProtect(self.ptr_to_target as *mut c_void, size_of::<usize>(), old, ptr::null_mut())
     }
   }
 }

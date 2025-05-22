@@ -1,8 +1,8 @@
-use crate::{entities, App};
+use crate::{App, entities};
 
+use dopamine_sdk::ClassId;
 use dopamine_sdk::client::Client;
 use dopamine_sdk::utils::Interfaces;
-use dopamine_sdk::ClassId;
 
 pub extern "fastcall" fn level_init_post_entity(this: &Client) {
   App::with_mut(move |app| {

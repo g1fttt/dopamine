@@ -10,7 +10,7 @@ use windows::core::Result as WindowsResult;
 use std::ffi::c_void;
 use std::time::Instant;
 
-use imgui::Key;
+use imgui::{BackendFlags, ConfigFlags, Context, Io, Key, MouseCursor, Ui};
 
 pub type WindowProc = unsafe extern "system" fn(HWND, u32, WPARAM, LPARAM) -> LRESULT;
 
@@ -23,7 +23,7 @@ pub enum ProcResponse {
 pub struct Win32 {
   hwnd: HWND,
   time: Instant,
-  last_cursor: Option<imgui::MouseCursor>,
+  last_mouse_cursor: Option<MouseCursor>,
 }
 
 #[inline]
@@ -41,12 +41,11 @@ fn get_wheel_delta_wparam(w_param: u32) -> u32 {
 }
 
 impl Win32 {
-  pub fn new(imgui: &mut imgui::Context, hwnd: HWND) -> Self {
-    let time = Instant::now();
+  pub fn new(imgui: &mut Context, hwnd: HWND) -> Self {
     let io = imgui.io_mut();
 
-    io.backend_flags.insert(imgui::BackendFlags::HAS_MOUSE_CURSORS);
-    io.backend_flags.insert(imgui::BackendFlags::HAS_SET_MOUSE_POS);
+    io.backend_flags.insert(BackendFlags::HAS_MOUSE_CURSORS);
+    io.backend_flags.insert(BackendFlags::HAS_SET_MOUSE_POS);
 
     io.key_map[Key::Tab as usize] = VK_TAB.0 as u32;
     io.key_map[Key::LeftArrow as usize] = VK_LEFT.0 as u32;
@@ -73,21 +72,17 @@ impl Win32 {
 
     imgui.set_platform_name(format!("imgui-win32 {}", env!("CARGO_PKG_VERSION")));
 
-    Self { hwnd, time, last_cursor: None }
+    Self { hwnd, time: Instant::now(), last_mouse_cursor: None }
   }
 
-  pub fn prepare_frame(
-    &mut self,
-    context: &mut imgui::Context,
-    ui: Option<&mut imgui::Ui>,
-  ) -> WindowsResult<()> {
+  pub fn prepare_frame(&mut self, context: &mut Context, ui: Option<&mut Ui>) {
     let current_cursor = context.mouse_cursor();
 
     let io = context.io_mut();
 
     // Set up display size every frame to handle resizing
     let mut rect = RECT::default();
-    unsafe { GetClientRect(self.hwnd, &mut rect)? };
+    let _ = unsafe { GetClientRect(self.hwnd, &mut rect) };
 
     let width = (rect.right - rect.left) as f32;
     let height = (rect.bottom - rect.top) as f32;
@@ -112,15 +107,16 @@ impl Win32 {
 
     self.update_cursor_pos(io);
 
-    if self.last_cursor != current_cursor {
-      self.last_cursor = current_cursor;
+    if let Some(ui) = ui
+      && self.last_mouse_cursor != current_cursor
+    {
+      self.last_mouse_cursor = current_cursor;
 
-      update_cursor(ui, io);
+      update_cursor(io, ui.mouse_cursor());
     }
-    Ok(())
   }
 
-  fn update_cursor_pos(&self, io: &mut imgui::Io) {
+  fn update_cursor_pos(&self, io: &mut Io) {
     if io.want_set_mouse_pos {
       let x = io.mouse_pos[0] as i32;
       let y = io.mouse_pos[1] as i32;
@@ -151,22 +147,22 @@ impl Win32 {
   }
 }
 
-fn update_cursor(ui: Option<&mut imgui::Ui>, io: &mut imgui::Io) -> bool {
-  if io.config_flags.contains(imgui::ConfigFlags::NO_MOUSE_CURSOR_CHANGE) {
+fn update_cursor(io: &mut Io, mouse_cursor: Option<MouseCursor>) -> bool {
+  if io.config_flags.contains(ConfigFlags::NO_MOUSE_CURSOR_CHANGE) {
     return false;
   };
 
-  let win32_cursor = match ui.as_deref().and_then(imgui::Ui::mouse_cursor) {
+  let win32_cursor = match mouse_cursor {
     Some(cursor) => match cursor {
-      imgui::MouseCursor::Arrow => IDC_ARROW,
-      imgui::MouseCursor::TextInput => IDC_IBEAM,
-      imgui::MouseCursor::ResizeAll => IDC_SIZEALL,
-      imgui::MouseCursor::ResizeEW => IDC_SIZEWE,
-      imgui::MouseCursor::ResizeNS => IDC_SIZENS,
-      imgui::MouseCursor::ResizeNESW => IDC_SIZENESW,
-      imgui::MouseCursor::ResizeNWSE => IDC_SIZENWSE,
-      imgui::MouseCursor::Hand => IDC_HAND,
-      imgui::MouseCursor::NotAllowed => IDC_NO,
+      MouseCursor::Arrow => IDC_ARROW,
+      MouseCursor::TextInput => IDC_IBEAM,
+      MouseCursor::ResizeAll => IDC_SIZEALL,
+      MouseCursor::ResizeEW => IDC_SIZEWE,
+      MouseCursor::ResizeNS => IDC_SIZENS,
+      MouseCursor::ResizeNESW => IDC_SIZENESW,
+      MouseCursor::ResizeNWSE => IDC_SIZENWSE,
+      MouseCursor::Hand => IDC_HAND,
+      MouseCursor::NotAllowed => IDC_NO,
     }
     .as_ptr()
     .cast_mut() as *mut c_void,
@@ -177,17 +173,18 @@ fn update_cursor(ui: Option<&mut imgui::Ui>, io: &mut imgui::Io) -> bool {
 
   true
 }
+
 pub fn imgui_win32_window_proc(
   window: HWND,
   msg: u32,
   w_param: WPARAM,
   l_param: LPARAM,
-  ui: Option<&mut imgui::Ui>,
-  io: &mut imgui::Io,
+  ui: &mut Ui,
+  io: &mut Io,
 ) -> WindowsResult<ProcResponse> {
   let w_param = w_param.0 as u32;
 
-  let result = match msg {
+  match msg {
     WM_LBUTTONDOWN | WM_LBUTTONDBLCLK | WM_RBUTTONDOWN | WM_RBUTTONDBLCLK | WM_MBUTTONDOWN
     | WM_MBUTTONDBLCLK => {
       let button = match msg {
@@ -199,14 +196,12 @@ pub fn imgui_win32_window_proc(
       };
 
       unsafe {
-        if !ui.as_deref().is_some_and(imgui::Ui::is_any_mouse_down) && GetCapture().is_invalid() {
+        if !ui.is_any_mouse_down() && GetCapture().is_invalid() {
           SetCapture(window);
         }
       }
 
       io.mouse_down[button] = true;
-
-      ProcResponse::NoAction
     }
 
     WM_LBUTTONUP | WM_RBUTTONUP | WM_MBUTTONUP | WM_XBUTTONUP => {
@@ -221,47 +216,39 @@ pub fn imgui_win32_window_proc(
       io.mouse_down[button] = false;
 
       unsafe {
-        if !ui.as_deref().is_some_and(imgui::Ui::is_any_mouse_down) && GetCapture() == window {
+        if !ui.is_any_mouse_down() && GetCapture() == window {
           let _ = ReleaseCapture();
         }
       }
-      ProcResponse::NoAction
     }
     WM_MOUSEWHEEL => {
       io.mouse_wheel += (get_wheel_delta_wparam(w_param) / WHEEL_DELTA) as f32;
-      ProcResponse::NoAction
     }
     WM_MOUSEHWHEEL => {
       io.mouse_wheel_h += (get_wheel_delta_wparam(w_param) / WHEEL_DELTA) as f32;
-      ProcResponse::NoAction
     }
     WM_KEYDOWN | WM_SYSKEYDOWN => {
       if w_param < 256 {
         io.keys_down[w_param as usize] = true;
       }
-      ProcResponse::NoAction
     }
     WM_KEYUP | WM_SYSKEYUP => {
       if w_param < 256 {
         io.keys_down[w_param as usize] = false;
       }
-      ProcResponse::NoAction
     }
     WM_CHAR => {
       if w_param > 0 && w_param < 0x10000 {
         io.add_input_character(unsafe { char::from_u32_unchecked(w_param) });
       }
-      ProcResponse::NoAction
     }
     WM_SETCURSOR => {
-      if loword(l_param.0 as u32) as u32 == HTCLIENT && update_cursor(ui, io) {
-        ProcResponse::ActionTaken
-      } else {
-        ProcResponse::NoAction
+      if loword(l_param.0 as u32) as u32 == HTCLIENT && update_cursor(io, ui.mouse_cursor()) {
+        return Ok(ProcResponse::ActionTaken);
       }
     }
-    WM_DEVICECHANGE => ProcResponse::NoAction,
-    _ => ProcResponse::NoAction,
-  };
-  Ok(result)
+    WM_DEVICECHANGE => (),
+    _ => (),
+  }
+  Ok(ProcResponse::NoAction)
 }

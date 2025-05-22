@@ -64,7 +64,8 @@ fn find_interface<'a, T>(module_name: &str, interface_name: &str) -> WindowsResu
     let module = GetModuleHandleA(pcstr!(module_name))?;
 
     let create_interface = GetProcAddress(module, pcstr!("CreateInterface"));
-    let create_interface: extern "C" fn(*const c_char, *mut i32) -> *mut T = std::mem::transmute(create_interface);
+    let create_interface: extern "C" fn(*const c_char, *mut i32) -> *mut T =
+      std::mem::transmute(create_interface);
 
     create_interface(cstr!(interface_name), std::ptr::null_mut())
       .as_ref()

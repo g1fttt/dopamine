@@ -26,21 +26,22 @@ pub struct Patterns {
 impl Patterns {
   pub fn get() -> &'static Self {
     static PATTERNS: LazyLock<Patterns> = LazyLock::new(|| unsafe {
-      Patterns::find()
-        .inspect_err(|err| log::error!("Failed to find patterns: {}", err))
-        .unwrap()
+      Patterns::find().inspect_err(|err| log::error!("Failed to find patterns: {}", err)).unwrap()
     });
     &PATTERNS
   }
 
   unsafe fn find() -> WindowsResult<Self> {
     unsafe {
-      let key_values_new = find_pattern("studiorender.dll", b"\x40\x53\x48\x83\xEC?\x48\x8B\xD9\xC7\x01")?;
-      let key_values_set_string = find_pattern("client.dll", b"\x48\x89\x5C\x24?\x55\x48\x83\xEC?\x49\x8B\xD8")?;
+      let key_values_new =
+        find_pattern("studiorender.dll", b"\x40\x53\x48\x83\xEC?\x48\x8B\xD9\xC7\x01")?;
+      let key_values_set_string =
+        find_pattern("client.dll", b"\x48\x89\x5C\x24?\x55\x48\x83\xEC?\x49\x8B\xD8")?;
 
       let is_local_player = find_pattern("client.dll", b"\x48\x39\x0D????\x0F\x94\xC0\xC3\xCC")?;
 
-      let calc_viewmodel_view = find_pattern("client.dll", b"\x48\x89\x5C\x24?\x56\x48\x83\xEC?\xF2\x41\x0F\x10\x01")?;
+      let calc_viewmodel_view =
+        find_pattern("client.dll", b"\x48\x89\x5C\x24?\x56\x48\x83\xEC?\xF2\x41\x0F\x10\x01")?;
 
       let d3d9_reset = rip_offset_value(find_pattern::<*mut c_void>(
         "GameOverlayRenderer64.dll",
@@ -94,7 +95,8 @@ unsafe fn find_pattern<T>(module_name: &str, pattern: &[u8]) -> WindowsResult<T>
 
     while start <= end {
       let mut i = last_index as isize;
-      while i >= 0 && (pattern[i as usize] == b'?' || *start.add(i as usize) == pattern[i as usize]) {
+      while i >= 0 && (pattern[i as usize] == b'?' || *start.add(i as usize) == pattern[i as usize])
+      {
         i -= 1;
       }
 
@@ -116,7 +118,14 @@ fn module_data(module_name: &str) -> WindowsResult<(*const u8, usize)> {
   let module = unsafe { GetModuleHandleA(pcstr!(module_name))? };
 
   let mut module_info = MODULEINFO::default();
-  unsafe { GetModuleInformation(GetCurrentProcess(), module, &mut module_info, size_of::<MODULEINFO>() as _)? };
+  unsafe {
+    GetModuleInformation(
+      GetCurrentProcess(),
+      module,
+      &mut module_info,
+      size_of::<MODULEINFO>() as _,
+    )?
+  };
 
   let base = module_info.lpBaseOfDll as *const u8;
   let size = module_info.SizeOfImage as usize;

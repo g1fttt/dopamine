@@ -35,6 +35,7 @@ pub struct Hooks {
 
   pub(self) override_view: VmtHook<extern "fastcall" fn(&ClientMode, &mut ViewSetup)>,
   pub(self) create_move: VmtHook<extern "fastcall" fn(&ClientMode, f32, &mut UserCommand) -> bool>,
+  pub(self) should_draw_crosshair: VmtHook<extern "fastcall" fn(&ClientMode) -> bool>,
   pub(self) do_post_screen_space_effects:
     VmtHook<extern "fastcall" fn(&ClientMode, &ViewSetup) -> bool>,
 
@@ -70,6 +71,7 @@ impl Hooks {
 
         override_view: VmtHook::new(interfaces.client_mode, 16),
         create_move: VmtHook::new(interfaces.client_mode, 21),
+        should_draw_crosshair: VmtHook::new(interfaces.client_mode, 25),
         do_post_screen_space_effects: VmtHook::new(interfaces.client_mode, 39),
 
         level_init_post_entity: VmtHook::new(interfaces.client, 6),
@@ -100,27 +102,18 @@ impl Hooks {
 
       self.override_view.detour_to(client_mode::override_view)?;
       self.create_move.detour_to(client_mode::create_move)?;
-      self
-        .do_post_screen_space_effects
-        .detour_to(client_mode::do_post_screen_space_effects)?;
+      self.should_draw_crosshair.detour_to(client_mode::should_draw_crosshair)?;
+      self.do_post_screen_space_effects.detour_to(client_mode::do_post_screen_space_effects)?;
 
-      self
-        .level_init_post_entity
-        .detour_to(client::level_init_post_entity)?;
+      self.level_init_post_entity.detour_to(client::level_init_post_entity)?;
       self.level_shutdown.detour_to(client::level_shutdown)?;
 
-      self
-        .draw_model_execute
-        .detour_to(model_render::draw_model_execute)?;
+      self.draw_model_execute.detour_to(model_render::draw_model_execute)?;
 
-      self
-        .is_cursor_visible
-        .detour_to(surface::is_cursor_visible)?;
+      self.is_cursor_visible.detour_to(surface::is_cursor_visible)?;
       self.lock_cursor.detour_to(surface::lock_cursor)?;
 
-      self
-        .calc_viewmodel_view
-        .detour_to(viewmodel::calc_viewmodel_view)?;
+      self.calc_viewmodel_view.detour_to(viewmodel::calc_viewmodel_view)?;
 
       dopamine_sdk::enable_all_hooks()?;
     }
@@ -136,6 +129,7 @@ impl Hooks {
 
       self.override_view.remove()?;
       self.create_move.remove()?;
+      self.should_draw_crosshair.remove()?;
       self.do_post_screen_space_effects.remove()?;
 
       self.level_init_post_entity.remove()?;
@@ -148,11 +142,7 @@ impl Hooks {
 
       self.calc_viewmodel_view.remove()?;
 
-      SetWindowLongPtrW(
-        self.window,
-        GWLP_WNDPROC,
-        mem::transmute::<WNDPROC, isize>(self.wnd_proc),
-      );
+      SetWindowLongPtrW(self.window, GWLP_WNDPROC, mem::transmute::<WNDPROC, isize>(self.wnd_proc));
     }
     Ok(())
   }

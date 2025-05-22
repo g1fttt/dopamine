@@ -24,7 +24,7 @@ A fast, lightweight and (almost) feature-complete internal gamehack for Counter-
   </ul>
   <li><b>Visuals</b></li>
   <ul>
-    <li>Stream-proof no-scope crosshair</li>
+    <li>Stream-proof crosshair replacement</li>
     <li>Fov changer</li>
     <li>Viewmodel origin changer</li>
   </ul>

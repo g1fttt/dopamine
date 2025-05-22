@@ -26,7 +26,7 @@ pub struct Menu {
 
 impl Menu {
   pub fn new() -> Self {
-    Self { open: bool::default(), should_draw_window: ShouldDrawWindow::default() }
+    Self { open: false, should_draw_window: ShouldDrawWindow::default() }
   }
 
   #[inline]
@@ -94,13 +94,16 @@ impl Menu {
       .opened(&mut self.should_draw_window.visuals)
       .flags(Self::window_flags())
       .build(|| {
-        ui.checkbox("No-scope crosshair", &mut config.no_scope_crosshair.enabled);
+        ui.checkbox("Better crosshair", &mut config.better_crosshair.enabled);
         ui.same_line();
-        ui.color_edit4_config("##Color", config.no_scope_crosshair.color.as_mut_array())
+        ui.checkbox("Force sniper rifles", &mut config.better_crosshair.force_sniper_rifles);
+        ui.same_line();
+        ui.color_edit4_config("##Color", config.better_crosshair.color.as_mut_array())
           .flags(Self::color_edit_flags())
           .build();
-        ui.slider("Size", 1.0, 20.0, &mut config.no_scope_crosshair.size);
-        ui.slider("Thickness", 1.0, 3.0, &mut config.no_scope_crosshair.thickness);
+        ui.slider("Size", 1.0, 20.0, &mut config.better_crosshair.size);
+        ui.slider("Thickness", 1.0, 10.0, &mut config.better_crosshair.thickness);
+        ui.slider("Gap", 0.0, 20.0, &mut config.better_crosshair.gap);
 
         ui.separator();
 
@@ -112,9 +115,9 @@ impl Menu {
 
         // TODO: Curve editor
         ui.checkbox("Viewmodel origin", &mut config.viewmodel_origin.enabled);
-        ui.slider("X", -5.0, 5.0, &mut config.viewmodel_origin.origin.x);
-        ui.slider("Y", -5.0, 5.0, &mut config.viewmodel_origin.origin.y);
-        ui.slider("Z", -5.0, 5.0, &mut config.viewmodel_origin.origin.z);
+        ui.slider("X", -10.0, 10.0, &mut config.viewmodel_origin.origin.x);
+        ui.slider("Y", -10.0, 10.0, &mut config.viewmodel_origin.origin.y);
+        ui.slider("Z", -10.0, 10.0, &mut config.viewmodel_origin.origin.z);
       });
   }
 
@@ -191,11 +194,11 @@ impl Menu {
         let current_layer = &mut cfg.layers[cfg.current_layer_index];
         ui.checkbox("Enabled", &mut current_layer.enabled);
         ui.same_line();
-        ui.checkbox("Cover", &mut current_layer.cover);
-        ui.same_line();
         ui.color_edit4_config("##Color", current_layer.material_color.as_mut_array())
           .flags(Self::color_edit_flags())
           .build();
+        ui.checkbox("Cover", &mut current_layer.cover);
+        ui.same_line();
         ui.checkbox("Ignore Z", &mut current_layer.ignore_z);
         ui.same_line();
         ui.checkbox("Wireframe", &mut current_layer.wireframe);

@@ -43,10 +43,8 @@ impl App<'_> {
     unsafe {
       DisableThreadLibraryCalls(self.module)?;
 
-      let _ = self
-        .hooks
-        .hook_all()
-        .inspect_err(|err| log::error!("Failed to setup hooks: {:?}", err));
+      let _ =
+        self.hooks.hook_all().inspect_err(|err| log::error!("Failed to setup hooks: {:?}", err));
 
       Beep(750, 200)
     }
@@ -78,10 +76,8 @@ impl App<'_> {
 
       ShowCursor(true);
 
-      let _ = self
-        .hooks
-        .unhook_all()
-        .inspect_err(|err| log::error!("Failed to remove hooks: {:?}", err));
+      let _ =
+        self.hooks.unhook_all().inspect_err(|err| log::error!("Failed to remove hooks: {:?}", err));
 
       let handle = CreateThread(
         None,

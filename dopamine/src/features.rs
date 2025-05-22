@@ -5,8 +5,8 @@ pub mod visuals;
 
 use crate::App;
 
-use dopamine_sdk::utils::Interfaces;
 use dopamine_sdk::Entity;
+use dopamine_sdk::utils::Interfaces;
 
 pub struct FeatureContext<'config, 'rest, T> {
   pub(self) interfaces: &'rest Interfaces<'rest>,

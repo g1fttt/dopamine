@@ -1,9 +1,9 @@
-use crate::features::{misc, visuals};
 use crate::App;
+use crate::features::{misc, visuals};
 
+use dopamine_sdk::UserCommand;
 use dopamine_sdk::client::ClientMode;
 use dopamine_sdk::render_view::ViewSetup;
-use dopamine_sdk::UserCommand;
 
 pub extern "fastcall" fn override_view(this: &ClientMode, view: &mut ViewSetup) {
   App::with(move |app| {
@@ -25,6 +25,10 @@ pub extern "fastcall" fn create_move(
     }
     result
   })
+}
+
+pub extern "fastcall" fn should_draw_crosshair(_: &ClientMode) -> bool {
+  App::with_mut(move |app| !app.config.visuals.better_crosshair.enabled)
 }
 
 pub extern "fastcall" fn do_post_screen_space_effects(_: &ClientMode, view: &ViewSetup) -> bool {

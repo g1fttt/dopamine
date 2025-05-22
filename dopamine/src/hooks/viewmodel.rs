@@ -1,7 +1,7 @@
-use crate::{features::visuals, App};
+use crate::{App, features::visuals};
 
-use dopamine_sdk::math::{Angles, Vector3D};
 use dopamine_sdk::Entity;
+use dopamine_sdk::math::{Angles, Vector3D};
 
 pub extern "fastcall" fn calc_viewmodel_view(
   this: &Entity,

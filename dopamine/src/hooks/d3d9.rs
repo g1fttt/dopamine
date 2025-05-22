@@ -16,7 +16,9 @@ pub extern "stdcall" fn reset(device: IDirect3DDevice9, params: &D3DPRESENT_PARA
     let result = (app.hooks.reset.original)(device.clone(), params);
 
     if let Some(imgui_ctx) = ImGuiContext::get_mut() {
-      imgui_ctx.reset(device.clone());
+      let _ = imgui_ctx
+        .reset(device.clone())
+        .inspect_err(|err| log::error!("Failed to reset ImGui renderer: {}", err));
     }
     result
   })
@@ -42,9 +44,6 @@ pub extern "stdcall" fn present(
     let _ = device.GetCreationParameters(&mut params);
 
     let imgui_ctx = ImGuiContext::get_mut_or_init(device.clone(), params.hFocusWindow);
-    let _ = imgui_ctx
-      .prepare_frame()
-      .inspect_err(|err| log::error!("Failed to prepare ImGui frame: {}", err));
 
     // ImGui::NewFrame with RAII
     let ui = imgui_ctx.new_frame();
@@ -54,8 +53,8 @@ pub extern "stdcall" fn present(
       interfaces.engine.is_in_game() && !interfaces.surface.is_cursor_visible();
 
     if should_draw_visuals {
-      visuals::draw_no_scope_crosshair(
-        app.capture_context(&app.config.visuals.no_scope_crosshair),
+      visuals::draw_better_crosshair(
+        app.capture_context(&app.config.visuals.better_crosshair),
         ui.io(),
         ui.get_background_draw_list(),
       )
