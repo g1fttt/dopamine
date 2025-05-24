@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::hooks::Hooks;
-use crate::ui::{ImGuiContext, Menu};
+use crate::ui::{BlurEffect, ImGuiContext, Menu};
 
 use crate::features::FeatureContext;
 use crate::features::chams::Chams;
@@ -26,6 +26,7 @@ pub struct App<'s: 'static> {
   pub config: Config,
   pub hooks: Hooks,
   pub menu: Menu,
+  pub blur_effect: BlurEffect,
 
   pub local_player: Option<&'s Entity>,
   pub player_resource: Option<&'s Entity>,
@@ -140,6 +141,7 @@ impl App<'_> {
         config: Config::create_and_load_from(Config::PATH),
         hooks: Hooks::create(),
         menu: Menu::new(),
+        blur_effect: BlurEffect::new(),
 
         local_player: None,
         player_resource: None,

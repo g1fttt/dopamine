@@ -7,7 +7,7 @@ use crate::features::visuals::VisualsConfig;
 
 use dopamine_sdk::input_system::InputSystem;
 use enum_map::Enum;
-use imgui::{ColorEditFlags, Io, Ui, WindowFlags};
+use imgui::{ColorEditFlags, Io, StyleVar, Ui, WindowFlags};
 use strum::VariantNames;
 use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
 
@@ -21,12 +21,17 @@ struct ShouldDrawWindow {
 
 pub struct Menu {
   open: bool,
+  toggle_animation_end: f32,
   should_draw_window: ShouldDrawWindow,
 }
 
 impl Menu {
   pub fn new() -> Self {
-    Self { open: false, should_draw_window: ShouldDrawWindow::default() }
+    Self { open: false, toggle_animation_end: 1.0, should_draw_window: ShouldDrawWindow::default() }
+  }
+
+  pub fn is_fully_closed(&self) -> bool {
+    !self.open && self.toggle_animation_end > 1.0
   }
 
   #[inline]
@@ -34,12 +39,13 @@ impl Menu {
     self.open
   }
 
-  pub fn render(&mut self, ui: &mut Ui, config: &mut Config) {
-    self.render_menu_bar(ui);
-    self.render_misc_window(ui, &mut config.misc);
-    self.render_visuals_window(ui, &mut config.visuals);
-    self.render_glow_window(ui, &mut config.glow);
-    self.render_chams_window(ui, &mut config.chams);
+  pub fn transparency(&self) -> f32 {
+    let t = if self.open { self.toggle_animation_end } else { 1.0 - self.toggle_animation_end };
+    t.clamp(0.0, 1.0)
+  }
+
+  pub fn update_animation(&mut self, io: &Io) {
+    self.toggle_animation_end += io.delta_time / 0.35 /* animation speed */;
   }
 
   pub fn handle_toggle(&mut self, input_system: &InputSystem) {
@@ -49,6 +55,12 @@ impl Menu {
       input_system.reset_input_state();
     }
     input_system.enable_input(!self.open);
+
+    if self.toggle_animation_end > 0.0 && self.toggle_animation_end < 1.0 {
+      self.toggle_animation_end = 1.0 - self.toggle_animation_end;
+    } else {
+      self.toggle_animation_end = 0.0;
+    }
   }
 
   pub fn update_mouse_cursor(&self, io: &mut Io) {
@@ -56,7 +68,19 @@ impl Menu {
     unsafe { ShowCursor(!self.open) };
   }
 
-  fn render_menu_bar(&mut self, ui: &mut Ui) {
+  pub fn render(&mut self, ui: &Ui, config: &mut Config) {
+    let style = ui.push_style_var(StyleVar::Alpha(self.transparency()));
+    {
+      self.render_menu_bar(ui);
+      self.render_misc_window(ui, &mut config.misc);
+      self.render_visuals_window(ui, &mut config.visuals);
+      self.render_glow_window(ui, &mut config.glow);
+      self.render_chams_window(ui, &mut config.chams);
+    }
+    style.pop();
+  }
+
+  fn render_menu_bar(&mut self, ui: &Ui) {
     if let Some(bar) = ui.begin_main_menu_bar() {
       if ui.menu_item("Misc") {
         self.should_draw_window.misc = true;
@@ -71,7 +95,7 @@ impl Menu {
     }
   }
 
-  fn render_misc_window(&mut self, ui: &mut Ui, config: &mut MiscConfig) {
+  fn render_misc_window(&mut self, ui: &Ui, config: &mut MiscConfig) {
     if !self.should_draw_window.misc {
       return;
     }
@@ -85,7 +109,7 @@ impl Menu {
     );
   }
 
-  fn render_visuals_window(&mut self, ui: &mut Ui, config: &mut VisualsConfig) {
+  fn render_visuals_window(&mut self, ui: &Ui, config: &mut VisualsConfig) {
     if !self.should_draw_window.visuals {
       return;
     }
@@ -121,7 +145,7 @@ impl Menu {
       });
   }
 
-  fn render_glow_window(&mut self, ui: &mut Ui, config: &mut GlowConfig) {
+  fn render_glow_window(&mut self, ui: &Ui, config: &mut GlowConfig) {
     if !self.should_draw_window.glow {
       return;
     }
@@ -155,7 +179,7 @@ impl Menu {
     );
   }
 
-  fn render_chams_window(&mut self, ui: &mut Ui, config: &mut ChamsConfig) {
+  fn render_chams_window(&mut self, ui: &Ui, config: &mut ChamsConfig) {
     if !self.should_draw_window.chams {
       return;
     }

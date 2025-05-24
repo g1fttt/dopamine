@@ -15,10 +15,10 @@ pub unsafe extern "stdcall" fn wnd_proc(
   lparam: LPARAM,
 ) -> LRESULT {
   App::with_mut(move |app| {
-    if let Some(imgui_ctx) = ImGuiContext::get_mut()
-      && let Some(ui) = imgui_ctx.ui()
+    if let Some((fore_ctx, _)) = ImGuiContext::get_mut()
+      && let Some(ui) = fore_ctx.ui()
     {
-      let io = imgui_ctx.io_mut();
+      let io = fore_ctx.io_mut();
 
       if let Ok(ProcResponse::ActionTaken) =
         imgui_win32_window_proc(window, msg, wparam, lparam, ui, io)

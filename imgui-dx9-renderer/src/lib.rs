@@ -184,7 +184,7 @@ impl Renderer {
     Ok(())
   }
 
-  unsafe fn set_render_state(&mut self, draw_data: &DrawData) -> WindowsResult<()> {
+  pub unsafe fn set_render_state(&mut self, draw_data: &DrawData) -> WindowsResult<()> {
     let fb_width = draw_data.display_size[0] * draw_data.framebuffer_scale[0];
     let fb_height = draw_data.display_size[1] * draw_data.framebuffer_scale[1];
 
