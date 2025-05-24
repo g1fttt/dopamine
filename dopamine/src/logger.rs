@@ -13,7 +13,7 @@ pub fn init<P>(path: P) -> Result<(), SetLoggerError>
 where
   P: AsRef<Path> + Display,
 {
-  if LOGGER.get().is_some() {
+  if LOGGER.get().is_some() || !cfg!(debug_assertions) {
     return Ok(());
   }
 
@@ -46,24 +46,24 @@ impl Logger {
 
 impl Log for Logger {
   fn enabled(&self, _: &Metadata) -> bool {
-    true
+    cfg!(debug_assertions)
   }
 
   fn log(&self, record: &Record) {
-    if let Ok(fd) = &mut self.file.try_lock() {
+    if let Ok(fd) = &mut self.file.lock() {
       let _ = writeln!(
         fd,
         "[{}] in ({}):{} - {}",
         record.level(),
-        record.file().unwrap_or_default(),
-        record.line().unwrap_or_default(),
+        record.file().unwrap_or("`unknown file`"),
+        record.line().unwrap_or(u32::MAX),
         record.args()
       );
     }
   }
 
   fn flush(&self) {
-    if let Ok(fd) = &mut self.file.try_lock() {
+    if let Ok(fd) = &mut self.file.lock() {
       let _ = fd.flush();
     }
   }

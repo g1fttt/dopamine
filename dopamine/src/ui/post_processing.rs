@@ -252,6 +252,7 @@ impl Texture {
     }
   }
 
+  #[inline]
   fn uninit(&mut self) {
     self.raw.take();
   }

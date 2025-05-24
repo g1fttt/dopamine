@@ -80,7 +80,6 @@ pub extern "stdcall" fn present(
             ui.get_background_draw_list(),
           )
         }
-
         Ok(())
       });
 
