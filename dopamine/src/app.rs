@@ -45,18 +45,18 @@ impl App<'_> {
       DisableThreadLibraryCalls(self.module)?;
 
       let _ =
-        self.hooks.hook_all().inspect_err(|err| log::error!("Failed to setup hooks: {:?}", err));
+        self.hooks.hook_all().inspect_err(|err| log::error!("Failed to setup hooks: {err:?}"));
 
       Beep(750, 200)
     }
   }
 
   pub fn on_process_detach() {
-    Self::with(|app| {
+    Self::with_mut(|app| {
       let _ = app
         .config
         .save_to(Config::PATH)
-        .inspect_err(|err| log::error!("Failed to write config: {}", err));
+        .inspect_err(|err| log::error!("Failed to write config: {err}"));
     });
   }
 
@@ -70,7 +70,7 @@ impl App<'_> {
 
           Interfaces::get().input_system.enable_input(true);
 
-          let app = app.cast::<App>().as_ref_unchecked();
+          let app = &*app.cast::<App>();
           FreeLibraryAndExitThread(app.module, 0);
         }
       }
@@ -78,7 +78,7 @@ impl App<'_> {
       ShowCursor(true);
 
       let _ =
-        self.hooks.unhook_all().inspect_err(|err| log::error!("Failed to remove hooks: {:?}", err));
+        self.hooks.unhook_all().inspect_err(|err| log::error!("Failed to remove hooks: {err:?}"));
 
       let handle = CreateThread(
         None,
@@ -111,14 +111,6 @@ impl App<'_> {
     F: FnMut(&mut Self) -> T,
   {
     f(Self::get_mut())
-  }
-
-  #[inline]
-  pub fn with<T, F>(mut f: F) -> T
-  where
-    F: FnMut(&Self) -> T,
-  {
-    f(Self::get())
   }
 
   #[inline]

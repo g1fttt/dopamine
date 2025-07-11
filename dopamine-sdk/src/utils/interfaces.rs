@@ -7,7 +7,7 @@ use crate::game::server::Server;
 use crate::game::studio_render::StudioRender;
 use crate::game::surface::Surface;
 
-use super::rip_offset_value;
+use crate::utils::rip_offset_value;
 use crate::{cstr, pcstr};
 
 use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
@@ -32,51 +32,55 @@ pub struct Interfaces<'a> {
 
 impl Interfaces<'_> {
   pub fn get() -> &'static Self {
-    static INTERFACES: LazyLock<Interfaces> = LazyLock::new(|| {
-      Interfaces::find()
-        .inspect_err(|err| log::error!("Failed to find interfaces: {}", err))
-        .unwrap()
-    });
+    static INTERFACES: LazyLock<Interfaces> = LazyLock::new(Interfaces::find);
     &INTERFACES
   }
 
-  fn find() -> WindowsResult<Self> {
-    let client = find_interface("client.dll", "VClient017")?;
+  fn find() -> Self {
+    let client = find_interface("client.dll", "VClient017");
 
-    Ok(Self {
+    Self {
       client,
-      server: find_interface("server.dll", "PlayerInfoManager002")?,
-      client_mode: unsafe { client_mode_from_client(client) }.ok_or(WindowsError::empty())?,
-      entity_list: find_interface("client.dll", "VClientEntityList003")?,
-      engine: find_interface("engine.dll", "VEngineClient013")?,
-      render_view: find_interface("engine.dll", "VEngineRenderView014")?,
-      material_system: find_interface("MaterialSystem.dll", "VMaterialSystem080")?,
-      model_render: find_interface("engine.dll", "VEngineModel016")?,
-      surface: find_interface("vguimatsurface.dll", "VGUI_Surface030")?,
-      input_system: find_interface("inputsystem.dll", "InputSystemVersion001")?,
-      studio_render: find_interface("StudioRender.dll", "VStudioRender025")?,
-    })
+      server: find_interface("server.dll", "PlayerInfoManager002"),
+      client_mode: unsafe { client_mode_from_client(client) },
+      entity_list: find_interface("client.dll", "VClientEntityList003"),
+      engine: find_interface("engine.dll", "VEngineClient013"),
+      render_view: find_interface("engine.dll", "VEngineRenderView014"),
+      material_system: find_interface("MaterialSystem.dll", "VMaterialSystem080"),
+      model_render: find_interface("engine.dll", "VEngineModel016"),
+      surface: find_interface("vguimatsurface.dll", "VGUI_Surface030"),
+      input_system: find_interface("inputsystem.dll", "InputSystemVersion001"),
+      studio_render: find_interface("StudioRender.dll", "VStudioRender025"),
+    }
   }
 }
 
-fn find_interface<'a, T>(module_name: &str, interface_name: &str) -> WindowsResult<&'a T> {
+fn find_interface<'a, T>(module_name: &str, interface_name: &str) -> &'a T {
   unsafe {
-    let module = GetModuleHandleA(pcstr!(module_name))?;
+    let module = GetModuleHandleA(pcstr!(module_name))
+      .inspect_err(|err| log::error!("Failed to get handle for {module_name}: {err}"))
+      .unwrap();
 
     let create_interface = GetProcAddress(module, pcstr!("CreateInterface"));
     let create_interface: extern "C" fn(*const c_char, *mut i32) -> *mut T =
       std::mem::transmute(create_interface);
 
-    create_interface(cstr!(interface_name), std::ptr::null_mut())
-      .as_ref()
-      .ok_or(WindowsError::empty())
+    let interface = create_interface(cstr!(interface_name), std::ptr::null_mut()).as_ref();
+
+    match interface {
+      Some(int) => int,
+      None => {
+        log::error!("Failed to find {interface_name} in {module_name}");
+        panic!();
+      }
+    }
   }
 }
 
-unsafe fn client_mode_from_client(client: &Client) -> Option<&ClientMode> {
+unsafe fn client_mode_from_client(client: &Client) -> &ClientMode {
   unsafe {
     let client_vtable = *(client as *const Client as *const *const *const c_void);
     let client_mode = rip_offset_value((*client_vtable.add(10)).cast_mut());
-    client_mode.cast::<ClientMode>().as_ref()
+    &*client_mode.cast::<ClientMode>()
   }
 }

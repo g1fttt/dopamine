@@ -1,6 +1,6 @@
-use super::FeatureContext;
 use crate::config::EnumMapConfig;
 use crate::entities;
+use crate::features::FeatureContext;
 
 use dopamine_sdk::material_system::*;
 use dopamine_sdk::render_view::ViewSetup;
@@ -85,7 +85,7 @@ impl Glow<'_> {
       halo_material,
       glow_blur_x_material,
       glow_blur_y_material,
-      spotted_time: [Default::default(); _],
+      spotted_time: [Default::default(); 65],
     }
   }
 
@@ -162,7 +162,10 @@ impl Glow<'_> {
       return None;
     }
 
-    let entity_index = entity.networkable().index();
+    let entity_index = match entity.networkable().index() {
+      -1 => return None,
+      n => n as usize,
+    };
 
     if entity.is_player() && player_resource.is_spotted(entity_index) {
       self.spotted_time[entity_index] = real_time;

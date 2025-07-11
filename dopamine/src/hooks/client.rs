@@ -1,4 +1,5 @@
-use crate::{App, entities};
+use crate::app::App;
+use crate::entities;
 
 use dopamine_sdk::ClassId;
 use dopamine_sdk::client::Client;
@@ -23,5 +24,7 @@ pub extern "fastcall" fn level_shutdown(this: &Client) {
 
     app.local_player = None;
     app.player_resource = None;
+
+    app.model_changer.destroy_entities();
   });
 }

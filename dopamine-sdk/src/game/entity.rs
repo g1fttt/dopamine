@@ -5,34 +5,9 @@ use super::{ClassId, ClientClass};
 use open_enum::open_enum;
 
 use dopamine_macros::{netvar, virtual_method};
+use open_enum::open_enum;
 
-#[repr(C)]
-pub struct UserCommand {
-  pad: [u8; 40],
-  pub buttons: i32,
-}
-
-impl UserCommand {
-  pub const IN_JUMP: i32 = 1 << 1;
-}
-
-#[open_enum]
-#[repr(C)]
-pub enum WeaponId {
-  Scout = 3,
-  Aug = 8,
-  SG550 = 13,
-  Awp = 17,
-  G3SG1 = 23,
-  SG552 = 26,
-}
-
-#[derive(Clone, Copy)]
-#[open_enum]
-#[repr(C)]
-enum WeaponMode {
-  Secondary = 1,
-}
+use std::ops::BitAnd;
 
 #[repr(C)]
 pub struct Entity {
@@ -46,10 +21,10 @@ impl Entity {
 
   #[inline]
   pub fn is_on_ground(&self) -> bool {
-    (self.flags() & Self::ON_GROUND) != 0
+    !self.flags().have(EntityFlags::OnGround)
   }
 
-  #[inline]
+  #[inline(always)]
   pub fn is_local_player(&self) -> bool {
     (Patterns::get().is_local_player)(self)
   }
@@ -58,9 +33,8 @@ impl Entity {
   pub fn attachments(&self) -> EntityAttachmentIterator {
     EntityAttachmentIterator::new(self)
   }
-}
 
-impl Entity {
+  #[inline]
   pub fn is_viewmodel(&self) -> bool {
     self.networkable().client_class().id == ClassId::PredictedViewModel
   }
@@ -112,6 +86,16 @@ impl Entity {
         | ClassId::Xm1014
     )
   }
+
+  #[inline]
+  fn move_child(&self) -> Option<&Self> {
+    Interfaces::get().entity_list.get_entity_from_handle(&self.move_child_handle)
+  }
+
+  #[inline]
+  fn move_peer(&self) -> Option<&Self> {
+    Interfaces::get().entity_list.get_entity_from_handle(&self.move_peer_handle)
+  }
 }
 
 impl Entity {
@@ -123,42 +107,18 @@ impl Entity {
   netvar!(pub fn team -> i32 for CBaseEntity->m_iTeamNum);
   netvar!(pub fn owner_handle -> EntityHandle for CBaseCombatWeapon->m_hOwner);
   netvar!(fn player_spotted -> [bool; 65] for CCSPlayerResource->m_bPlayerSpotted);
-}
-
-impl Entity {
-  virtual_method!(fn weapon_id[371](&self) -> WeaponId);
-
-  netvar!(fn flags -> i32 for CBasePlayer->m_fFlags);
+  netvar!(fn flags -> EntityFlags for CBasePlayer->m_fFlags);
   netvar!(fn weapon_mode -> WeaponMode for CWeaponCSBase->m_weaponMode);
-}
-
-impl Entity {
-  fn move_child(&self) -> Option<&Self> {
-    Interfaces::get().entity_list.get_entity_from_handle(&self.move_child_handle)
-  }
-
-  fn move_peer(&self) -> Option<&Self> {
-    Interfaces::get().entity_list.get_entity_from_handle(&self.move_peer_handle)
-  }
+  netvar!(fn observer_target_handle -> EntityHandle for CBasePlayer->m_hObserverTarget);
 }
 
 #[repr(C)]
 pub struct NetworkableEntity;
 
 impl NetworkableEntity {
-  #[inline]
-  pub fn index(&self) -> usize {
-    self.index_raw() as usize
-  }
-}
-
-impl NetworkableEntity {
-  virtual_method!(pub fn is_dormant[8](&self) -> bool);
+  virtual_method!(pub fn release[1](&self));
   virtual_method!(pub fn client_class[2](&self) -> &ClientClass);
-}
-
-impl NetworkableEntity {
-  virtual_method!(fn index_raw[9](&self) -> i32);
+  virtual_method!(pub fn index[9](&self) -> i32);
 }
 
 #[repr(C)]
@@ -167,6 +127,60 @@ pub struct RenderableEntity;
 impl RenderableEntity {
   virtual_method!(pub fn should_draw[3](&self) -> bool);
   virtual_method!(pub fn draw_model[10](&self) -> i32 where (1: i32 /* StudioRender */));
+}
+
+#[repr(C)]
+pub struct UserCommand {
+  pad: [u8; 40],
+  pub buttons: i32,
+}
+
+impl UserCommand {
+  pub const IN_JUMP: i32 = 1 << 1;
+}
+
+#[derive(Clone, Copy)]
+#[open_enum]
+#[repr(C)]
+enum EntityFlags {
+  OnGround = 1 << 0,
+}
+
+impl EntityFlags {
+  #[inline(always)]
+  fn have(self, flags: EntityFlags) -> bool {
+    (self & flags) == 0
+  }
+}
+
+impl BitAnd for EntityFlags {
+  type Output = i32;
+
+  #[inline(always)]
+  fn bitand(self, rhs: Self) -> Self::Output {
+    self.0 & rhs.0
+  }
+}
+
+#[open_enum]
+#[derive(Clone, Copy, Hash, Debug)]
+#[repr(C)]
+pub enum WeaponId {
+  Glock = 2,
+  Scout,
+  Aug = 8,
+  SG550 = 13,
+  Awp = 17,
+  G3SG1 = 23,
+  SG552 = 26,
+  AK47,
+}
+
+#[derive(Clone, Copy)]
+#[open_enum]
+#[repr(C)]
+enum WeaponMode {
+  Secondary = 1,
 }
 
 #[derive(Clone, Copy)]

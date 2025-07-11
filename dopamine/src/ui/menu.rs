@@ -1,3 +1,4 @@
+use crate::app::App;
 use crate::config::Config;
 
 use crate::features::chams::{ChamsConfig, ChamsConfigKind, ChamsMaterialKind};
@@ -71,16 +72,16 @@ impl Menu {
   pub fn render(&mut self, ui: &Ui, config: &mut Config) {
     let style = ui.push_style_var(StyleVar::Alpha(self.transparency()));
     {
-      self.render_menu_bar(ui);
-      self.render_misc_window(ui, &mut config.misc);
-      self.render_visuals_window(ui, &mut config.visuals);
-      self.render_glow_window(ui, &mut config.glow);
-      self.render_chams_window(ui, &mut config.chams);
+      self.draw_menu_bar(ui);
+      self.draw_misc_window(ui, &mut config.misc);
+      self.draw_visuals_window(ui, &mut config.visuals);
+      self.draw_glow_window(ui, &mut config.glow);
+      self.draw_chams_window(ui, &mut config.chams);
     }
     style.pop();
   }
 
-  fn render_menu_bar(&mut self, ui: &Ui) {
+  fn draw_menu_bar(&mut self, ui: &Ui) {
     if let Some(bar) = ui.begin_main_menu_bar() {
       if ui.menu_item("Misc") {
         self.should_draw_window.misc = true;
@@ -95,7 +96,7 @@ impl Menu {
     }
   }
 
-  fn render_misc_window(&mut self, ui: &Ui, config: &mut MiscConfig) {
+  fn draw_misc_window(&mut self, ui: &Ui, config: &mut MiscConfig) {
     if !self.should_draw_window.misc {
       return;
     }
@@ -109,7 +110,7 @@ impl Menu {
     );
   }
 
-  fn render_visuals_window(&mut self, ui: &Ui, config: &mut VisualsConfig) {
+  fn draw_visuals_window(&mut self, ui: &Ui, config: &mut VisualsConfig) {
     if !self.should_draw_window.visuals {
       return;
     }
@@ -145,7 +146,7 @@ impl Menu {
       });
   }
 
-  fn render_glow_window(&mut self, ui: &Ui, config: &mut GlowConfig) {
+  fn draw_glow_window(&mut self, ui: &Ui, config: &mut GlowConfig) {
     if !self.should_draw_window.glow {
       return;
     }
@@ -179,7 +180,7 @@ impl Menu {
     );
   }
 
-  fn render_chams_window(&mut self, ui: &Ui, config: &mut ChamsConfig) {
+  fn draw_chams_window(&mut self, ui: &Ui, config: &mut ChamsConfig) {
     if !self.should_draw_window.chams {
       return;
     }

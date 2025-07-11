@@ -11,6 +11,7 @@ impl Engine {
   virtual_method!(pub fn is_in_game[26](&self) -> bool);
 }
 
+// TODO: Use `IClientRenderable *pRenderable` instead of `int entity_index`
 #[repr(C)]
 pub struct ModelRenderInfo {
   pad: [u8; 68],
@@ -33,6 +34,6 @@ impl ModelRender {
 }
 
 impl ModelRender {
-  virtual_method!(fn forced_material_override[1](
-    &self, new_material: Option<&Material>) where (0: i32 /* NORMAL */));
+  virtual_method!(fn forced_material_override[1](&self, new_material: Option<&Material>)
+    where (0: i32 /* NORMAL */));
 }

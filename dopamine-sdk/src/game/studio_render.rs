@@ -1,4 +1,4 @@
-use super::material_system::Material;
+use crate::material_system::Material;
 
 #[repr(C)]
 pub struct StudioRender<'a> {

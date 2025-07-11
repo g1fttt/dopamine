@@ -1,4 +1,4 @@
-#![feature(let_chains, maybe_uninit_array_assume_init, generic_arg_infer, fn_ptr_trait)]
+#![feature(maybe_uninit_array_assume_init, fn_ptr_trait)]
 
 mod color;
 mod game;

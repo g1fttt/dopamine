@@ -38,7 +38,7 @@ impl Config {
     P: AsRef<Path>,
   {
     let pretty = serde_yaml_ng::to_string(self)
-      .inspect_err(|err| log::error!("Failed to serialize config as pretty string: {}", err))
+      .inspect_err(|err| log::error!("Failed to serialize config as pretty string: {err}"))
       .unwrap();
     fs::write(path, pretty)
   }
@@ -49,7 +49,7 @@ impl Config {
   {
     let raw = fs::read_to_string(path)?;
     *self = serde_yaml_ng::from_str(&raw)
-      .inspect_err(|err| log::error!("Failed to deserialize config file: {}", err))
+      .inspect_err(|err| log::error!("Failed to deserialize config file: {err}"))
       .unwrap();
     Ok(())
   }

@@ -1,4 +1,4 @@
-use super::RecvTable;
+use crate::game::RecvTable;
 use crate::rstr;
 
 use open_enum::open_enum;
@@ -15,7 +15,7 @@ pub struct ClientClass<'a> {
 }
 
 impl ClientClass<'_> {
-  pub fn name(&self) -> &str {
+  pub fn name(&self) -> &'static str {
     unsafe { rstr!(self.name) }
   }
 }

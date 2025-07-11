@@ -1,4 +1,4 @@
-use super::FeatureContext;
+use crate::features::FeatureContext;
 
 use educe::Educe;
 use imgui::{DrawListMut, ImColor32, Io};

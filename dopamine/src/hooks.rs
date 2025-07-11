@@ -59,7 +59,7 @@ impl Hooks {
       let patterns = Patterns::get();
 
       let window = FindWindowA(pcstr!("Valve001"), pcstr!())
-        .inspect_err(|err| log::error!("Failed to find game window: {}", err))
+        .inspect_err(|err| log::error!("Failed to find game window: {err}"))
         .unwrap();
 
       Self {

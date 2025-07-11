@@ -1,5 +1,7 @@
-pub use minhook::MH_STATUS;
+use crate::RecvPropProxy;
+use crate::utils::Netvars;
 
+pub use minhook::MH_STATUS;
 use minhook::MinHook;
 
 use windows::Win32::System::Memory::{
@@ -93,6 +95,37 @@ impl<F: FnPtr> Hook<F> for VmtHook<F> {
 
   unsafe fn remove(&self) -> HookResult<()> {
     unsafe { self.swap_target_to(self.original).map_err(HookError::Vmt) }
+  }
+}
+
+// NOTE: Reserved for the future
+pub struct NetvarHook {
+  ptr_to_target: *mut Option<RecvPropProxy>,
+  pub original: RecvPropProxy,
+}
+
+impl NetvarHook {
+  pub unsafe fn new_unchecked((class, field): (&str, &str), netvars: &Netvars) -> Self {
+    let netvar = netvars.get(&(class, field)).unwrap();
+
+    let ptr_to_target = netvar.proxy;
+    let original = unsafe { (*netvar.proxy).unwrap() };
+
+    Self { ptr_to_target, original }
+  }
+}
+
+impl Hook<RecvPropProxy> for NetvarHook {
+  unsafe fn detour_to(&mut self, hook: RecvPropProxy) -> HookResult<()> {
+    unsafe { *self.ptr_to_target = Some(hook) };
+
+    Ok(())
+  }
+
+  unsafe fn remove(&self) -> HookResult<()> {
+    unsafe { *self.ptr_to_target = Some(self.original) };
+
+    Ok(())
   }
 }
 

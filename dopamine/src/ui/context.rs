@@ -72,7 +72,7 @@ impl ImGuiContext {
     self.win32.prepare_frame(&mut self.ctx, option_ui);
 
     self.ui = self.ctx.new_frame() as *mut Ui;
-    unsafe { self.ui.as_mut_unchecked() }
+    unsafe { &mut *self.ui }
   }
 
   pub fn reset(&mut self, device: IDirect3DDevice9) -> WindowsResult<()> {
@@ -82,7 +82,7 @@ impl ImGuiContext {
   }
 
   pub fn reset_render_state(&mut self) -> WindowsResult<()> {
-    unsafe { self.renderer.set_render_state(self.draw_data.as_ref_unchecked()) }
+    unsafe { self.renderer.set_render_state(&*self.draw_data) }
   }
 
   pub fn render(&mut self) -> WindowsResult<()> {
@@ -105,12 +105,11 @@ impl ImGuiContext {
     unsafe { &mut *(igGetIO() as *mut Io) }
   }
 
-  #[inline]
-  pub fn ui(&self) -> Option<&'static mut Ui> {
+  pub fn ui(&mut self) -> Option<&'static mut Ui> {
     unsafe { self.ui.as_mut() }
   }
 
-  fn set_current(&mut self) {
+  pub fn set_current(&mut self) {
     unsafe { igSetCurrentContext(self.raw_ctx) };
   }
 }

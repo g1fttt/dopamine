@@ -1,4 +1,4 @@
-use crate::App;
+use crate::app::App;
 use crate::ui::ImGuiContext;
 
 use dopamine_sdk::utils::Interfaces;
@@ -27,9 +27,9 @@ pub unsafe extern "stdcall" fn wnd_proc(
       }
 
       if ui.is_key_down(Key::Home) {
-        let _ = app.unload().inspect_err(|err| {
-          log::error!("Failed to deinitialize and unload App instance: {}", err)
-        });
+        let _ = app
+          .unload()
+          .inspect_err(|err| log::error!("Failed to deinitialize and unload App instance: {err}"));
       }
 
       if ui.is_key_down(Key::Insert) {

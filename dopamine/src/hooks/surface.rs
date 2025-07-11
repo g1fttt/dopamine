@@ -3,11 +3,11 @@ use crate::App;
 use dopamine_sdk::surface::Surface;
 
 pub extern "fastcall" fn is_cursor_visible(this: &Surface) -> bool {
-  App::with(move |app| (app.hooks.is_cursor_visible.original)(this) || app.menu.is_open())
+  App::with_mut(move |app| (app.hooks.is_cursor_visible.original)(this) || app.menu.is_open())
 }
 
 pub extern "fastcall" fn lock_cursor(this: &Surface) {
-  App::with(move |app| {
+  App::with_mut(move |app| {
     if app.menu.is_open() {
       this.unlock_cursor();
     } else {

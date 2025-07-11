@@ -1,4 +1,4 @@
-use super::ImGuiContext;
+use crate::ui::ImGuiContext;
 
 use imgui::{DrawListMut, Io, TextureId, Textures};
 use imgui_dx9_renderer::Renderer;
@@ -170,11 +170,7 @@ fn add_imgui_callback(
   blur_effect: *mut BlurEffect,
   device: *const IDirect3DDevice9,
 ) {
-  draw_list
-    .add_callback(move || unsafe {
-      callback(blur_effect.as_mut_unchecked(), device.as_ref_unchecked()).unwrap()
-    })
-    .build();
+  draw_list.add_callback(move || unsafe { callback(&mut *blur_effect, &*device).unwrap() }).build();
 }
 
 fn create_texture(

@@ -20,14 +20,16 @@ pub extern "fastcall" fn draw_model_execute(
     if interfaces.studio_render.is_material_overrided() {
       return original();
     }
+    let entity = interfaces.entity_list.get_entity_by_index(info.entity_index);
 
     // FIXME: If enabled at least one ignore-z layer along with a glow
     //        then ignore-z chams shall be visible even if model isn't occluded
-    app.chams.draw(app.capture_context(&app.config.chams), &original, info);
+    app.chams.draw(app.capture_context(&app.config.chams), &original, entity);
 
     if !app.chams.applied() {
       original();
     }
+
     interfaces.model_render.reset_material();
   });
 }

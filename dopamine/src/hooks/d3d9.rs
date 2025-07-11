@@ -55,10 +55,6 @@ pub extern "stdcall" fn present(
       let _ = device.SetRenderState(D3DRS_COLORWRITEENABLE, u32::MAX);
 
       let _ = render_imgui(back_ctx, &device, |ui, renderer| {
-        let interfaces = Interfaces::get();
-        let should_draw_visuals =
-          interfaces.engine.is_in_game() && !interfaces.surface.is_cursor_visible();
-
         let io = ui.io();
 
         app.menu.update_animation(io);
@@ -72,6 +68,10 @@ pub extern "stdcall" fn present(
             app.menu.transparency(),
           )?;
         }
+
+        let interfaces = Interfaces::get();
+        let should_draw_visuals =
+          interfaces.engine.is_in_game() && !interfaces.surface.is_cursor_visible();
 
         if should_draw_visuals {
           visuals::draw_better_crosshair(

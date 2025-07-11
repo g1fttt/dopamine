@@ -1,5 +1,5 @@
 #![allow(internal_features)]
-#![feature(once_cell_get_mut, let_chains, ptr_as_ref_unchecked, generic_arg_infer, core_intrinsics)]
+#![feature(once_cell_get_mut, core_intrinsics /* reserved for debug purpose */)]
 
 mod app;
 mod config;
@@ -26,7 +26,7 @@ extern "system" fn DllMain(module: HMODULE, reason: u32, _reserved: *mut c_void)
       logger::init(Logger::PATH).unwrap();
 
       let _ = App::on_process_attach(module)
-        .inspect_err(|err| log::error!("Failed to create and setup App instance: {}", err));
+        .inspect_err(|err| log::error!("Failed to create and setup App instance: {err}"));
     }
     DLL_PROCESS_DETACH => App::on_process_detach(),
     _ => (),

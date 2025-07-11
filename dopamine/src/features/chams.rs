@@ -1,11 +1,10 @@
-use super::FeatureContext;
 use crate::config::EnumMapConfig;
+use crate::features::FeatureContext;
 
 use enum_map::{Enum, EnumMap};
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 
-use dopamine_sdk::engine::ModelRenderInfo;
 use dopamine_sdk::material_system::{Material, MaterialFlag};
 use dopamine_sdk::utils::Interfaces;
 use dopamine_sdk::{Color, Entity, KeyValues};
@@ -39,11 +38,11 @@ impl Chams<'_> {
     &mut self,
     ctx: FeatureContext<'_, '_, ChamsConfig>,
     draw_model_execute: &impl Fn(),
-    info: &ModelRenderInfo,
+    entity: Option<&Entity>,
   ) {
     self.applied = false;
 
-    let Some(entity) = ctx.interfaces.entity_list.get_entity_by_index(info.entity_index) else {
+    let Some(entity) = entity else {
       return;
     };
 
