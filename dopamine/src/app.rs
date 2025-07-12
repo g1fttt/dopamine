@@ -118,11 +118,6 @@ impl App<'_> {
     unsafe { Self::get_mut_or_init(None) }
   }
 
-  #[inline]
-  fn get() -> &'static Self {
-    Self::get_mut()
-  }
-
   unsafe fn get_mut_or_init(module: Option<HMODULE>) -> &'static mut Self {
     static mut APP: OnceCell<App> = OnceCell::new();
 

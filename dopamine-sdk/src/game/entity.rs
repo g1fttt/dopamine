@@ -1,8 +1,5 @@
+use crate::game::{ClassId, ClientClass};
 use crate::utils::{Interfaces, Patterns};
-
-use super::{ClassId, ClientClass};
-
-use open_enum::open_enum;
 
 use dopamine_macros::{netvar, virtual_method};
 use open_enum::open_enum;
@@ -17,8 +14,6 @@ pub struct Entity {
 }
 
 impl Entity {
-  const ON_GROUND: i32 = 1 << 0;
-
   #[inline]
   pub fn is_on_ground(&self) -> bool {
     !self.flags().have(EntityFlags::OnGround)
@@ -103,6 +98,7 @@ impl Entity {
   virtual_method!(pub fn renderable[5](&self) -> &RenderableEntity);
   virtual_method!(pub fn is_player[132](&self) -> bool);
   virtual_method!(pub fn active_weapon[227](&self) -> Option<&Entity>);
+  virtual_method!(pub fn weapon_id[371](&self) -> WeaponId);
 
   netvar!(pub fn team -> i32 for CBaseEntity->m_iTeamNum);
   netvar!(pub fn owner_handle -> EntityHandle for CBaseCombatWeapon->m_hOwner);
@@ -118,6 +114,7 @@ pub struct NetworkableEntity;
 impl NetworkableEntity {
   virtual_method!(pub fn release[1](&self));
   virtual_method!(pub fn client_class[2](&self) -> &ClientClass);
+  virtual_method!(pub fn is_dormant[8](&self) -> bool);
   virtual_method!(pub fn index[9](&self) -> i32);
 }
 

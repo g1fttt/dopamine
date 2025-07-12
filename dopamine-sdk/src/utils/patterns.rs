@@ -1,6 +1,4 @@
 use crate::game::{Entity, KeyValues};
-
-use super::rip_offset_value;
 use crate::pcstr;
 use crate::utils::rip_offset_value;
 

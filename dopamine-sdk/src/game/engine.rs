@@ -1,4 +1,4 @@
-use super::material_system::Material;
+use crate::game::material_system::Material;
 
 use dopamine_macros::virtual_method;
 

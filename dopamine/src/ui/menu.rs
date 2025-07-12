@@ -1,4 +1,3 @@
-use crate::app::App;
 use crate::config::Config;
 
 use crate::features::chams::{ChamsConfig, ChamsConfigKind, ChamsMaterialKind};

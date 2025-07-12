@@ -11,7 +11,6 @@ use crate::utils::rip_offset_value;
 use crate::{cstr, pcstr};
 
 use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
-use windows::core::{Error as WindowsError, Result as WindowsResult};
 
 use std::ffi::{c_char, c_void};
 use std::sync::LazyLock;

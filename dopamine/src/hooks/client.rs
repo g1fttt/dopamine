@@ -24,7 +24,5 @@ pub extern "fastcall" fn level_shutdown(this: &Client) {
 
     app.local_player = None;
     app.player_resource = None;
-
-    app.model_changer.destroy_entities();
   });
 }

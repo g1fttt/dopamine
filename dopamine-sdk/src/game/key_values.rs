@@ -1,6 +1,5 @@
-use crate::utils::Patterns;
-
 use crate::cstr;
+use crate::utils::Patterns;
 
 #[repr(C)]
 pub struct KeyValues {
