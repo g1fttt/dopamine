@@ -28,6 +28,7 @@ pub enum ClassId {
   C4 = 23,
   PlayerResource = 28,
   DEagle = 31,
+  Knife = 70,
   PredictedViewModel = 89,
   Aug = 163,
   AWP,

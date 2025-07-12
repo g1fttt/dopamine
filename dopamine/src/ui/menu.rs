@@ -4,6 +4,7 @@ use crate::config::Config;
 use crate::features::chams::{ChamsConfig, ChamsConfigKind, ChamsMaterialKind};
 use crate::features::glow::{GlowConfig, GlowConfigKind};
 use crate::features::misc::MiscConfig;
+use crate::features::model_changer::{GloveConfigKind, ModelChangerConfig, SleeveConfigKind};
 use crate::features::visuals::VisualsConfig;
 
 use dopamine_sdk::input_system::InputSystem;
@@ -12,12 +13,15 @@ use imgui::{ColorEditFlags, Io, StyleVar, Ui, WindowFlags};
 use strum::VariantNames;
 use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
 
+use std::mem;
+
 #[derive(Default)]
 struct ShouldDrawWindow {
   misc: bool,
   visuals: bool,
   glow: bool,
   chams: bool,
+  model_changer: bool,
 }
 
 pub struct Menu {
@@ -77,6 +81,7 @@ impl Menu {
       self.draw_visuals_window(ui, &mut config.visuals);
       self.draw_glow_window(ui, &mut config.glow);
       self.draw_chams_window(ui, &mut config.chams);
+      self.draw_model_changer_window(ui, &mut config.model_changer);
     }
     style.pop();
   }
@@ -91,6 +96,8 @@ impl Menu {
         self.should_draw_window.glow = true;
       } else if ui.menu_item("Chams") {
         self.should_draw_window.chams = true;
+      } else if ui.menu_item("Model changer") {
+        self.should_draw_window.model_changer = true;
       }
       bar.end();
     }
@@ -138,7 +145,7 @@ impl Menu {
 
         ui.separator();
 
-        // TODO: Curve editor
+        // TODO: Move to model changer window
         ui.checkbox("Viewmodel origin", &mut config.viewmodel_origin.enabled);
         ui.slider("X", -10.0, 10.0, &mut config.viewmodel_origin.origin.x);
         ui.slider("Y", -10.0, 10.0, &mut config.viewmodel_origin.origin.y);
@@ -230,11 +237,40 @@ impl Menu {
         ui.combo_simple_string(
           "Material",
           unsafe {
-            std::mem::transmute::<&mut ChamsMaterialKind, &mut usize>(
-              &mut current_layer.material_kind,
-            )
+            mem::transmute::<&mut ChamsMaterialKind, &mut usize>(&mut current_layer.material_kind)
           },
           ChamsMaterialKind::VARIANTS,
+        );
+      });
+  }
+
+  fn draw_model_changer_window(&mut self, ui: &Ui, config: &mut ModelChangerConfig) {
+    if !self.should_draw_window.model_changer {
+      return;
+    }
+
+    ui.window("Model changer")
+      .opened(&mut self.should_draw_window.model_changer)
+      .flags(Self::window_flags())
+      .build(|| {
+        if ui.checkbox("Enabled", &mut config.enabled) && !config.enabled {
+          App::with_mut(|app| app.model_changer.clear_sound_overrides());
+        }
+
+        ui.same_line();
+
+        ui.checkbox("Remove sleeves", &mut config.remove_sleeves);
+
+        ui.combo_simple_string(
+          "Gloves",
+          unsafe { mem::transmute::<&mut GloveConfigKind, &mut usize>(&mut config.glove_kind) },
+          GloveConfigKind::VARIANTS,
+        );
+
+        ui.combo_simple_string(
+          "Sleeves",
+          unsafe { mem::transmute::<&mut SleeveConfigKind, &mut usize>(&mut config.sleeve_kind) },
+          SleeveConfigKind::VARIANTS,
         );
       });
   }

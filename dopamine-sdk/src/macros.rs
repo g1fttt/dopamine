@@ -44,6 +44,22 @@ macro_rules! cstr {
   };
 }
 
+// TODO: Docs
+#[macro_export]
+macro_rules! cstr_path {
+  ($path:expr) => {
+    std::ffi::CString::new($path.to_str().unwrap()).unwrap().into_raw()
+  };
+}
+
+// TODO: Docs
+#[macro_export]
+macro_rules! rstr_path {
+  ($path:expr) => {
+    $path.to_str().unwrap()
+  };
+}
+
 /// Converts C-ABI compatible null-terminated string into `&str`.
 ///
 /// Consider this macro as potentially unsafe, because the string might not contain null-terminator.

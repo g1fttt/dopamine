@@ -1,9 +1,11 @@
 use crate::game::client::{Client, ClientMode, EntityList};
-use crate::game::engine::{Engine, ModelRender};
+use crate::game::data_cache::MdlCache;
+use crate::game::engine::{Engine, ModelInfo, ModelRender, NetworkStringTableContainer};
 use crate::game::input_system::InputSystem;
 use crate::game::material_system::MaterialSystem;
 use crate::game::render_view::RenderView;
 use crate::game::server::Server;
+use crate::game::sound_emitter_system::SoundEmitterSystem;
 use crate::game::studio_render::StudioRender;
 use crate::game::surface::Surface;
 
@@ -11,7 +13,6 @@ use crate::utils::rip_offset_value;
 use crate::{cstr, pcstr};
 
 use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
-use windows::core::{Error as WindowsError, Result as WindowsResult};
 
 use std::ffi::{c_char, c_void};
 use std::sync::LazyLock;
@@ -28,6 +29,10 @@ pub struct Interfaces<'a> {
   pub surface: &'a Surface,
   pub input_system: &'a InputSystem,
   pub studio_render: &'a StudioRender<'a>,
+  pub model_info: &'a ModelInfo,
+  pub network_string_table_container: &'a NetworkStringTableContainer,
+  pub sound_emitter_system: &'a SoundEmitterSystem,
+  pub mdl_cache: &'a MdlCache,
 }
 
 impl Interfaces<'_> {
@@ -51,6 +56,10 @@ impl Interfaces<'_> {
       surface: find_interface("vguimatsurface.dll", "VGUI_Surface030"),
       input_system: find_interface("inputsystem.dll", "InputSystemVersion001"),
       studio_render: find_interface("StudioRender.dll", "VStudioRender025"),
+      model_info: find_interface("engine.dll", "VModelInfoClient006"),
+      network_string_table_container: find_interface("engine.dll", "VEngineClientStringTable001"),
+      sound_emitter_system: find_interface("soundemittersystem.dll", "VSoundEmitter002"),
+      mdl_cache: find_interface("datacache.dll", "MDLCache004"),
     }
   }
 }

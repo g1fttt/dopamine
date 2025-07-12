@@ -1,5 +1,6 @@
 pub mod client;
 mod client_class;
+pub mod data_cache;
 pub mod engine;
 mod entity;
 mod global_vars;
@@ -9,6 +10,8 @@ pub mod material_system;
 mod recv;
 pub mod render_view;
 pub mod server;
+pub mod sound_emitter_system;
+mod studio;
 pub mod studio_render;
 pub mod surface;
 
@@ -17,3 +20,4 @@ pub use entity::*;
 pub use global_vars::*;
 pub use key_values::*;
 pub use recv::*;
+pub use studio::*;

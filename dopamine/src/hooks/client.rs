@@ -2,7 +2,7 @@ use crate::app::App;
 use crate::entities;
 
 use dopamine_sdk::ClassId;
-use dopamine_sdk::client::Client;
+use dopamine_sdk::client::{Client, FrameStage};
 use dopamine_sdk::utils::Interfaces;
 
 pub extern "fastcall" fn level_init_post_entity(this: &Client) {
@@ -26,5 +26,14 @@ pub extern "fastcall" fn level_shutdown(this: &Client) {
     app.player_resource = None;
 
     app.model_changer.destroy_entities();
+  });
+}
+
+pub extern "fastcall" fn frame_stage_notify(this: &Client, stage: FrameStage) {
+  App::with_mut(move |app| {
+    if stage == FrameStage::RenderStart {
+      app.model_changer.on_fsn_call(app.capture_context(&app.config.model_changer));
+    }
+    (app.hooks.frame_stage_notify.original)(this, stage);
   });
 }

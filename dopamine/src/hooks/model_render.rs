@@ -20,6 +20,13 @@ pub extern "fastcall" fn draw_model_execute(
     if interfaces.studio_render.is_material_overrided() {
       return original();
     }
+
+    let ctx = app.capture_context(&app.config.model_changer);
+
+    if app.model_changer.should_remove_sleeves(ctx, info.model) {
+      return;
+    }
+
     let entity = interfaces.entity_list.get_entity_by_index(info.entity_index);
 
     // FIXME: If enabled at least one ignore-z layer along with a glow

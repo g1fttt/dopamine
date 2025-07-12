@@ -1,6 +1,7 @@
 use crate::{ClientClass, Entity, EntityHandle};
 
 use dopamine_macros::virtual_method;
+use open_enum::open_enum;
 
 #[repr(C)]
 pub struct Client;
@@ -19,4 +20,12 @@ impl EntityList {
   virtual_method!(pub fn get_entity_by_index[3](&self, index: i32) -> Option<&Entity>);
   virtual_method!(pub fn get_entity_from_handle<'a>[4](&self, handle: &EntityHandle) -> Option<&'a Entity>);
   virtual_method!(pub fn highest_entity_index[6](&self) -> i32);
+}
+
+#[derive(Clone, Copy)]
+#[open_enum]
+#[repr(C)]
+pub enum FrameStage {
+  PostDataUpdateStart = 2,
+  RenderStart = 5,
 }

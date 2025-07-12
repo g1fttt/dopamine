@@ -1,6 +1,6 @@
 use crate::game::{Entity, KeyValues};
 
-use super::rip_offset_value;
+use crate::math::Vector3D;
 use crate::pcstr;
 use crate::utils::rip_offset_value;
 
@@ -18,9 +18,18 @@ pub struct Patterns {
   pub(crate) key_values_set_string:
     extern "fastcall" fn(&mut KeyValues, key: *const c_char, value: *const c_char),
 
-  pub is_local_player: extern "fastcall" fn(&Entity) -> bool,
+  pub(crate) create_entity_by_name:
+    extern "C" fn(class_name: *const c_char) -> Option<&'static Entity>,
+
+  pub(crate) is_local_player: extern "fastcall" fn(&Entity) -> bool,
+  pub(crate) set_model_index: extern "fastcall" fn(&Entity, index: i32),
+  pub(crate) follow_entity: extern "fastcall" fn(&Entity, parent: &Entity, bone_merge: bool),
+  pub(crate) set_abs_origin: extern "fastcall" fn(&Entity, origin: &Vector3D),
+  pub(crate) lookup_sequence: extern "fastcall" fn(&Entity, label: *const c_char) -> i32,
+  pub(crate) get_sequence_activity: extern "fastcall" fn(&Entity, sequence: i32) -> i32,
 
   pub calc_viewmodel_view: *mut c_void,
+  pub should_flip_viewmodel: *mut c_void,
 
   pub d3d9_reset: *mut c_void,
   pub d3d9_present: *mut c_void,
@@ -42,12 +51,50 @@ impl Patterns {
         find_by_pattern("client.dll", b"\x48\x89\x5C\x24?\x55\x48\x83\xEC?\x49\x8B\xD8")
         .unwrap();
 
+      let create_entity_by_name =
+        find_by_pattern("client.dll", b"\x40\x53\x48\x83\xEC?\x48\x8B\xD9\xE8????\x48\x8B\xD3")
+        .unwrap();
+
       let is_local_player =
         find_by_pattern("client.dll", b"\x48\x39\x0D????\x0F\x94\xC0\xC3\xCC")
+        .unwrap();
+      let set_model_index =
+        find_by_pattern("client.dll", b"\x48\x89\x5C\x24?\x57\x48\x83\xEC?\x66\x89\x91")
+        .unwrap();
+      let follow_entity =
+        find_by_pattern(
+          "client.dll",
+          b"\x48\x89\x5C\x24?\x57\x48\x83\xEC?\x41\x0F\xB6\xF8\x48\x8B\xD9",
+        )
+        .unwrap();
+      let set_abs_origin =
+        find_by_pattern(
+          "client.dll",
+          b"\x48\x89\x5C\x24?\x57\x48\x83\xEC?\x48\x8B\xFA\x48\x8B\xD9\xE8????\xF3\x0F\x10\x83",
+        )
+        .unwrap();
+      let lookup_sequence =
+        find_by_pattern(
+          "client.dll",
+          b"\x40\x53\x48\x83\xEC?\x48\x8B\xDA\xE8????\x48\x8B\xC8\x48\x8B\xD3\x48\x83\xC4?\x5B\xE9????\xCC\xCC\x4C\x89\x4C\x24",
+        )
+        .unwrap();
+
+      let get_sequence_activity =
+        find_by_pattern(
+          "client.dll",
+          b"\x48\x89\x5C\x24?\x57\x48\x83\xEC?\x8B\xDA\x48\x8B\xF9\x83\xFA?\x74",
+        )
         .unwrap();
 
       let calc_viewmodel_view =
         find_by_pattern("client.dll", b"\x48\x89\x5C\x24?\x56\x48\x83\xEC?\xF2\x41\x0F\x10\x01")
+        .unwrap();
+      let should_flip_viewmodel =
+        find_by_pattern(
+          "client.dll",
+          b"\x48\x83\xEC?\x8B\x91????\x85\xD2\x74?\xB8????\x83\xFA?\x74?\x0F\xB7\xC2\x4C\x8B\x05",
+        )
         .unwrap();
 
       let d3d9_reset = rip_offset_value(
@@ -69,9 +116,18 @@ impl Patterns {
         key_values_new,
         key_values_set_string,
 
+        create_entity_by_name,
+
         is_local_player,
+        set_model_index,
+        follow_entity,
+        set_abs_origin,
+        lookup_sequence,
+
+        get_sequence_activity,
 
         calc_viewmodel_view,
+        should_flip_viewmodel,
 
         d3d9_reset,
         d3d9_present,

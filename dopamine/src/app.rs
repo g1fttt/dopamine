@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::features::model_changer::ModelChanger;
 use crate::hooks::Hooks;
 use crate::ui::{BlurEffect, ImGuiContext, Menu};
 
@@ -33,6 +34,7 @@ pub struct App<'s: 'static> {
 
   pub glow: Glow<'s>,
   pub chams: Chams<'s>,
+  pub model_changer: ModelChanger,
 }
 
 impl App<'_> {
@@ -118,11 +120,6 @@ impl App<'_> {
     unsafe { Self::get_mut_or_init(None) }
   }
 
-  #[inline]
-  fn get() -> &'static Self {
-    Self::get_mut()
-  }
-
   unsafe fn get_mut_or_init(module: Option<HMODULE>) -> &'static mut Self {
     static mut APP: OnceCell<App> = OnceCell::new();
 
@@ -140,6 +137,7 @@ impl App<'_> {
 
         glow: Glow::new(),
         chams: Chams::new(),
+        model_changer: ModelChanger::new(),
       })
     }
   }

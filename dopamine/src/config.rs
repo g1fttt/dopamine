@@ -1,6 +1,7 @@
 use crate::features::chams::ChamsConfig;
 use crate::features::glow::GlowConfig;
 use crate::features::misc::MiscConfig;
+use crate::features::model_changer::ModelChangerConfig;
 use crate::features::visuals::VisualsConfig;
 
 use educe::Educe;
@@ -18,6 +19,7 @@ pub struct Config {
   pub visuals: VisualsConfig,
   pub glow: GlowConfig,
   pub chams: ChamsConfig,
+  pub model_changer: ModelChangerConfig,
 }
 
 impl Config {

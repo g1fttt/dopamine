@@ -1,8 +1,9 @@
+use crate::cstr;
+use crate::math::Vector3D;
 use crate::utils::{Interfaces, Patterns};
 
-use super::{ClassId, ClientClass};
-
-use open_enum::open_enum;
+use crate::game::engine::Model;
+use crate::game::{ClassId, ClientClass};
 
 use dopamine_macros::{netvar, virtual_method};
 use open_enum::open_enum;
@@ -17,8 +18,13 @@ pub struct Entity {
 }
 
 impl Entity {
-  const ON_GROUND: i32 = 1 << 0;
+  #[inline]
+  pub fn create_by_name(name: &str) -> Option<&'static Self> {
+    (Patterns::get().create_entity_by_name)(cstr!(name))
+  }
+}
 
+impl Entity {
   #[inline]
   pub fn is_on_ground(&self) -> bool {
     !self.flags().have(EntityFlags::OnGround)
@@ -30,9 +36,50 @@ impl Entity {
   }
 
   #[inline(always)]
+  pub fn set_model_index(&self, index: i32) {
+    (Patterns::get().set_model_index)(self, index);
+  }
+
+  #[inline(always)]
+  pub fn follow_entity(&self, parent: &Entity, bone_merge: bool) {
+    (Patterns::get().follow_entity)(self, parent, bone_merge);
+  }
+
+  #[inline(always)]
+  pub fn set_abs_origin(&self, origin: &Vector3D) {
+    (Patterns::get().set_abs_origin)(self, origin);
+  }
+
+  #[inline(always)]
+  pub fn lookup_sequence(&self, label: &str) -> i32 {
+    (Patterns::get().lookup_sequence)(self, cstr!(label))
+  }
+
+  #[inline(always)]
   pub fn attachments(&self) -> EntityAttachmentIterator {
     EntityAttachmentIterator::new(self)
   }
+
+  #[inline]
+  pub fn viewmodel(&self) -> Option<&Self> {
+    Interfaces::get().entity_list.get_entity_from_handle(&self.viewmodel_handle())
+  }
+
+  #[inline(always)]
+  pub fn sequence_activity(&self, sequence: i32) -> i32 {
+    (Patterns::get().get_sequence_activity)(self, sequence)
+  }
+
+  pub fn view_entity(&self) -> Option<&Self> {
+    assert!(self.is_local_player());
+
+    self.is_alive().then_some(self).or_else(|| self.observer_target())
+  }
+
+  // #[allow(clippy::mut_from_ref)]
+  // pub fn client_side_animation(&self) -> &mut bool {
+  //   unsafe { &mut *(self as *const Self).cast_mut().byte_add(0xAA0).cast::<bool>() }
+  // }
 
   #[inline]
   pub fn is_viewmodel(&self) -> bool {
@@ -42,6 +89,11 @@ impl Entity {
   #[inline]
   pub fn is_spotted(&self, index: usize) -> bool {
     self.player_spotted()[index]
+  }
+
+  #[inline]
+  pub fn is_knife(&self) -> bool {
+    self.weapon_id() == WeaponId::Knife
   }
 
   pub fn is_sniper_rifle(&self) -> bool {
@@ -62,6 +114,7 @@ impl Entity {
       ClassId::Ak47
         | ClassId::C4
         | ClassId::DEagle
+        | ClassId::Knife
         | ClassId::Aug
         | ClassId::AWP
         | ClassId::Elite
@@ -87,6 +140,16 @@ impl Entity {
     )
   }
 
+  // #[allow(clippy::mut_from_ref)]
+  // fn studio_header(&self) -> &mut StudioHeader {
+  //   unsafe { &mut *(self as *const Self).cast_mut().byte_add(3000).cast::<StudioHeader>() }
+  // }
+
+  #[inline]
+  fn observer_target(&self) -> Option<&Self> {
+    Interfaces::get().entity_list.get_entity_from_handle(&self.observer_target_handle())
+  }
+
   #[inline]
   fn move_child(&self) -> Option<&Self> {
     Interfaces::get().entity_list.get_entity_from_handle(&self.move_child_handle)
@@ -101,12 +164,23 @@ impl Entity {
 impl Entity {
   virtual_method!(pub fn networkable[4](&self) -> &NetworkableEntity);
   virtual_method!(pub fn renderable[5](&self) -> &RenderableEntity);
+  virtual_method!(pub fn abs_origin[9](&self) -> &Vector3D);
+  virtual_method!(pub fn spawn[29](&self));
+  virtual_method!(pub fn is_alive[131](&self) -> bool);
   virtual_method!(pub fn is_player[132](&self) -> bool);
+  virtual_method!(pub fn set_sequence[189](&self, sequence: i32));
+  // virtual_method!(pub fn update_client_side_animation[193](&self));
+  virtual_method!(pub fn send_viewmodel_matching_sequence[209](&self, sequence: i32));
   virtual_method!(pub fn active_weapon[227](&self) -> Option<&Entity>);
+  virtual_method!(pub fn weapon_id[371](&self) -> WeaponId);
 
   netvar!(pub fn team -> i32 for CBaseEntity->m_iTeamNum);
   netvar!(pub fn owner_handle -> EntityHandle for CBaseCombatWeapon->m_hOwner);
+  netvar!(pub fn player_class -> PlayerClass for CCSPlayer->m_iClass);
+  netvar!(pub fn sequence -> i32 for CBaseAnimating->m_nSequence);
+
   netvar!(fn player_spotted -> [bool; 65] for CCSPlayerResource->m_bPlayerSpotted);
+  netvar!(fn viewmodel_handle -> EntityHandle for CBasePlayer->m_hViewModel[0]);
   netvar!(fn flags -> EntityFlags for CBasePlayer->m_fFlags);
   netvar!(fn weapon_mode -> WeaponMode for CWeaponCSBase->m_weaponMode);
   netvar!(fn observer_target_handle -> EntityHandle for CBasePlayer->m_hObserverTarget);
@@ -118,6 +192,8 @@ pub struct NetworkableEntity;
 impl NetworkableEntity {
   virtual_method!(pub fn release[1](&self));
   virtual_method!(pub fn client_class[2](&self) -> &ClientClass);
+  virtual_method!(pub fn on_data_changed[5](&self, update_kind: i32));
+  virtual_method!(pub fn is_dormant[8](&self) -> bool);
   virtual_method!(pub fn index[9](&self) -> i32);
 }
 
@@ -126,6 +202,7 @@ pub struct RenderableEntity;
 
 impl RenderableEntity {
   virtual_method!(pub fn should_draw[3](&self) -> bool);
+  virtual_method!(pub fn model[9](&self) -> Option<&'static Model>);
   virtual_method!(pub fn draw_model[10](&self) -> i32 where (1: i32 /* StudioRender */));
 }
 
@@ -174,6 +251,17 @@ pub enum WeaponId {
   G3SG1 = 23,
   SG552 = 26,
   AK47,
+  Knife,
+}
+
+impl WeaponId {
+  pub fn from_weapon_name(s: &str) -> Option<Self> {
+    Some(match s {
+      "ak47" => WeaponId::AK47,
+      "knife" => WeaponId::Knife,
+      _ => return None,
+    })
+  }
 }
 
 #[derive(Clone, Copy)]
@@ -181,6 +269,20 @@ pub enum WeaponId {
 #[repr(C)]
 enum WeaponMode {
   Secondary = 1,
+}
+
+#[derive(Clone, Copy)]
+#[open_enum]
+#[repr(C)]
+pub enum PlayerClass {
+  PhoenixConnection = 1,
+  LeetKrew,
+  ArcticAvengers,
+  GuerillaWarfare,
+  SealTeam6,
+  GSG9,
+  Sas,
+  Gign,
 }
 
 #[derive(Clone, Copy)]

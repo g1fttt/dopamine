@@ -1,6 +1,7 @@
 pub mod chams;
 pub mod glow;
 pub mod misc;
+pub mod model_changer;
 pub mod visuals;
 
 use crate::App;
