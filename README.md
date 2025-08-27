@@ -12,6 +12,7 @@ A fast, lightweight and (almost) feature-complete internal gamehack for Counter-
 <details>
   <summary>Screenshots <i>(click to expand)</i></summary>
 
+  ![Menu](/assets/menu.png)
   ![Allies](/assets/allies.jpg)
   ![Enemies](/assets/enemies.jpg)
 </details>
