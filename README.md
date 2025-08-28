@@ -6,7 +6,6 @@ A fast, lightweight and (almost) feature-complete internal gamehack for Counter-
 
   - [Features](#features)
   - [Planned](#planned)
-  - [Known problems](#known-problems)
 </details>
 
 <details>
@@ -64,7 +63,3 @@ A fast, lightweight and (almost) feature-complete internal gamehack for Counter-
 
 ## Planned
 - There's no particular plans (yet might be in the future) because I work on this project only when I have kind of an <i>inspiration</i>.
-
-## Known problems
-- Intentional memory leak in <b>KeyValues</b> struct
-- If enabled at least one ignore-z layer along with a glow then ignore-z chams shall be visible even if model isn't occluded
