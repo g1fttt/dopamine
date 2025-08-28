@@ -7,9 +7,12 @@ use crate::features::visuals::VisualsConfig;
 
 use dopamine_sdk::input_system::InputSystem;
 use enum_map::Enum;
-use imgui::{ColorEditFlags, Io, StyleVar, Ui, WindowFlags};
 use strum::VariantNames;
 use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
+
+use imgui::{ColorEditFlags, StyleVarKind, WindowFlags};
+
+use std::mem;
 
 #[derive(Default)]
 struct ShouldDrawWindow {
@@ -34,7 +37,7 @@ impl Menu {
     !self.open && self.toggle_animation_end > 1.0
   }
 
-  #[inline]
+  #[inline(always)]
   pub fn is_open(&self) -> bool {
     self.open
   }
@@ -44,8 +47,8 @@ impl Menu {
     t.clamp(0.0, 1.0)
   }
 
-  pub fn update_animation(&mut self, io: &Io) {
-    self.toggle_animation_end += io.delta_time / 0.35 /* animation speed */;
+  pub fn update_animation(&mut self) {
+    self.toggle_animation_end += imgui::io().delta_time / 0.35 /* animation speed */;
   }
 
   pub fn handle_toggle(&mut self, input_system: &InputSystem) {
@@ -63,187 +66,174 @@ impl Menu {
     }
   }
 
-  pub fn update_mouse_cursor(&self, io: &mut Io) {
-    io.mouse_draw_cursor = self.open;
+  pub fn update_mouse_cursor(&self) {
+    imgui::io_mut().mouse_draw_cursor = self.open;
     unsafe { ShowCursor(!self.open) };
   }
 
-  pub fn render(&mut self, ui: &Ui, config: &mut Config) {
-    let style = ui.push_style_var(StyleVar::Alpha(self.transparency()));
+  pub fn render(&mut self, config: &mut Config) {
+    let style = imgui::push_style_var(StyleVarKind::Alpha(self.transparency()));
     {
-      self.draw_menu_bar(ui);
-      self.draw_misc_window(ui, &mut config.misc);
-      self.draw_visuals_window(ui, &mut config.visuals);
-      self.draw_glow_window(ui, &mut config.glow);
-      self.draw_chams_window(ui, &mut config.chams);
+      self.draw_menu_bar();
+      self.draw_misc_window(&mut config.misc);
+      self.draw_visuals_window(&mut config.visuals);
+      self.draw_glow_window(&mut config.glow);
+      self.draw_chams_window(&mut config.chams);
     }
     style.pop();
   }
 
-  fn draw_menu_bar(&mut self, ui: &Ui) {
-    if let Some(bar) = ui.begin_main_menu_bar() {
-      if ui.menu_item("Misc") {
+  fn draw_menu_bar(&mut self) {
+    if let Some(bar) = imgui::main_menu_bar() {
+      if imgui::menu_item("Misc") {
         self.should_draw_window.misc = true;
-      } else if ui.menu_item("Visuals") {
+      } else if imgui::menu_item("Visuals") {
         self.should_draw_window.visuals = true;
-      } else if ui.menu_item("Glow") {
+      } else if imgui::menu_item("Glow") {
         self.should_draw_window.glow = true;
-      } else if ui.menu_item("Chams") {
+      } else if imgui::menu_item("Chams") {
         self.should_draw_window.chams = true;
       }
       bar.end();
     }
   }
 
-  fn draw_misc_window(&mut self, ui: &Ui, config: &mut MiscConfig) {
+  fn draw_misc_window(&mut self, config: &mut MiscConfig) {
     if !self.should_draw_window.misc {
       return;
     }
 
-    ui.window("Misc").opened(&mut self.should_draw_window.misc).flags(Self::window_flags()).build(
-      || {
-        ui.checkbox("Bunnyhop", &mut config.bunnyhop.enabled);
-        ui.same_line();
-        ui.slider("Chance", 10, 100, &mut config.bunnyhop.chance);
-      },
-    );
+    imgui::window_ex("Misc")
+      .open(&mut self.should_draw_window.misc)
+      .flags(Self::window_flags())
+      .build(|| {
+        imgui::checkbox("Bunnyhop", &mut config.bunnyhop.enabled);
+        imgui::same_line();
+        imgui::slider_int("Chance", &mut config.bunnyhop.chance, 10, 100);
+      });
   }
 
-  fn draw_visuals_window(&mut self, ui: &Ui, config: &mut VisualsConfig) {
+  fn draw_visuals_window(&mut self, config: &mut VisualsConfig) {
     if !self.should_draw_window.visuals {
       return;
     }
 
-    ui.window("Visuals")
-      .opened(&mut self.should_draw_window.visuals)
+    imgui::window_ex("Visuals")
+      .open(&mut self.should_draw_window.visuals)
       .flags(Self::window_flags())
       .build(|| {
-        ui.checkbox("Better crosshair", &mut config.better_crosshair.enabled);
-        ui.same_line();
-        ui.checkbox("Force sniper rifles", &mut config.better_crosshair.force_sniper_rifles);
-        ui.same_line();
-        ui.color_edit4_config("##Color", config.better_crosshair.color.as_mut_array())
+        imgui::checkbox("Better crosshair", &mut config.better_crosshair.enabled);
+        imgui::same_line();
+        imgui::checkbox("Force sniper rifles", &mut config.better_crosshair.force_sniper_rifles);
+        imgui::same_line();
+        imgui::color_edit4_ex("##Color", config.better_crosshair.color.as_mut_array())
           .flags(Self::color_edit_flags())
           .build();
-        ui.slider("Size", 1.0, 20.0, &mut config.better_crosshair.size);
-        ui.slider("Thickness", 1.0, 10.0, &mut config.better_crosshair.thickness);
-        ui.slider("Gap", 0.0, 20.0, &mut config.better_crosshair.gap);
+        imgui::slider_float("Size", &mut config.better_crosshair.size, 1.0, 20.0);
+        imgui::slider_float("Thickness", &mut config.better_crosshair.thickness, 1.0, 10.0);
+        imgui::slider_float("Gap", &mut config.better_crosshair.gap, 0.0, 20.0);
 
-        ui.separator();
+        imgui::separator();
 
-        ui.checkbox("Add FOV", &mut config.add_fov.enabled);
-        ui.same_line();
-        ui.slider("Amount", -50.0, 50.0, &mut config.add_fov.amount);
+        imgui::checkbox("Add FOV", &mut config.add_fov.enabled);
+        imgui::same_line();
+        imgui::slider_float("Amount", &mut config.add_fov.amount, -50.0, 50.0);
 
-        ui.separator();
-
-        // TODO: Curve editor
-        ui.checkbox("Viewmodel origin", &mut config.viewmodel_origin.enabled);
-        ui.slider("X", -10.0, 10.0, &mut config.viewmodel_origin.origin.x);
-        ui.slider("Y", -10.0, 10.0, &mut config.viewmodel_origin.origin.y);
-        ui.slider("Z", -10.0, 10.0, &mut config.viewmodel_origin.origin.z);
+        imgui::checkbox("Viewmodel origin", &mut config.viewmodel_origin.enabled);
+        imgui::slider_float("X", &mut config.viewmodel_origin.value.x, -10.0, 10.0);
+        imgui::slider_float("Y", &mut config.viewmodel_origin.value.y, -10.0, 10.0);
+        imgui::slider_float("Z", &mut config.viewmodel_origin.value.z, -10.0, 10.0);
       });
   }
 
-  fn draw_glow_window(&mut self, ui: &Ui, config: &mut GlowConfig) {
+  fn draw_glow_window(&mut self, config: &mut GlowConfig) {
     if !self.should_draw_window.glow {
       return;
     }
 
-    ui.window("Glow").opened(&mut self.should_draw_window.glow).flags(Self::window_flags()).build(
-      || {
-        ui.combo_simple_string(
-          "##ConfigKind",
-          &mut config.current_config_index,
-          GlowConfigKind::VARIANTS,
-        );
+    imgui::window_ex("Glow")
+      .open(&mut self.should_draw_window.glow)
+      .flags(Self::window_flags())
+      .build(|| {
+        imgui::combo("##ConfigKind", &mut config.current_config_index, GlowConfigKind::VARIANTS);
 
-        ui.separator();
+        imgui::separator();
 
         let current_config_index = config.current_config_index;
         let cfg = &mut config.as_mut_slice()[current_config_index];
 
-        ui.checkbox("Enabled", &mut cfg.enabled);
-        ui.same_line();
-        ui.color_edit4_config("##Color", cfg.color.as_mut_array())
+        imgui::checkbox("Enabled", &mut cfg.enabled);
+        imgui::same_line();
+        imgui::color_edit4_ex("##Color", cfg.color.as_mut_array())
           .flags(Self::color_edit_flags())
           .build();
 
         let config_kind = GlowConfigKind::from_usize(current_config_index);
         if matches!(config_kind, GlowConfigKind::Enemies) {
-          ui.checkbox("Fade out when spotted", &mut cfg.fade_out_when_spotted);
-          ui.same_line();
-          ui.slider("Rate", 1.0, 8.0, &mut cfg.fade_out_rate);
+          imgui::checkbox("Fade out when spotted", &mut cfg.fade_out_when_spotted);
+          imgui::same_line();
+          imgui::slider_float("Rate", &mut cfg.fade_out_rate, 1.0, 8.0);
         }
-      },
-    );
+      });
   }
 
-  fn draw_chams_window(&mut self, ui: &Ui, config: &mut ChamsConfig) {
+  fn draw_chams_window(&mut self, config: &mut ChamsConfig) {
     if !self.should_draw_window.chams {
       return;
     }
 
-    ui.window("Chams")
-      .opened(&mut self.should_draw_window.chams)
+    imgui::window_ex("Chams")
+      .open(&mut self.should_draw_window.chams)
       .flags(Self::window_flags())
       .build(|| {
-        ui.combo_simple_string(
-          "##ConfigKind",
-          &mut config.current_config_index,
-          ChamsConfigKind::VARIANTS,
-        );
+        imgui::combo("##ConfigKind", &mut config.current_config_index, ChamsConfigKind::VARIANTS);
 
         let current_config_index = config.current_config_index;
         let cfg = &mut config.as_mut_slice()[current_config_index];
 
-        ui.same_line();
-        ui.text("Layer");
-        ui.same_line();
+        imgui::same_line();
+        imgui::text("Layer");
+        imgui::same_line();
 
-        if ui.button("<") {
-          cfg.current_layer_index = cfg.current_layer_index.saturating_sub(1);
+        if imgui::button("<") && cfg.current_layer_index > 0 {
+          cfg.current_layer_index -= 1;
         }
 
-        ui.same_line();
-        ui.text(format!("{}", cfg.current_layer_index + 1));
-        ui.same_line();
+        imgui::same_line();
+        imgui::text(format!("{}", cfg.current_layer_index + 1));
+        imgui::same_line();
 
-        if ui.button(">") && cfg.current_layer_index < cfg.layers.len() - 1 {
+        if imgui::button(">") && cfg.current_layer_index < cfg.layers.len() - 1 {
           cfg.current_layer_index += 1;
         }
 
-        ui.separator();
+        imgui::separator();
 
         let current_layer = &mut cfg.layers[cfg.current_layer_index];
-        ui.checkbox("Enabled", &mut current_layer.enabled);
-        ui.same_line();
-        ui.color_edit4_config("##Color", current_layer.material_color.as_mut_array())
+        imgui::checkbox("Enabled", &mut current_layer.enabled);
+        imgui::same_line();
+        imgui::color_edit4_ex("##Color", current_layer.material_color.as_mut_array())
           .flags(Self::color_edit_flags())
           .build();
-        ui.checkbox("Cover", &mut current_layer.cover);
-        ui.same_line();
-        ui.checkbox("Ignore Z", &mut current_layer.ignore_z);
-        ui.same_line();
-        ui.checkbox("Wireframe", &mut current_layer.wireframe);
-        ui.combo_simple_string(
-          "Material",
-          unsafe {
-            std::mem::transmute::<&mut ChamsMaterialKind, &mut usize>(
-              &mut current_layer.material_kind,
-            )
-          },
-          ChamsMaterialKind::VARIANTS,
-        );
+        imgui::checkbox("Cover", &mut current_layer.cover);
+        imgui::same_line();
+        imgui::checkbox("Ignore Z", &mut current_layer.ignore_z);
+        imgui::same_line();
+        imgui::checkbox("Wireframe", &mut current_layer.wireframe);
+
+        let current_material_index = unsafe {
+          mem::transmute::<&mut ChamsMaterialKind, &mut usize>(&mut current_layer.material_kind)
+        };
+        imgui::combo("Material", current_material_index, ChamsMaterialKind::VARIANTS);
       });
   }
 
-  #[inline]
+  #[inline(always)]
   fn window_flags() -> WindowFlags {
     WindowFlags::NO_RESIZE | WindowFlags::NO_SCROLLBAR | WindowFlags::ALWAYS_AUTO_RESIZE
   }
 
-  #[inline]
+  #[inline(always)]
   fn color_edit_flags() -> ColorEditFlags {
     ColorEditFlags::ALPHA_BAR | ColorEditFlags::NO_INPUTS
   }

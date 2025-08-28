@@ -1,7 +1,4 @@
-use crate::ui::ImGuiContext;
-
-use imgui::{DrawListMut, Io, TextureId, Textures};
-use imgui_dx9_renderer::Renderer;
+use imgui::{CmdList, DrawCmd, ImVec2, TextureRef};
 
 use windows::Foundation::Numerics::Matrix4x4;
 use windows::Win32::Graphics::Direct3D9::*;
@@ -13,11 +10,10 @@ const BLUR_DOWNSAMPLE: f32 = 4.0;
 
 pub struct BlurEffect {
   rt_backup: Option<IDirect3DSurface9>,
-  blur_texture1: Texture,
-  blur_texture2: Texture,
+  blur_texture1: Option<IDirect3DTexture9>,
+  blur_texture2: Option<IDirect3DTexture9>,
   blur_shader_x: ShaderProgram,
   blur_shader_y: ShaderProgram,
-  backbuf_size: (f32, f32),
 }
 
 impl BlurEffect {
@@ -25,59 +21,87 @@ impl BlurEffect {
     let blur_shader_x = ShaderProgram::new(BLUR_X);
     let blur_shader_y = ShaderProgram::new(BLUR_Y);
 
-    Self {
-      rt_backup: None,
-      blur_texture1: Texture::invalid(),
-      blur_texture2: Texture::invalid(),
-      blur_shader_x,
-      blur_shader_y,
-      backbuf_size: (-1.0, -1.0),
-    }
+    Self { rt_backup: None, blur_texture1: None, blur_texture2: None, blur_shader_x, blur_shader_y }
   }
 
   pub fn render(
     &mut self,
     device: &IDirect3DDevice9,
-    renderer: &mut Renderer,
-    io: &Io,
-    draw_list: DrawListMut,
+    draw_list: &mut imgui::DrawList,
     alpha: f32,
   ) -> WindowsResult<()> {
-    self.new_frame(device, renderer, io)?;
+    self.new_frame(device)?;
 
-    add_imgui_callback(&draw_list, BlurEffect::begin, self, device);
+    let self_ptr = self as *mut BlurEffect;
+
+    let add_callback_ex = |dl: &mut imgui::DrawList, cb| {
+      dl.add_callback_ex(cb).user_data(&(self_ptr, device)).build(dl)
+    };
+
+    let Some((blur1, blur2)) = self.blur_texture1.as_ref().zip(self.blur_texture2.as_ref()) else {
+      return Ok(());
+    };
+
+    let rect_min = ImVec2 { x: -1.0, y: -1.0 };
+    let rect_max = ImVec2 { x: 1.0, y: 1.0 };
+
+    add_callback_ex(draw_list, Self::begin_aux);
     {
       for _ in 0..8 {
-        add_imgui_callback(&draw_list, BlurEffect::first_pass, self, device);
-        draw_list.add_image(self.blur_texture1.id.unwrap(), [-1.0, -1.0], [1.0, 1.0]).build();
-        add_imgui_callback(&draw_list, BlurEffect::second_pass, self, device);
-        draw_list.add_image(self.blur_texture2.id.unwrap(), [-1.0, -1.0], [1.0, 1.0]).build();
+        add_callback_ex(draw_list, Self::first_pass_aux);
+        draw_list.add_image(TextureRef::new(blur1), rect_min, rect_max);
+
+        add_callback_ex(draw_list, Self::second_pass_aux);
+        draw_list.add_image(TextureRef::new(blur2), rect_min, rect_max);
       }
     }
-    add_imgui_callback(&draw_list, BlurEffect::end, self, device);
+    add_callback_ex(draw_list, Self::end_aux);
 
-    add_imgui_callback(&draw_list, BlurEffect::reset_render_state, self, device);
+    draw_list.add_callback(imgui::reset_render_state());
 
-    let (bb_width, bb_height) = self.backbuf_size;
+    let display_size = imgui::io().display_size;
 
     draw_list
-      .add_image(self.blur_texture1.id.unwrap(), [0.0, 0.0], [bb_width * 1.0, bb_height * 1.0])
-      .col([1.0, 1.0, 1.0, 1.0 * alpha])
-      .build();
+      .add_image_ex(
+        TextureRef::new(blur1),
+        ImVec2 { x: 0.0, y: 0.0 },
+        ImVec2 { x: display_size.x * 1.0, y: display_size.y * 1.0 },
+      )
+      .color(imgui::im_col32(1.0, 1.0, 1.0, alpha))
+      .build(draw_list);
 
     Ok(())
   }
 
-  pub unsafe fn clear_textures(&mut self) {
-    self.blur_texture1.uninit();
-    self.blur_texture2.uninit();
+  #[inline]
+  pub fn clear_textures(&mut self) {
+    self.blur_texture1.take();
+    self.blur_texture2.take();
+  }
+
+  extern "C" fn begin_aux(_: &CmdList, cmd: &DrawCmd) {
+    let (effect, device): &mut (&mut BlurEffect, &IDirect3DDevice9) =
+      cmd.user_callback_data().unwrap();
+    let _ = unsafe { effect.begin(device) };
   }
 
   unsafe fn begin(&mut self, device: &IDirect3DDevice9) -> WindowsResult<()> {
     unsafe {
+      let Some(blur_texture1) = self.blur_texture1.as_ref() else {
+        return Ok(());
+      };
+
       self.rt_backup.replace(device.GetRenderTarget(0)?);
 
-      self.blur_texture1.copy_from_backbuf(device)?;
+      let backbuf = device.GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO)?;
+
+      device.StretchRect(
+        &backbuf,
+        ptr::null(),
+        &blur_texture1.GetSurfaceLevel(0)?,
+        ptr::null(),
+        D3DTEXF_LINEAR,
+      )?;
 
       device.SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 1)?;
 
@@ -87,10 +111,10 @@ impl BlurEffect {
       device.SetRenderState(D3DRS_SCISSORTESTENABLE, 0)?;
     }
 
-    let (bb_width, bb_height) = self.backbuf_size;
+    let display_size = imgui::io().display_size;
 
-    let offset_x = -1.0 / (bb_width / BLUR_DOWNSAMPLE);
-    let offset_y = 1.0 / (bb_height / BLUR_DOWNSAMPLE);
+    let offset_x = -1.0 / (display_size.x / BLUR_DOWNSAMPLE);
+    let offset_y = 1.0 / (display_size.y / BLUR_DOWNSAMPLE);
 
     #[rustfmt::skip]
     let projection = array_to_matrix4x4([
@@ -103,18 +127,44 @@ impl BlurEffect {
     unsafe { device.SetTransform(D3DTS_PROJECTION, &projection) }
   }
 
-  unsafe fn first_pass(&mut self, device: &IDirect3DDevice9) -> WindowsResult<()> {
-    let (bb_width, _) = self.backbuf_size;
+  extern "C" fn first_pass_aux(_: &CmdList, cmd: &DrawCmd) {
+    let (effect, device): &mut (&mut BlurEffect, &IDirect3DDevice9) =
+      cmd.user_callback_data().unwrap();
+    let _ = unsafe { effect.first_pass(device) };
+  }
 
-    self.blur_shader_x.use_it(device, 1.0 / (bb_width / BLUR_DOWNSAMPLE))?;
-    unsafe { self.blur_texture2.set_as_rt(device) }
+  unsafe fn first_pass(&mut self, device: &IDirect3DDevice9) -> WindowsResult<()> {
+    let Some(blur_texture2) = self.blur_texture2.as_ref() else {
+      return Ok(());
+    };
+
+    let display_width = imgui::io().display_size.x;
+
+    self.blur_shader_x.use_it(device, 1.0 / (display_width / BLUR_DOWNSAMPLE))?;
+    unsafe { device.SetRenderTarget(0, &blur_texture2.GetSurfaceLevel(0)?) }
+  }
+
+  extern "C" fn second_pass_aux(_: &imgui::CmdList, cmd: &imgui::DrawCmd) {
+    let (effect, device): &mut (&mut BlurEffect, &IDirect3DDevice9) =
+      cmd.user_callback_data().unwrap();
+    let _ = unsafe { effect.second_pass(device) };
   }
 
   unsafe fn second_pass(&mut self, device: &IDirect3DDevice9) -> WindowsResult<()> {
-    let (_, bb_height) = self.backbuf_size;
+    let Some(blur_texture1) = self.blur_texture1.as_ref() else {
+      return Ok(());
+    };
 
-    self.blur_shader_y.use_it(device, 1.0 / (bb_height / BLUR_DOWNSAMPLE))?;
-    unsafe { self.blur_texture1.set_as_rt(device) }
+    let display_height = imgui::io().display_size.y;
+
+    self.blur_shader_y.use_it(device, 1.0 / (display_height / BLUR_DOWNSAMPLE))?;
+    unsafe { device.SetRenderTarget(0, &blur_texture1.GetSurfaceLevel(0)?) }
+  }
+
+  extern "C" fn end_aux(_: &CmdList, cmd: &DrawCmd) {
+    let (effect, device): &mut (&mut BlurEffect, &IDirect3DDevice9) =
+      cmd.user_callback_data().unwrap();
+    let _ = unsafe { effect.end(device) };
   }
 
   unsafe fn end(&mut self, device: &IDirect3DDevice9) -> WindowsResult<()> {
@@ -125,52 +175,23 @@ impl BlurEffect {
     }
   }
 
-  unsafe fn reset_render_state(&mut self, _device: &IDirect3DDevice9) -> WindowsResult<()> {
-    if let Some((_, back_ctx)) = ImGuiContext::get_mut() {
-      back_ctx.reset_render_state()?;
-    }
-    Ok(())
-  }
-
-  fn new_frame(
-    &mut self,
-    device: &IDirect3DDevice9,
-    renderer: &mut Renderer,
-    io: &Io,
-  ) -> WindowsResult<()> {
-    let display_width = io.display_size[0];
-    let display_height = io.display_size[1];
-
-    if self.backbuf_size != (display_width, display_height) {
-      unsafe { self.clear_textures() };
-
-      self.backbuf_size = (display_width, display_height);
-    }
-
-    let (bb_width, bb_height) = self.backbuf_size;
+  fn new_frame(&mut self, device: &IDirect3DDevice9) -> WindowsResult<()> {
+    let display_size = imgui::io().display_size;
 
     let create_texture =
-      || create_texture(device, bb_width / BLUR_DOWNSAMPLE, bb_height / BLUR_DOWNSAMPLE);
+      || create_texture(device, display_size.x / BLUR_DOWNSAMPLE, display_size.y / BLUR_DOWNSAMPLE);
 
-    let pool = renderer.textures_mut();
+    if self.blur_texture1.is_none() {
+      self.blur_texture1 = Some(create_texture()?);
+    }
 
-    self.blur_texture1.init_and_update_in_pool(create_texture()?, pool);
-    self.blur_texture2.init_and_update_in_pool(create_texture()?, pool);
+    if self.blur_texture2.is_none() {
+      self.blur_texture2 = Some(create_texture()?);
+    }
 
     self.blur_shader_x.init(device)?;
     self.blur_shader_y.init(device)
   }
-}
-
-type ImGuiCallback = unsafe fn(&mut BlurEffect, &IDirect3DDevice9) -> WindowsResult<()>;
-
-fn add_imgui_callback(
-  draw_list: &DrawListMut,
-  callback: ImGuiCallback,
-  blur_effect: *mut BlurEffect,
-  device: *const IDirect3DDevice9,
-) {
-  draw_list.add_callback(move || unsafe { callback(&mut *blur_effect, &*device).unwrap() }).build();
 }
 
 fn create_texture(
@@ -212,58 +233,6 @@ fn array_to_matrix4x4(data: [f32; 16]) -> Matrix4x4 {
     M42: data[13],
     M43: data[14],
     M44: data[15],
-  }
-}
-
-struct Texture {
-  raw: Option<IDirect3DTexture9>,
-  id: Option<TextureId>,
-}
-
-impl Texture {
-  fn invalid() -> Self {
-    Self { raw: None, id: None }
-  }
-
-  fn surface(&self) -> Option<IDirect3DSurface9> {
-    self.raw.as_ref().map(|r| unsafe { r.GetSurfaceLevel(0) }).unwrap().ok()
-  }
-
-  fn init_and_update_in_pool(
-    &mut self,
-    raw: IDirect3DTexture9,
-    pool: &mut Textures<IDirect3DTexture9>,
-  ) {
-    if self.raw.is_some() {
-      return;
-    }
-
-    self.raw.replace(raw.clone());
-
-    match self.id {
-      Some(id) => {
-        pool.replace(id, raw);
-      }
-      None => self.id = Some(pool.insert(raw)),
-    }
-  }
-
-  #[inline]
-  fn uninit(&mut self) {
-    self.raw.take();
-  }
-
-  unsafe fn set_as_rt(&self, device: &IDirect3DDevice9) -> WindowsResult<()> {
-    unsafe { device.SetRenderTarget(0, &self.surface().unwrap()) }
-  }
-
-  unsafe fn copy_from_backbuf(&mut self, device: &IDirect3DDevice9) -> WindowsResult<()> {
-    unsafe {
-      let backbuf = device.GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO)?;
-      let surface = self.surface().unwrap();
-
-      device.StretchRect(&backbuf, ptr::null(), &surface, ptr::null(), D3DTEXF_LINEAR)
-    }
   }
 }
 

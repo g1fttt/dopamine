@@ -1,34 +1,27 @@
-use imgui::sys::{igGetCurrentContext, igGetIO, igSetCurrentContext};
-use imgui::{Context, DrawData, Io, Ui};
-
 use imgui_dx9_renderer::Renderer;
 use imgui_win32_support::Win32;
 
-use windows::Win32::Foundation::HWND;
+use windows::Win32::Foundation::{HWND, LPARAM, WPARAM};
 use windows::Win32::Graphics::Direct3D9::IDirect3DDevice9;
 
 use windows::core::Result as WindowsResult;
 
-use std::ptr;
 use std::sync::OnceLock;
 
 static mut FORE_IMGUI_CONTEXT: OnceLock<ImGuiContext> = OnceLock::new();
 static mut BACK_IMGUI_CONTEXT: OnceLock<ImGuiContext> = OnceLock::new();
 
 pub struct ImGuiContext {
-  ctx: Context,
-  raw_ctx: *mut imgui::sys::ImGuiContext,
+  ctx: imgui::Context,
   renderer: Renderer,
   win32: Win32,
-  draw_data: *const DrawData,
-  ui: *mut Ui,
 }
 
 impl<'s: 'static> ImGuiContext {
-  pub fn get_mut_or_init(device: IDirect3DDevice9, hwnd: HWND) -> (&'s mut Self, &'s mut Self) {
+  pub fn get_mut_or_init(device: &IDirect3DDevice9, hwnd: HWND) -> (&'s mut Self, &'s mut Self) {
     unsafe {
       (
-        FORE_IMGUI_CONTEXT.get_mut_or_init(|| ImGuiContext::new(device.clone(), hwnd)),
+        FORE_IMGUI_CONTEXT.get_mut_or_init(|| ImGuiContext::new(device, hwnd)),
         BACK_IMGUI_CONTEXT.get_mut_or_init(|| ImGuiContext::new(device, hwnd)),
       )
     }
@@ -47,69 +40,63 @@ impl<'s: 'static> ImGuiContext {
     }
   }
 
-  fn new(device: IDirect3DDevice9, hwnd: HWND) -> Self {
-    let mut ctx = Context::create();
-    ctx.set_ini_filename(None);
+  fn new(device: &IDirect3DDevice9, hwnd: HWND) -> Self {
+    let ctx = imgui::Context::new();
+    ctx.set_current();
 
-    let renderer = unsafe { Renderer::new(&mut ctx, device).unwrap() };
-    let win32 = Win32::new(&mut ctx, hwnd);
+    let renderer = Renderer::new(device)
+      .inspect_err(|err| log::error!("Failed to create ImGui DX9 renderer: {err}"))
+      .unwrap();
 
-    let raw_ctx = unsafe {
-      let r = igGetCurrentContext();
-      igSetCurrentContext(ptr::null_mut());
-      r
-    };
+    let win32 = Win32::new(hwnd);
 
-    Self { ctx, raw_ctx, renderer, win32, draw_data: ptr::null_mut(), ui: ptr::null_mut() }
+    imgui::style_colors_dark();
+
+    let io = imgui::io_mut();
+    io.set_ini_filename(None);
+    io.set_log_filename(None);
+
+    io.config_flags |= imgui::ConfigFlags::NO_MOUSE_CURSOR_CHANGE;
+
+    io.font_atlas().add_font_default();
+
+    Self { ctx, renderer, win32 }
   }
 }
 
 impl ImGuiContext {
-  pub fn new_frame(&mut self) -> &'static mut Ui {
-    self.set_current();
-
-    let option_ui = self.ui();
-    self.win32.prepare_frame(&mut self.ctx, option_ui);
-
-    self.ui = self.ctx.new_frame() as *mut Ui;
-    unsafe { &mut *self.ui }
+  pub fn new_frame(&mut self) -> imgui::Frame {
+    self.ctx.set_current();
+    self.win32.new_frame();
+    self.ctx.new_frame()
   }
 
-  pub fn reset(&mut self, device: IDirect3DDevice9) -> WindowsResult<()> {
-    self.renderer = unsafe { Renderer::new(&mut self.ctx, device)? };
+  pub fn handle_window_proc(
+    &mut self,
+    hwnd: HWND,
+    msg: u32,
+    w_param: WPARAM,
+    l_param: LPARAM,
+  ) -> WindowsResult<isize> {
+    self.ctx.set_current();
+    self.win32.handle_window_proc(hwnd, msg, w_param, l_param, imgui::io_mut())
+  }
+
+  #[inline]
+  pub fn reset(&mut self, device: &IDirect3DDevice9) -> WindowsResult<()> {
+    self.renderer = Renderer::new(device)?;
 
     Ok(())
   }
 
-  pub fn reset_render_state(&mut self) -> WindowsResult<()> {
-    unsafe { self.renderer.set_render_state(&*self.draw_data) }
-  }
+  pub fn render(&mut self, device: &IDirect3DDevice9) -> WindowsResult<()> {
+    self.ctx.render();
 
-  pub fn render(&mut self) -> WindowsResult<()> {
-    let draw_data = self.ctx.render();
-
-    self.draw_data = draw_data as *const DrawData;
-
-    self.renderer.render(draw_data)?;
-
-    Ok(())
-  }
-
-  #[inline]
-  pub fn renderer_mut(&mut self) -> &mut Renderer {
-    &mut self.renderer
-  }
-
-  #[inline]
-  pub fn io_mut(&self) -> &'static mut Io {
-    unsafe { &mut *(igGetIO() as *mut Io) }
-  }
-
-  pub fn ui(&mut self) -> Option<&'static mut Ui> {
-    unsafe { self.ui.as_mut() }
-  }
-
-  pub fn set_current(&mut self) {
-    unsafe { igSetCurrentContext(self.raw_ctx) };
+    unsafe {
+      if device.BeginScene().is_ok() {
+        self.renderer.render(imgui::draw_data())?;
+      }
+      device.EndScene()
+    }
   }
 }

@@ -8,29 +8,32 @@ use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::Graphics::Direct3D9::*;
 use windows::Win32::Graphics::Gdi::RGNDATA;
 
-use windows::core::{HRESULT, Result as WindowsResult};
+use windows::core::{HRESULT, Interface, Result as WindowsResult};
 
-use imgui::Ui;
-use imgui_dx9_renderer::Renderer;
+use std::ffi::c_void;
+use std::ptr::NonNull;
 
-pub type ResetFn = extern "stdcall" fn(IDirect3DDevice9, &D3DPRESENT_PARAMETERS) -> HRESULT;
+pub type ResetFn = extern "stdcall" fn(NonNull<c_void>, &D3DPRESENT_PARAMETERS) -> HRESULT;
 
-pub extern "stdcall" fn reset(device: IDirect3DDevice9, params: &D3DPRESENT_PARAMETERS) -> HRESULT {
+pub extern "stdcall" fn reset(this: NonNull<c_void>, params: &D3DPRESENT_PARAMETERS) -> HRESULT {
   App::with_mut(move |app| {
-    unsafe { app.blur_effect.clear_textures() };
+    let this_raw_ptr = this.as_ptr();
+    let device = unsafe { IDirect3DDevice9::from_raw_borrowed(&this_raw_ptr).unwrap() };
 
-    let result = (app.hooks.reset.original)(device.clone(), params);
+    app.blur_effect.clear_textures();
+
+    let result = (app.hooks.reset.original)(this, params);
 
     if let Some((fore_ctx, back_ctx)) = ImGuiContext::get_mut() {
-      let _ = fore_ctx.reset(device.clone());
-      let _ = back_ctx.reset(device.clone());
+      let _ = fore_ctx.reset(device);
+      let _ = back_ctx.reset(device);
     }
     result
   })
 }
 
 pub type PresentFn = extern "stdcall" fn(
-  IDirect3DDevice9,
+  NonNull<c_void>,
   Option<&RECT>,
   Option<&RECT>,
   HWND,
@@ -38,35 +41,32 @@ pub type PresentFn = extern "stdcall" fn(
 ) -> HRESULT;
 
 pub extern "stdcall" fn present(
-  device: IDirect3DDevice9,
+  this: NonNull<c_void>,
   src: Option<&RECT>,
   dest: Option<&RECT>,
   window_override: HWND,
   dirty_region: Option<&RGNDATA>,
 ) -> HRESULT {
-  App::with_mut(move |app| unsafe {
-    if let Ok(state_block) = device.CreateStateBlock(D3DSBT_ALL) {
-      let mut params = D3DDEVICE_CREATION_PARAMETERS::default();
-      let _ = device.GetCreationParameters(&mut params);
+  App::with_mut(move |app| {
+    let this_raw_ptr = this.as_ptr();
+    let device = unsafe { IDirect3DDevice9::from_raw_borrowed(&this_raw_ptr).unwrap() };
 
-      let (fore_ctx, back_ctx) = ImGuiContext::get_mut_or_init(device.clone(), params.hFocusWindow);
+    if let Ok(state_block) = unsafe { device.CreateStateBlock(D3DSBT_ALL) } {
+      let mut params = D3DDEVICE_CREATION_PARAMETERS::default();
+      let _ = unsafe { device.GetCreationParameters(&mut params) };
+
+      let (fore_ctx, back_ctx) = ImGuiContext::get_mut_or_init(device, params.hFocusWindow);
 
       // Fix menu doesn't render without `net_graph` or `cl_showfps`
-      let _ = device.SetRenderState(D3DRS_COLORWRITEENABLE, u32::MAX);
+      let _ = unsafe { device.SetRenderState(D3DRS_COLORWRITEENABLE, u32::MAX) };
 
-      let _ = render_imgui(back_ctx, &device, |ui, renderer| {
-        let io = ui.io();
+      let _ = render_imgui(back_ctx, device, || {
+        app.menu.update_animation();
 
-        app.menu.update_animation(io);
+        let bg_draw_list = imgui::background_draw_list();
 
         if !app.menu.is_fully_closed() {
-          app.blur_effect.render(
-            &device,
-            renderer,
-            io,
-            ui.get_background_draw_list(),
-            app.menu.transparency(),
-          )?;
+          app.blur_effect.render(device, bg_draw_list, app.menu.transparency())?;
         }
 
         let interfaces = Interfaces::get();
@@ -76,44 +76,38 @@ pub extern "stdcall" fn present(
         if should_draw_visuals {
           visuals::draw_better_crosshair(
             app.capture_context(&app.config.visuals.better_crosshair),
-            io,
-            ui.get_background_draw_list(),
+            bg_draw_list,
           )
         }
         Ok(())
       });
 
-      let _ = render_imgui(fore_ctx, &device, |ui, _renderer| {
+      let _ = render_imgui(fore_ctx, device, || {
         // Fix broken ImGui menu colors with Source engine gamma correction
-        device.SetRenderState(D3DRS_SRGBWRITEENABLE, 0)?;
+        unsafe { device.SetRenderState(D3DRS_SRGBWRITEENABLE, 0)? };
 
         if app.menu.is_open() {
-          app.menu.render(ui, &mut app.config);
+          app.menu.render(&mut app.config);
         }
         Ok(())
       });
 
-      let _ = state_block.Apply();
+      let _ = unsafe { state_block.Apply() };
     }
-    (app.hooks.present.original)(device.clone(), src, dest, window_override, dirty_region)
+    (app.hooks.present.original)(this, src, dest, window_override, dirty_region)
   })
 }
 
-fn render_imgui<F>(
+fn render_imgui(
   imgui_ctx: &mut ImGuiContext,
   device: &IDirect3DDevice9,
-  mut f: F,
-) -> WindowsResult<()>
-where
-  F: FnMut(&mut Ui, &mut Renderer) -> WindowsResult<()>,
-{
-  f(imgui_ctx.new_frame(), imgui_ctx.renderer_mut())?;
+  mut f: impl FnMut() -> WindowsResult<()>,
+) -> WindowsResult<()> {
+  let frame = imgui_ctx.new_frame();
 
-  unsafe {
-    if device.BeginScene().is_ok() {
-      imgui_ctx.render()?;
-      device.EndScene()?;
-    }
-  }
-  Ok(())
+  f()?;
+
+  frame.end();
+
+  imgui_ctx.render(device)
 }

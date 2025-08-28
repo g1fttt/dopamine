@@ -10,7 +10,7 @@ pub fn bunnyhop(ctx: FeatureContext<'_, '_, BunnyhopConfig>, cmd: &mut UserComma
     return;
   }
 
-  let should_bunnyhop = fastrand::u8(1..100) <= ctx.config.chance;
+  let should_bunnyhop = fastrand::i32(1..100) <= ctx.config.chance;
   if ctx.local_player.is_some_and(move |lp| !lp.is_on_ground() || !should_bunnyhop) {
     cmd.buttons &= !UserCommand::IN_JUMP;
   }
@@ -22,7 +22,7 @@ pub fn bunnyhop(ctx: FeatureContext<'_, '_, BunnyhopConfig>, cmd: &mut UserComma
 pub struct BunnyhopConfig {
   pub enabled: bool,
   #[educe(Default = 100)]
-  pub chance: u8,
+  pub chance: i32,
 }
 
 #[derive(Default, Serialize, Deserialize)]

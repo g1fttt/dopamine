@@ -1,7 +1,7 @@
 use crate::features::FeatureContext;
 
 use educe::Educe;
-use imgui::{DrawListMut, ImColor32, Io};
+use imgui::{DrawList, ImVec2};
 use serde::{Deserialize, Serialize};
 
 use dopamine_sdk::math::{Angles, Vector3D};
@@ -10,8 +10,7 @@ use dopamine_sdk::{Color, Entity};
 
 pub fn draw_better_crosshair(
   ctx: FeatureContext<'_, '_, BetterCrosshairConfig>,
-  io: &Io,
-  draw_list: DrawListMut,
+  draw_list: &mut DrawList,
 ) {
   if !ctx.config.enabled {
     return;
@@ -28,55 +27,46 @@ pub fn draw_better_crosshair(
     None => return,
   };
 
-  let (display_width, display_height) = io.display_size.into();
+  let io = imgui::io();
+  let display_width = io.display_size.x;
+  let display_height = io.display_size.y;
+
   let (horiz_center, vert_center) = (display_width / 2.0, display_height / 2.0);
 
   let col = &ctx.config.color;
-  let im_color = ImColor32::from_rgba_f32s(col.r, col.g, col.b, col.a);
+  let im_color = imgui::im_col32(col.r, col.g, col.b, col.a);
 
   let size = ctx.config.size;
   let thick = ctx.config.thickness;
   let gap = ctx.config.gap;
 
   // Up
-  draw_list
-    .add_rect(
-      [horiz_center - thick / 2.0, vert_center - size - gap / 2.0],
-      [horiz_center + thick / 2.0, vert_center - gap / 2.0],
-      im_color,
-    )
-    .filled(true)
-    .build();
+  draw_list.add_rect_filled(
+    ImVec2 { x: horiz_center - thick / 2.0, y: vert_center - size - gap / 2.0 },
+    ImVec2 { x: horiz_center + thick / 2.0, y: vert_center - gap / 2.0 },
+    im_color,
+  );
 
   // Down
-  draw_list
-    .add_rect(
-      [horiz_center - thick / 2.0, vert_center + gap / 2.0],
-      [horiz_center + thick / 2.0, vert_center + size + gap / 2.0],
-      im_color,
-    )
-    .filled(true)
-    .build();
+  draw_list.add_rect_filled(
+    ImVec2 { x: horiz_center - thick / 2.0, y: vert_center + gap / 2.0 },
+    ImVec2 { x: horiz_center + thick / 2.0, y: vert_center + size + gap / 2.0 },
+    im_color,
+  );
 
   // Left
-  draw_list
-    .add_rect(
-      [horiz_center - size - gap / 2.0, vert_center - thick / 2.0],
-      [horiz_center - gap / 2.0, vert_center + thick / 2.0],
-      im_color,
-    )
-    .filled(true)
-    .build();
+  draw_list.add_rect_filled(
+    ImVec2 { x: horiz_center - size - gap / 2.0, y: vert_center - thick / 2.0 },
+    ImVec2 { x: horiz_center - gap / 2.0, y: vert_center + thick / 2.0 },
+    im_color,
+  );
 
   // Right
-  draw_list
-    .add_rect(
-      [horiz_center + gap / 2.0, vert_center - thick / 2.0],
-      [horiz_center + gap / 2.0 + size, vert_center + thick / 2.0],
-      im_color,
-    )
-    .filled(true)
-    .build();
+  draw_list.add_rect_filled(
+    ImVec2 { x: horiz_center + gap / 2.0, y: vert_center - thick / 2.0 },
+    ImVec2 { x: horiz_center + gap / 2.0 + size, y: vert_center + thick / 2.0 },
+    im_color,
+  );
 }
 
 #[inline]
@@ -100,7 +90,7 @@ pub fn calc_viewmodel_origin(
   let ortho = forward.cross_product(&up);
 
   let new_eye_origin =
-    eye_origin + (ortho * config.origin.x + forward * config.origin.y + up * config.origin.z);
+    eye_origin + (ortho * config.value.x + forward * config.value.y + up * config.value.z);
 
   Some(new_eye_origin)
 }
@@ -134,7 +124,7 @@ pub struct AddFovConfig {
 pub struct ViewmodelOriginConfig {
   pub enabled: bool,
   #[serde(flatten)]
-  pub origin: Vector3D,
+  pub value: Vector3D,
 }
 
 #[derive(Default, Serialize, Deserialize)]
