@@ -1,4 +1,4 @@
-use imgui::{CmdList, DrawCmd, ImVec2, TextureRef};
+use imgui::{DrawCmd, DrawList, ImVec2, TextureRef};
 
 use windows::Foundation::Numerics::Matrix4x4;
 use windows::Win32::Graphics::Direct3D9::*;
@@ -79,7 +79,7 @@ impl BlurEffect {
     self.blur_texture2.take();
   }
 
-  extern "C" fn begin_aux(_: &CmdList, cmd: &DrawCmd) {
+  extern "C" fn begin_aux(_: &DrawList, cmd: &DrawCmd) {
     let (effect, device): &mut (&mut BlurEffect, &IDirect3DDevice9) =
       cmd.user_callback_data().unwrap();
     let _ = unsafe { effect.begin(device) };
@@ -127,7 +127,7 @@ impl BlurEffect {
     unsafe { device.SetTransform(D3DTS_PROJECTION, &projection) }
   }
 
-  extern "C" fn first_pass_aux(_: &CmdList, cmd: &DrawCmd) {
+  extern "C" fn first_pass_aux(_: &DrawList, cmd: &DrawCmd) {
     let (effect, device): &mut (&mut BlurEffect, &IDirect3DDevice9) =
       cmd.user_callback_data().unwrap();
     let _ = unsafe { effect.first_pass(device) };
@@ -144,7 +144,7 @@ impl BlurEffect {
     unsafe { device.SetRenderTarget(0, &blur_texture2.GetSurfaceLevel(0)?) }
   }
 
-  extern "C" fn second_pass_aux(_: &imgui::CmdList, cmd: &imgui::DrawCmd) {
+  extern "C" fn second_pass_aux(_: &DrawList, cmd: &imgui::DrawCmd) {
     let (effect, device): &mut (&mut BlurEffect, &IDirect3DDevice9) =
       cmd.user_callback_data().unwrap();
     let _ = unsafe { effect.second_pass(device) };
@@ -161,7 +161,7 @@ impl BlurEffect {
     unsafe { device.SetRenderTarget(0, &blur_texture1.GetSurfaceLevel(0)?) }
   }
 
-  extern "C" fn end_aux(_: &CmdList, cmd: &DrawCmd) {
+  extern "C" fn end_aux(_: &DrawList, cmd: &DrawCmd) {
     let (effect, device): &mut (&mut BlurEffect, &IDirect3DDevice9) =
       cmd.user_callback_data().unwrap();
     let _ = unsafe { effect.end(device) };

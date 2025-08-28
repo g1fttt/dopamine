@@ -88,6 +88,8 @@ pub extern "stdcall" fn present(
 
         if app.menu.is_open() {
           app.menu.render(&mut app.config);
+
+          imgui::show_demo_window();
         }
         Ok(())
       });

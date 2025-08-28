@@ -7,25 +7,30 @@ use easy_imgui_sys::*;
 use std::ffi::{CString, c_char, c_int, c_void};
 use std::{mem, ptr};
 
+#[doc(alias = "ImGuiContext")]
 #[repr(transparent)]
 pub struct Context(*mut ImGuiContext);
 
 impl Context {
+  #[doc(alias = "CreateContext")]
   #[inline(always)]
   pub fn new() -> Self {
     Self(unsafe { ImGui_CreateContext(ptr::null_mut()) })
   }
 
+  #[doc(alias = "SetCurrentContext")]
   #[inline(always)]
   pub fn set_current(&self) {
     unsafe { ImGui_SetCurrentContext(self.0) };
   }
 
+  #[doc(alias = "NewFrame")]
   #[inline(always)]
   pub fn new_frame(&self) -> Frame {
     Frame::new()
   }
 
+  #[doc(alias = "Render")]
   #[inline(always)]
   pub fn render(&self) {
     unsafe { ImGui_Render() };
@@ -81,13 +86,14 @@ pub fn draw_data() -> &'static DrawData {
   unsafe { &*ImGui_GetDrawData().cast::<DrawData>() }
 }
 
+#[doc(alias = "ImDrawData")]
 #[repr(C)]
 pub struct DrawData {
   pub valid: bool,
   pub cmd_lists_count: i32,
   pub total_idx_count: i32,
   pub total_vtx_count: i32,
-  cmd_lists: ImVector<*mut CmdList>,
+  cmd_lists: ImVector<*mut DrawList>,
   pub display_pos: ImVec2,
   pub display_size: ImVec2,
   pub framebuffer_scale: ImVec2,
@@ -96,7 +102,7 @@ pub struct DrawData {
 }
 
 impl DrawData {
-  pub fn cmd_lists(&self) -> impl Iterator<Item = &mut CmdList> {
+  pub fn cmd_lists(&self) -> impl Iterator<Item = &mut DrawList> {
     unsafe { (*self.cmd_lists).iter().map(|cl| &mut **cl) }
   }
 
@@ -106,52 +112,6 @@ impl DrawData {
 
   pub fn textures_size(&self) -> usize {
     unsafe { (*self.textures).Size as usize }
-  }
-}
-
-// TODO: All fields
-#[doc(alias = "ImDrawList")]
-#[repr(C)]
-pub struct CmdList {
-  cmd_buffer: ImVector<DrawCmd>,
-  idx_buffer: ImVector<DrawIndex>,
-  vtx_buffer: ImVector<DrawVertex>,
-}
-
-impl CmdList {
-  #[inline(always)]
-  pub fn cmd_buffer(&self) -> impl Iterator<Item = &DrawCmd> {
-    self.cmd_buffer.iter()
-  }
-
-  #[inline(always)]
-  pub fn cmd_buffer_size(&self) -> usize {
-    self.cmd_buffer.Size as usize
-  }
-
-  #[inline(always)]
-  pub fn idx_buffer(&self) -> impl Iterator<Item = &ImDrawIdx> {
-    self.idx_buffer.iter()
-  }
-
-  #[inline(always)]
-  pub fn idx_buffer_raw(&self) -> *mut DrawIndex {
-    self.idx_buffer.Data
-  }
-
-  #[inline(always)]
-  pub fn idx_buffer_size(&self) -> usize {
-    self.idx_buffer.Size as usize
-  }
-
-  #[inline(always)]
-  pub fn vtx_buffer(&self) -> impl Iterator<Item = &ImDrawVert> {
-    self.vtx_buffer.iter()
-  }
-
-  #[inline(always)]
-  pub fn vtx_buffer_size(&self) -> usize {
-    self.vtx_buffer.Size as usize
   }
 }
 
@@ -264,6 +224,8 @@ impl<'a> WindowBuilder<'a> {
 }
 
 bitflags! {
+  #[doc(alias = "ImGuiWindowFlags")]
+  #[repr(transparent)]
   pub struct WindowFlags: ImGuiWindowFlags {
     const NO_RESIZE = ImGuiWindowFlags_::ImGuiWindowFlags_NoResize.0;
     const NO_SCROLLBAR = ImGuiWindowFlags_::ImGuiWindowFlags_NoScrollbar.0;
@@ -374,6 +336,8 @@ impl<'a> SliderIntBuilder<'a> {
 }
 
 bitflags! {
+  #[doc(alias = "ImGuiSliderFlags")]
+  #[repr(transparent)]
   pub struct SliderFlags: ImGuiSliderFlags {}
 }
 
@@ -527,6 +491,8 @@ impl<'a> ColorEdit4Builder<'a> {
 }
 
 bitflags! {
+  #[doc(alias = "ImGuiColorEditFlags")]
+  #[repr(transparent)]
   pub struct ColorEditFlags: ImGuiColorEditFlags {
     const ALPHA_BAR = ImGuiColorEditFlags_::ImGuiColorEditFlags_AlphaBar.0;
     const NO_INPUTS = ImGuiColorEditFlags_::ImGuiColorEditFlags_NoInputs.0;
@@ -535,7 +501,6 @@ bitflags! {
 
 #[doc(alias = "PushStyleVar")]
 pub fn push_style_var(kind: StyleVarKind) -> StyleVar {
-  #[allow(clippy::infallible_destructuring_match)]
   let (variant, value) = match kind {
     StyleVarKind::Alpha(a) => (ImGuiStyleVar_::ImGuiStyleVar_Alpha, a),
   };
@@ -548,6 +513,7 @@ pub fn push_style_var(kind: StyleVarKind) -> StyleVar {
 pub struct StyleVar;
 
 impl StyleVar {
+  #[doc(alias = "PopStyleVar")]
   #[inline(always)]
   pub fn pop(self) {}
 }
@@ -559,6 +525,7 @@ impl Drop for StyleVar {
   }
 }
 
+#[doc(alias = "ImGuiStyleVar")]
 pub enum StyleVarKind {
   Alpha(f32),
 }
@@ -642,6 +609,7 @@ pub fn io_mut() -> &'static mut Io {
   unsafe { &mut *ImGui_GetIO().cast::<Io>() }
 }
 
+#[doc(alias = "ImGuiIO")]
 #[repr(C)]
 pub struct Io {
   pub config_flags: ConfigFlags,
@@ -687,8 +655,8 @@ pub struct Io {
   mouse_double_click_time: f32,
   mouse_double_click_max_dist: f32,
   mouse_drag_threshold: f32,
-  key_repeat_delay: f32,
-  key_repeat_rate: f32,
+  pub key_repeat_delay: f32,
+  pub key_repeat_rate: f32,
   config_error_recovery: bool,
   config_error_recovery_enable_assert: bool,
   config_error_recovery_enable_debug_log: bool,
@@ -829,6 +797,7 @@ impl Io {
 }
 
 bitflags! {
+  #[doc(alias = "ImGuiConfigFlags")]
   #[repr(transparent)]
   pub struct ConfigFlags: ImGuiConfigFlags {
     const NO_MOUSE_CURSOR_CHANGE = ImGuiConfigFlags_::ImGuiConfigFlags_NoMouseCursorChange.0;
@@ -836,6 +805,7 @@ bitflags! {
 }
 
 bitflags! {
+  #[doc(alias = "ImGuiBackendFlags")]
   #[repr(transparent)]
   pub struct BackendFlags: ImGuiBackendFlags {
     const RENDERER_HAS_VTF_OFFSET = ImGuiBackendFlags_::ImGuiBackendFlags_RendererHasVtxOffset.0;
@@ -845,6 +815,7 @@ bitflags! {
   }
 }
 
+#[doc(alias = "ImFontAtlas")]
 #[repr(transparent)]
 pub struct FontAtlas(*mut ImFontAtlas);
 
@@ -868,6 +839,7 @@ pub fn platform_io_mut() -> &'static mut PlatformIo {
   unsafe { &mut *ImGui_GetPlatformIO().cast::<PlatformIo>() }
 }
 
+#[doc(alias = "ImGuiPlatformIO")]
 #[repr(C)]
 pub struct PlatformIo {
   get_clipboard_text_fn: GetClipboardTextFn,
@@ -910,8 +882,14 @@ pub fn foreground_draw_list() -> &'static mut DrawList {
   unsafe { &mut *ImGui_GetForegroundDrawList(ImGui_GetMainViewport()).cast::<DrawList>() }
 }
 
+// TODO: All fields
+#[doc(alias = "ImDrawList")]
 #[repr(C)]
-pub struct DrawList;
+pub struct DrawList {
+  cmd_buffer: ImVector<DrawCmd>,
+  idx_buffer: ImVector<DrawIndex>,
+  vtx_buffer: ImVector<DrawVertex>,
+}
 
 impl DrawList {
   #[doc(alias = "AddRectFilled")]
@@ -959,6 +937,41 @@ impl DrawList {
   pub fn add_callback_ex<'a, T>(&mut self, callback: DrawCallback) -> AddCallbackBuilder<'a, T> {
     AddCallbackBuilder::create_empty().callback(callback)
   }
+
+  #[inline(always)]
+  pub fn cmd_buffer(&self) -> impl Iterator<Item = &DrawCmd> {
+    self.cmd_buffer.iter()
+  }
+
+  #[inline(always)]
+  pub fn cmd_buffer_size(&self) -> usize {
+    self.cmd_buffer.Size as usize
+  }
+
+  #[inline(always)]
+  pub fn idx_buffer(&self) -> impl Iterator<Item = &DrawIndex> {
+    self.idx_buffer.iter()
+  }
+
+  #[inline(always)]
+  pub fn idx_buffer_raw(&self) -> *mut DrawIndex {
+    self.idx_buffer.Data
+  }
+
+  #[inline(always)]
+  pub fn idx_buffer_size(&self) -> usize {
+    self.idx_buffer.Size as usize
+  }
+
+  #[inline(always)]
+  pub fn vtx_buffer(&self) -> impl Iterator<Item = &DrawVertex> {
+    self.vtx_buffer.iter()
+  }
+
+  #[inline(always)]
+  pub fn vtx_buffer_size(&self) -> usize {
+    self.vtx_buffer.Size as usize
+  }
 }
 
 #[derive(Builder)]
@@ -994,6 +1007,8 @@ impl AddRectFilledBuilder {
 }
 
 bitflags! {
+  #[doc(alias = "ImDrawFlags")]
+  #[repr(transparent)]
   pub struct DrawFlags: ImDrawFlags {}
 }
 
@@ -1060,13 +1075,16 @@ impl<'a, T> AddCallbackBuilder<'a, T> {
   }
 }
 
-pub type DrawCallback = extern "C" fn(&CmdList, &DrawCmd);
+#[doc(alias = "ImDrawCallback")]
+pub type DrawCallback = extern "C" fn(parent_list: &DrawList, &DrawCmd);
 
+#[doc(alias = "ImDrawCallback_ResetRenderState")]
 #[inline(always)]
 pub const fn reset_render_state() -> DrawCallback {
   unsafe { mem::transmute(-8i64) }
 }
 
+#[doc(alias = "ImDrawCmd")]
 #[repr(C)]
 pub struct DrawCmd {
   pub clip_rect: ImVec4,
@@ -1087,6 +1105,7 @@ impl DrawCmd {
   }
 }
 
+#[doc(alias = "ImTextureRef")]
 #[repr(C)]
 pub struct TextureRef {
   data: Option<&'static mut TextureData>,
@@ -1106,6 +1125,7 @@ impl TextureRef {
   }
 }
 
+#[doc(alias = "IM_COl32")]
 #[inline]
 pub fn im_col32(r: f32, g: f32, b: f32, a: f32) -> u32 {
   let col = ImVec4 { x: r, y: g, z: b, w: a };
