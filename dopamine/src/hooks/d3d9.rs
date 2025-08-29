@@ -72,6 +72,7 @@ pub extern "stdcall" fn present(
         let bg_draw_list = imgui::background_draw_list();
 
         if let Some(ref mut blur_effect) = app.blur_effect
+          && app.config.blur_enabled
           && !app.menu.is_fully_closed()
         {
           blur_effect.render(device, bg_draw_list, app.menu.transparency())?;

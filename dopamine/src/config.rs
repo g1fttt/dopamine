@@ -11,13 +11,17 @@ use std::ops::{Deref, DerefMut};
 use std::path::Path;
 use std::{fs, io};
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Educe, Serialize, Deserialize)]
 #[serde(default)]
+#[educe(Default)]
 pub struct Config {
   pub misc: MiscConfig,
   pub visuals: VisualsConfig,
   pub glow: GlowConfig,
   pub chams: ChamsConfig,
+
+  #[educe(Default = true)]
+  pub blur_enabled: bool,
 }
 
 impl Config {

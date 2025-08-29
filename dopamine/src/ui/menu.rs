@@ -20,6 +20,7 @@ struct ShouldDrawWindow {
   visuals: bool,
   glow: bool,
   chams: bool,
+  config: bool,
 }
 
 pub struct Menu {
@@ -79,6 +80,7 @@ impl Menu {
       self.draw_visuals_window(&mut config.visuals);
       self.draw_glow_window(&mut config.glow);
       self.draw_chams_window(&mut config.chams);
+      self.draw_config_window(config);
     }
     style.pop();
   }
@@ -93,6 +95,8 @@ impl Menu {
         self.should_draw_window.glow = true;
       } else if imgui::menu_item("Chams") {
         self.should_draw_window.chams = true;
+      } else if imgui::menu_item("Config") {
+        self.should_draw_window.config = true;
       }
       bar.end();
     }
@@ -225,6 +229,19 @@ impl Menu {
           mem::transmute::<&mut ChamsMaterialKind, &mut usize>(&mut current_layer.material_kind)
         };
         imgui::combo("Material", current_material_index, ChamsMaterialKind::VARIANTS);
+      });
+  }
+
+  fn draw_config_window(&mut self, config: &mut Config) {
+    if !self.should_draw_window.config {
+      return;
+    }
+
+    imgui::window_ex("Config")
+      .open(&mut self.should_draw_window.chams)
+      .flags(Self::window_flags())
+      .build(|| {
+        imgui::checkbox("Background blur", &mut config.blur_enabled);
       });
   }
 
