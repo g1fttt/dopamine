@@ -1,9 +1,13 @@
-use imgui::{DrawCmd, DrawList, ImVec2, TextureRef};
-
 use windows::Foundation::Numerics::Matrix4x4;
+use windows::Win32::Graphics::Direct3D::Fxc::D3DCompile;
 use windows::Win32::Graphics::Direct3D9::*;
+
 use windows::core::Result as WindowsResult;
 
+use dopamine_sdk::{cstr, pcstr};
+use imgui::{DrawCmd, DrawList, ImVec2, TextureRef};
+
+use std::ffi::c_void;
 use std::ptr;
 
 const BLUR_DOWNSAMPLE: f32 = 4.0;
@@ -12,14 +16,58 @@ pub struct BlurEffect {
   rt_backup: Option<IDirect3DSurface9>,
   blur_texture1: Option<IDirect3DTexture9>,
   blur_texture2: Option<IDirect3DTexture9>,
-  blur_shader_x: ShaderProgram,
-  blur_shader_y: ShaderProgram,
+  blur_shader_x: IDirect3DPixelShader9,
+  blur_shader_y: IDirect3DPixelShader9,
 }
 
 impl BlurEffect {
-  pub fn new() -> Self {
-    let blur_shader_x = ShaderProgram::new(BLUR_X);
-    let blur_shader_y = ShaderProgram::new(BLUR_Y);
+  pub fn new(device: &IDirect3DDevice9) -> Self {
+    fn compile_pixel_shader(
+      device: &IDirect3DDevice9,
+      source: &str,
+    ) -> WindowsResult<IDirect3DPixelShader9> {
+      unsafe {
+        let mut compiled = None;
+        let mut errors = None;
+
+        D3DCompile(
+          cstr!(source).cast::<c_void>(),
+          source.len(),
+          None,
+          None,
+          None,
+          pcstr!("main"),
+          pcstr!("ps_2_0"), // ps_3_0 is not supported
+          0,
+          0,
+          &mut compiled,
+          Some(&mut errors),
+        )?;
+
+        if let Some(errors) = errors {
+          let error_message = std::str::from_raw_parts(
+            errors.GetBufferPointer().cast::<u8>(),
+            errors.GetBufferSize(),
+          );
+          log::error!("Error occured during pixel shader compilation: {error_message}");
+        }
+
+        let compiled = compiled.unwrap();
+        device.CreatePixelShader(compiled.GetBufferPointer().cast::<u32>())
+      }
+    }
+
+    let blur_shader_x = compile_pixel_shader(device, include_str!("../shaders/blur_x.hlsl"))
+      .inspect_err(|err| {
+        log::error!("Failed to compile `blur_shader_x`: {err}");
+      })
+      .unwrap();
+
+    let blur_shader_y = compile_pixel_shader(device, include_str!("../shaders/blur_y.hlsl"))
+      .inspect_err(|err| {
+        log::error!("Failed to compile `blur_shader_y`: {err}");
+      })
+      .unwrap();
 
     Self { rt_backup: None, blur_texture1: None, blur_texture2: None, blur_shader_x, blur_shader_y }
   }
@@ -139,9 +187,13 @@ impl BlurEffect {
     };
 
     let display_width = imgui::io().display_size.x;
+    let uniform = 1.0 / (display_width / BLUR_DOWNSAMPLE);
 
-    self.blur_shader_x.use_it(device, 1.0 / (display_width / BLUR_DOWNSAMPLE))?;
-    unsafe { device.SetRenderTarget(0, &blur_texture2.GetSurfaceLevel(0)?) }
+    unsafe {
+      device.SetPixelShader(&self.blur_shader_x)?;
+      device.SetPixelShaderConstantF(0, [uniform, 0.0, 0.0, 0.0].as_ptr(), 1)?;
+      device.SetRenderTarget(0, &blur_texture2.GetSurfaceLevel(0)?)
+    }
   }
 
   extern "C" fn second_pass_aux(_: &DrawList, cmd: &imgui::DrawCmd) {
@@ -156,9 +208,13 @@ impl BlurEffect {
     };
 
     let display_height = imgui::io().display_size.y;
+    let uniform = 1.0 / (display_height / BLUR_DOWNSAMPLE);
 
-    self.blur_shader_y.use_it(device, 1.0 / (display_height / BLUR_DOWNSAMPLE))?;
-    unsafe { device.SetRenderTarget(0, &blur_texture1.GetSurfaceLevel(0)?) }
+    unsafe {
+      device.SetPixelShader(&self.blur_shader_y)?;
+      device.SetPixelShaderConstantF(0, [uniform, 0.0, 0.0, 0.0].as_ptr(), 1)?;
+      device.SetRenderTarget(0, &blur_texture1.GetSurfaceLevel(0)?)
+    }
   }
 
   extern "C" fn end_aux(_: &DrawList, cmd: &DrawCmd) {
@@ -188,9 +244,7 @@ impl BlurEffect {
     if self.blur_texture2.is_none() {
       self.blur_texture2 = Some(create_texture()?);
     }
-
-    self.blur_shader_x.init(device)?;
-    self.blur_shader_y.init(device)
+    Ok(())
   }
 }
 
@@ -235,84 +289,3 @@ fn array_to_matrix4x4(data: [f32; 16]) -> Matrix4x4 {
     M44: data[15],
   }
 }
-
-struct ShaderProgram {
-  pixel_shader_src: &'static [u8],
-  pixel_shader: Option<IDirect3DPixelShader9>,
-}
-
-impl ShaderProgram {
-  fn new(pixel_shader_src: &'static [u8]) -> Self {
-    Self { pixel_shader_src, pixel_shader: None }
-  }
-
-  fn init(&mut self, device: &IDirect3DDevice9) -> WindowsResult<()> {
-    if self.pixel_shader.is_none() {
-      let px_shader = unsafe { device.CreatePixelShader(self.pixel_shader_src.as_ptr().cast())? };
-
-      self.pixel_shader.replace(px_shader);
-    }
-    Ok(())
-  }
-
-  fn use_it(&self, device: &IDirect3DDevice9, uniform: f32) -> WindowsResult<()> {
-    unsafe {
-      device.SetPixelShader(self.pixel_shader.as_ref().unwrap())?;
-
-      let params = [uniform, uniform, uniform, uniform];
-      device.SetPixelShaderConstantF(0, params.as_ptr(), 1)
-    }
-  }
-}
-
-const BLUR_X: &[u8] = &[
-  0, 2, 255, 255, 254, 255, 44, 0, 67, 84, 65, 66, 28, 0, 0, 0, 131, 0, 0, 0, 0, 2, 255, 255, 2, 0,
-  0, 0, 28, 0, 0, 0, 0, 1, 0, 0, 124, 0, 0, 0, 68, 0, 0, 0, 3, 0, 0, 0, 1, 0, 0, 0, 80, 0, 0, 0, 0,
-  0, 0, 0, 96, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 108, 0, 0, 0, 0, 0, 0, 0, 116, 101, 120, 83, 97,
-  109, 112, 108, 101, 114, 0, 171, 4, 0, 12, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 116, 101, 120,
-  101, 108, 87, 105, 100, 116, 104, 0, 171, 0, 0, 3, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 112,
-  115, 95, 50, 95, 48, 0, 77, 105, 99, 114, 111, 115, 111, 102, 116, 32, 40, 82, 41, 32, 72, 76,
-  83, 76, 32, 83, 104, 97, 100, 101, 114, 32, 67, 111, 109, 112, 105, 108, 101, 114, 32, 49, 48,
-  46, 49, 0, 171, 81, 0, 0, 5, 1, 0, 15, 160, 20, 59, 177, 63, 24, 231, 161, 62, 198, 121, 104, 62,
-  236, 196, 78, 64, 81, 0, 0, 5, 2, 0, 15, 160, 220, 233, 143, 61, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 31, 0, 0, 2, 0, 0, 0, 128, 0, 0, 3, 176, 31, 0, 0, 2, 0, 0, 0, 144, 0, 8, 15, 160, 1, 0, 0, 2,
-  0, 0, 9, 128, 1, 0, 228, 160, 4, 0, 0, 4, 1, 0, 1, 128, 0, 0, 0, 160, 0, 0, 0, 128, 0, 0, 0, 176,
-  1, 0, 0, 2, 1, 0, 2, 128, 0, 0, 85, 176, 4, 0, 0, 4, 0, 0, 1, 128, 0, 0, 0, 160, 0, 0, 0, 129, 0,
-  0, 0, 176, 1, 0, 0, 2, 0, 0, 2, 128, 0, 0, 85, 176, 4, 0, 0, 4, 2, 0, 1, 128, 0, 0, 0, 160, 0, 0,
-  255, 129, 0, 0, 0, 176, 1, 0, 0, 2, 2, 0, 2, 128, 0, 0, 85, 176, 4, 0, 0, 4, 3, 0, 1, 128, 0, 0,
-  0, 160, 0, 0, 255, 128, 0, 0, 0, 176, 1, 0, 0, 2, 3, 0, 2, 128, 0, 0, 85, 176, 66, 0, 0, 3, 1, 0,
-  15, 128, 1, 0, 228, 128, 0, 8, 228, 160, 66, 0, 0, 3, 0, 0, 15, 128, 0, 0, 228, 128, 0, 8, 228,
-  160, 66, 0, 0, 3, 4, 0, 15, 128, 0, 0, 228, 176, 0, 8, 228, 160, 66, 0, 0, 3, 2, 0, 15, 128, 2,
-  0, 228, 128, 0, 8, 228, 160, 66, 0, 0, 3, 3, 0, 15, 128, 3, 0, 228, 128, 0, 8, 228, 160, 5, 0, 0,
-  3, 0, 0, 7, 128, 0, 0, 228, 128, 1, 0, 85, 160, 4, 0, 0, 4, 0, 0, 7, 128, 4, 0, 228, 128, 1, 0,
-  170, 160, 0, 0, 228, 128, 4, 0, 0, 4, 0, 0, 7, 128, 1, 0, 228, 128, 1, 0, 85, 160, 0, 0, 228,
-  128, 4, 0, 0, 4, 0, 0, 7, 128, 2, 0, 228, 128, 2, 0, 0, 160, 0, 0, 228, 128, 4, 0, 0, 4, 4, 0, 7,
-  128, 3, 0, 228, 128, 2, 0, 0, 160, 0, 0, 228, 128, 1, 0, 0, 2, 0, 8, 15, 128, 4, 0, 228, 128,
-  255, 255, 0, 0,
-];
-
-const BLUR_Y: &[u8] = &[
-  0, 2, 255, 255, 254, 255, 44, 0, 67, 84, 65, 66, 28, 0, 0, 0, 131, 0, 0, 0, 0, 2, 255, 255, 2, 0,
-  0, 0, 28, 0, 0, 0, 0, 1, 0, 0, 124, 0, 0, 0, 68, 0, 0, 0, 3, 0, 0, 0, 1, 0, 0, 0, 80, 0, 0, 0, 0,
-  0, 0, 0, 96, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 108, 0, 0, 0, 0, 0, 0, 0, 116, 101, 120, 83, 97,
-  109, 112, 108, 101, 114, 0, 171, 4, 0, 12, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 116, 101, 120,
-  101, 108, 72, 101, 105, 103, 104, 116, 0, 0, 0, 3, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 112,
-  115, 95, 50, 95, 48, 0, 77, 105, 99, 114, 111, 115, 111, 102, 116, 32, 40, 82, 41, 32, 72, 76,
-  83, 76, 32, 83, 104, 97, 100, 101, 114, 32, 67, 111, 109, 112, 105, 108, 101, 114, 32, 49, 48,
-  46, 49, 0, 171, 81, 0, 0, 5, 1, 0, 15, 160, 20, 59, 177, 63, 24, 231, 161, 62, 198, 121, 104, 62,
-  236, 196, 78, 64, 81, 0, 0, 5, 2, 0, 15, 160, 220, 233, 143, 61, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 31, 0, 0, 2, 0, 0, 0, 128, 0, 0, 3, 176, 31, 0, 0, 2, 0, 0, 0, 144, 0, 8, 15, 160, 1, 0, 0, 2,
-  0, 0, 9, 128, 1, 0, 228, 160, 4, 0, 0, 4, 1, 0, 2, 128, 0, 0, 0, 160, 0, 0, 0, 128, 0, 0, 85,
-  176, 1, 0, 0, 2, 1, 0, 1, 128, 0, 0, 0, 176, 4, 0, 0, 4, 0, 0, 2, 128, 0, 0, 0, 160, 0, 0, 0,
-  129, 0, 0, 85, 176, 1, 0, 0, 2, 0, 0, 1, 128, 0, 0, 0, 176, 4, 0, 0, 4, 2, 0, 2, 128, 0, 0, 0,
-  160, 0, 0, 255, 129, 0, 0, 85, 176, 1, 0, 0, 2, 2, 0, 1, 128, 0, 0, 0, 176, 4, 0, 0, 4, 3, 0, 2,
-  128, 0, 0, 0, 160, 0, 0, 255, 128, 0, 0, 85, 176, 1, 0, 0, 2, 3, 0, 1, 128, 0, 0, 0, 176, 66, 0,
-  0, 3, 1, 0, 15, 128, 1, 0, 228, 128, 0, 8, 228, 160, 66, 0, 0, 3, 0, 0, 15, 128, 0, 0, 228, 128,
-  0, 8, 228, 160, 66, 0, 0, 3, 4, 0, 15, 128, 0, 0, 228, 176, 0, 8, 228, 160, 66, 0, 0, 3, 2, 0,
-  15, 128, 2, 0, 228, 128, 0, 8, 228, 160, 66, 0, 0, 3, 3, 0, 15, 128, 3, 0, 228, 128, 0, 8, 228,
-  160, 5, 0, 0, 3, 0, 0, 7, 128, 0, 0, 228, 128, 1, 0, 85, 160, 4, 0, 0, 4, 0, 0, 7, 128, 4, 0,
-  228, 128, 1, 0, 170, 160, 0, 0, 228, 128, 4, 0, 0, 4, 0, 0, 7, 128, 1, 0, 228, 128, 1, 0, 85,
-  160, 0, 0, 228, 128, 4, 0, 0, 4, 0, 0, 7, 128, 2, 0, 228, 128, 2, 0, 0, 160, 0, 0, 228, 128, 4,
-  0, 0, 4, 4, 0, 7, 128, 3, 0, 228, 128, 2, 0, 0, 160, 0, 0, 228, 128, 1, 0, 0, 2, 0, 8, 15, 128,
-  4, 0, 228, 128, 255, 255, 0, 0,
-];

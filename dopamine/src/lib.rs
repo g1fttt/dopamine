@@ -1,5 +1,5 @@
 #![allow(internal_features)]
-#![feature(once_cell_get_mut, core_intrinsics /* reserved for debug purpose */)]
+#![feature(once_cell_get_mut, str_from_raw_parts, core_intrinsics /* reserved for debug purpose */)]
 
 mod app;
 mod config;

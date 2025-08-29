@@ -1,6 +1,6 @@
-use crate::App;
+use crate::app::App;
 use crate::features::visuals;
-use crate::ui::ImGuiContext;
+use crate::ui::{BlurEffect, ImGuiContext};
 
 use dopamine_sdk::utils::Interfaces;
 
@@ -20,7 +20,9 @@ pub extern "stdcall" fn reset(this: NonNull<c_void>, params: &D3DPRESENT_PARAMET
     let this_raw_ptr = this.as_ptr();
     let device = unsafe { IDirect3DDevice9::from_raw_borrowed(&this_raw_ptr).unwrap() };
 
-    app.blur_effect.clear_textures();
+    if let Some(ref mut blur_effect) = app.blur_effect {
+      blur_effect.clear_textures();
+    }
 
     let result = (app.hooks.reset.original)(this, params);
 
@@ -57,6 +59,10 @@ pub extern "stdcall" fn present(
 
       let (fore_ctx, back_ctx) = ImGuiContext::get_mut_or_init(device, params.hFocusWindow);
 
+      if app.blur_effect.is_none() {
+        app.blur_effect = Some(BlurEffect::new(device));
+      }
+
       // Fix menu doesn't render without `net_graph` or `cl_showfps`
       let _ = unsafe { device.SetRenderState(D3DRS_COLORWRITEENABLE, u32::MAX) };
 
@@ -65,8 +71,10 @@ pub extern "stdcall" fn present(
 
         let bg_draw_list = imgui::background_draw_list();
 
-        if !app.menu.is_fully_closed() {
-          app.blur_effect.render(device, bg_draw_list, app.menu.transparency())?;
+        if let Some(ref mut blur_effect) = app.blur_effect
+          && !app.menu.is_fully_closed()
+        {
+          blur_effect.render(device, bg_draw_list, app.menu.transparency())?;
         }
 
         let interfaces = Interfaces::get();
@@ -88,8 +96,6 @@ pub extern "stdcall" fn present(
 
         if app.menu.is_open() {
           app.menu.render(&mut app.config);
-
-          imgui::show_demo_window();
         }
         Ok(())
       });
