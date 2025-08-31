@@ -238,7 +238,7 @@ impl Menu {
     }
 
     imgui::window_ex("Config")
-      .open(&mut self.should_draw_window.chams)
+      .open(&mut self.should_draw_window.config)
       .flags(Self::window_flags())
       .build(|| {
         imgui::checkbox("Background blur", &mut config.blur_enabled);
