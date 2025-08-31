@@ -1030,6 +1030,7 @@ impl AddImageBuilder {
   pub fn build(self, draw_list: &mut DrawList) {
     let add_image = self._build().unwrap();
 
+    let tex_ref = unsafe { mem::transmute::<TextureRef, ImTextureRef>(add_image.texture_ref) };
     let uv_min = add_image.uv_min.unwrap_or(ImVec2 { x: 0.0, y: 0.0 });
     let uv_max = add_image.uv_max.unwrap_or(ImVec2 { x: 1.0, y: 1.0 });
     let color = add_image.color.unwrap_or(im_col32(1.0, 1.0, 1.0, 1.0));
@@ -1037,7 +1038,7 @@ impl AddImageBuilder {
     unsafe {
       ImDrawList_AddImage(
         draw_list as *mut DrawList as *mut ImDrawList,
-        mem::transmute::<TextureRef, ImTextureRef>(add_image.texture_ref),
+        tex_ref,
         &add_image.min,
         &add_image.max,
         &uv_min,
@@ -1062,8 +1063,9 @@ impl<'a, T> AddCallbackBuilder<'a, T> {
 
     unsafe {
       let callback = mem::transmute::<DrawCallback, ImDrawCallback>(add_callback.callback);
+
       let user_data = mem::transmute::<Option<&T>, *mut c_void>(add_callback.user_data);
-      let user_data_size = if !user_data.is_null() { size_of::<T>() } else { 0 };
+      let user_data_size = 0;
 
       ImDrawList_AddCallback(
         draw_list as *mut DrawList as *mut ImDrawList,
@@ -1094,12 +1096,11 @@ pub struct DrawCmd {
   pub elem_count: u32,
   pub user_callback: Option<DrawCallback>,
   user_callback_data: *mut c_void,
-  user_callback_size: i32,
+  user_callback_data_size: i32,
   user_callback_data_offset: i32,
 }
 
 impl DrawCmd {
-  #[inline(always)]
   pub fn user_callback_data<T>(&self) -> Option<&'static mut T> {
     unsafe { self.user_callback_data.cast::<T>().as_mut() }
   }

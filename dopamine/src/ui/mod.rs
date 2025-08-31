@@ -1,7 +1,7 @@
-mod context;
+mod imgui;
 mod menu;
 mod post_processing;
 
-pub use context::*;
+pub use imgui::*;
 pub use menu::*;
 pub use post_processing::*;

@@ -6,41 +6,14 @@ use windows::Win32::Graphics::Direct3D9::IDirect3DDevice9;
 
 use windows::core::Result as WindowsResult;
 
-use std::sync::OnceLock;
-
-static mut FORE_IMGUI_CONTEXT: OnceLock<ImGuiContext> = OnceLock::new();
-static mut BACK_IMGUI_CONTEXT: OnceLock<ImGuiContext> = OnceLock::new();
-
-pub struct ImGuiContext {
+pub struct Context {
   ctx: imgui::Context,
   renderer: Renderer,
   win32: Win32,
 }
 
-impl<'s: 'static> ImGuiContext {
-  pub fn get_mut_or_init(device: &IDirect3DDevice9, hwnd: HWND) -> (&'s mut Self, &'s mut Self) {
-    unsafe {
-      (
-        FORE_IMGUI_CONTEXT.get_mut_or_init(|| ImGuiContext::new(device, hwnd)),
-        BACK_IMGUI_CONTEXT.get_mut_or_init(|| ImGuiContext::new(device, hwnd)),
-      )
-    }
-  }
-
-  #[inline]
-  pub fn get_mut() -> Option<(&'s mut Self, &'s mut Self)> {
-    unsafe { FORE_IMGUI_CONTEXT.get_mut().zip(BACK_IMGUI_CONTEXT.get_mut()) }
-  }
-
-  #[inline]
-  pub unsafe fn destroy() {
-    unsafe {
-      FORE_IMGUI_CONTEXT.take();
-      BACK_IMGUI_CONTEXT.take();
-    }
-  }
-
-  fn new(device: &IDirect3DDevice9, hwnd: HWND) -> Self {
+impl Context {
+  pub fn new(device: &IDirect3DDevice9, hwnd: HWND) -> Self {
     let ctx = imgui::Context::new();
     ctx.set_current();
 
@@ -64,7 +37,7 @@ impl<'s: 'static> ImGuiContext {
   }
 }
 
-impl ImGuiContext {
+impl Context {
   pub fn new_frame(&mut self) -> imgui::Frame {
     self.ctx.set_current();
     self.win32.new_frame();

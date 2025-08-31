@@ -1,5 +1,3 @@
-use crate::features::FeatureContext;
-
 use educe::Educe;
 use imgui::{DrawList, ImVec2};
 use serde::{Deserialize, Serialize};
@@ -9,18 +7,19 @@ use dopamine_sdk::render_view::ViewSetup;
 use dopamine_sdk::{Color, Entity};
 
 pub fn draw_better_crosshair(
-  ctx: FeatureContext<'_, '_, BetterCrosshairConfig>,
+  local_player: Option<&Entity>,
+  config: &BetterCrosshairConfig,
   draw_list: &mut DrawList,
 ) {
-  if !ctx.config.enabled {
+  if !config.enabled {
     return;
   }
 
-  let active_weapon = ctx.local_player.and_then(Entity::active_weapon);
+  let active_weapon = local_player.and_then(Entity::active_weapon);
 
   match active_weapon {
     Some(wp) => {
-      if wp.is_sniper_rifle() && (!ctx.config.force_sniper_rifles || wp.is_in_scope()) {
+      if wp.is_sniper_rifle() && (!config.force_sniper_rifles || wp.is_in_scope()) {
         return;
       }
     }
@@ -33,12 +32,12 @@ pub fn draw_better_crosshair(
 
   let (horiz_center, vert_center) = (display_width / 2.0, display_height / 2.0);
 
-  let col = &ctx.config.color;
+  let col = &config.color;
   let im_color = imgui::im_col32(col.r, col.g, col.b, col.a);
 
-  let size = ctx.config.size;
-  let thick = ctx.config.thickness;
-  let gap = ctx.config.gap;
+  let size = config.size;
+  let thick = config.thickness;
+  let gap = config.gap;
 
   // Up
   draw_list.add_rect_filled(

@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::hooks::Hooks;
-use crate::ui::{BlurEffect, ImGuiContext, Menu};
+use crate::ui::{BlurEffect, Context as ImGuiContext, Menu};
 
 use crate::features::FeatureContext;
 use crate::features::chams::Chams;
@@ -31,11 +31,15 @@ pub struct App<'s: 'static> {
   pub local_player: Option<&'s Entity>,
   pub player_resource: Option<&'s Entity>,
 
+  pub background_imgui_context: OnceCell<ImGuiContext>,
+  pub foreground_imgui_context: OnceCell<ImGuiContext>,
+
   pub glow: Glow<'s>,
   pub chams: Chams<'s>,
 }
 
 impl App<'_> {
+  #[inline(always)]
   pub fn on_process_attach(module: HMODULE) -> WindowsResult<()> {
     unsafe { Self::get_mut_or_init(Some(module)).setup() }
   }
@@ -52,29 +56,31 @@ impl App<'_> {
   }
 
   pub fn on_process_detach() {
-    Self::with_mut(|app| {
-      let _ = app
-        .config
-        .save_to(Config::PATH)
-        .inspect_err(|err| log::error!("Failed to write config: {err}"));
-    });
+    let _ = App::get_mut()
+      .config
+      .save_to(Config::PATH)
+      .inspect_err(|err| log::error!("Failed to write config: {err}"));
   }
 
   pub fn unload(&mut self) -> WindowsResult<()> {
-    unsafe {
-      unsafe extern "system" fn free_library(app: *mut c_void) -> u32 {
-        unsafe {
-          let _ = Beep(1500, 200);
+    unsafe extern "system" fn free_library(app: *mut c_void) -> u32 {
+      let app = unsafe { &mut *app.cast::<App>() };
 
-          ImGuiContext::destroy();
+      app.blur_effect.take();
 
-          Interfaces::get().input_system.enable_input(true);
+      app.background_imgui_context.take();
+      app.foreground_imgui_context.take();
 
-          let app = &*app.cast::<App>();
-          FreeLibraryAndExitThread(app.module, 0);
-        }
+      Interfaces::get().input_system.enable_input(true);
+
+      unsafe {
+        let _ = Beep(1500, 200);
+
+        FreeLibraryAndExitThread(app.module, 0);
       }
+    }
 
+    unsafe {
       ShowCursor(true);
 
       let _ =
@@ -84,7 +90,7 @@ impl App<'_> {
         None,
         0,
         Some(free_library),
-        Some(self as *const App as _),
+        Some(self as *mut App as *mut c_void),
         THREAD_CREATION_FLAGS::default(),
         None,
       )?;
@@ -98,14 +104,14 @@ impl App<'_> {
 }
 
 impl App<'_> {
-  #[inline]
+  #[inline(always)]
   pub fn capture_context<'a, T>(&self, config: &'a T) -> FeatureContext<'a, 'static, T> {
     FeatureContext::new(self, config)
   }
 }
 
 impl App<'_> {
-  #[inline]
+  #[inline(always)]
   pub fn with_mut<T, F>(mut f: F) -> T
   where
     F: FnMut(&mut Self) -> T,
@@ -113,7 +119,7 @@ impl App<'_> {
     f(Self::get_mut())
   }
 
-  #[inline]
+  #[inline(always)]
   fn get_mut() -> &'static mut Self {
     unsafe { Self::get_mut_or_init(None) }
   }
@@ -132,6 +138,9 @@ impl App<'_> {
 
         local_player: None,
         player_resource: None,
+
+        background_imgui_context: OnceCell::new(),
+        foreground_imgui_context: OnceCell::new(),
 
         glow: Glow::new(),
         chams: Chams::new(),

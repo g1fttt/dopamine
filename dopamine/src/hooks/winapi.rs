@@ -1,5 +1,4 @@
 use crate::app::App;
-use crate::ui::ImGuiContext;
 
 use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::UI::WindowsAndMessaging::CallWindowProcW;
@@ -14,8 +13,8 @@ pub unsafe extern "stdcall" fn wnd_proc(
   l_param: LPARAM,
 ) -> LRESULT {
   App::with_mut(move |app| {
-    if let Some((fore_ctx, _)) = ImGuiContext::get_mut() {
-      if let Ok(code) = fore_ctx.handle_window_proc(hwnd, msg, w_param, l_param)
+    if let Some(foreground) = app.foreground_imgui_context.get_mut() {
+      if let Ok(code) = foreground.handle_window_proc(hwnd, msg, w_param, l_param)
         && code > 0
       {
         return LRESULT(code);
