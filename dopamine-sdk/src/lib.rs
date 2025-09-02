@@ -3,6 +3,7 @@
 mod color;
 mod game;
 mod hooks;
+pub mod interfaces;
 mod macros;
 pub mod math;
 pub mod utils;

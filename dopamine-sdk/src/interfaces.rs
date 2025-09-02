@@ -10,12 +10,14 @@ use crate::game::surface::Surface;
 use crate::utils::rip_offset_value;
 use crate::{cstr, pcstr};
 
+use dopamine_macros::FieldSingleton;
 use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
 
 use std::ffi::{c_char, c_void};
 use std::sync::LazyLock;
 
-pub struct Interfaces<'a> {
+#[derive(FieldSingleton)]
+struct Interfaces<'a> {
   pub client: &'a Client,
   pub server: &'a Server,
   pub client_mode: &'a ClientMode,
@@ -30,7 +32,7 @@ pub struct Interfaces<'a> {
 }
 
 impl Interfaces<'_> {
-  pub fn get() -> &'static Self {
+  fn get() -> &'static Self {
     static INTERFACES: LazyLock<Interfaces> = LazyLock::new(Interfaces::find);
     &INTERFACES
   }

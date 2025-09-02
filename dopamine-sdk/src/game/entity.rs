@@ -1,5 +1,6 @@
 use crate::game::{ClassId, ClientClass};
-use crate::utils::{Interfaces, Patterns};
+use crate::interfaces::{engine, entity_list};
+use crate::utils::Patterns;
 
 use dopamine_macros::{netvar, virtual_method};
 use open_enum::open_enum;
@@ -82,14 +83,19 @@ impl Entity {
     )
   }
 
-  #[inline]
-  fn move_child(&self) -> Option<&Self> {
-    Interfaces::get().entity_list.get_entity_from_handle(&self.move_child_handle)
+  #[inline(always)]
+  pub fn local_player() -> Option<&'static Self> {
+    entity_list().get_entity_by_index(engine().local_player_index())
   }
 
-  #[inline]
+  #[inline(always)]
+  fn move_child(&self) -> Option<&Self> {
+    entity_list().get_entity_from_handle(&self.move_child_handle)
+  }
+
+  #[inline(always)]
   fn move_peer(&self) -> Option<&Self> {
-    Interfaces::get().entity_list.get_entity_from_handle(&self.move_peer_handle)
+    entity_list().get_entity_from_handle(&self.move_peer_handle)
   }
 }
 

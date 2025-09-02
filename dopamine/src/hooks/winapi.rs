@@ -3,7 +3,6 @@ use crate::app::App;
 use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::UI::WindowsAndMessaging::CallWindowProcW;
 
-use dopamine_sdk::utils::Interfaces;
 use imgui::Key;
 
 pub unsafe extern "stdcall" fn wnd_proc(
@@ -27,7 +26,7 @@ pub unsafe extern "stdcall" fn wnd_proc(
       }
 
       if imgui::is_key_down(Key::Insert) {
-        app.menu.handle_toggle(Interfaces::get().input_system);
+        app.menu.handle_toggle();
         app.menu.update_mouse_cursor();
       }
     }

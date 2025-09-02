@@ -5,7 +5,7 @@ use crate::features::glow::{GlowConfig, GlowConfigKind};
 use crate::features::misc::MiscConfig;
 use crate::features::visuals::VisualsConfig;
 
-use dopamine_sdk::input_system::InputSystem;
+use dopamine_sdk::interfaces::input_system;
 use enum_map::Enum;
 use strum::VariantNames;
 use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
@@ -52,13 +52,13 @@ impl Menu {
     self.toggle_animation_end += imgui::io().delta_time / 0.35 /* animation speed */;
   }
 
-  pub fn handle_toggle(&mut self, input_system: &InputSystem) {
+  pub fn handle_toggle(&mut self) {
     self.open = !self.open;
 
     if !self.open {
-      input_system.reset_input_state();
+      input_system().reset_input_state();
     }
-    input_system.enable_input(!self.open);
+    input_system().enable_input(!self.open);
 
     if self.toggle_animation_end > 0.0 && self.toggle_animation_end < 1.0 {
       self.toggle_animation_end = 1.0 - self.toggle_animation_end;

@@ -8,8 +8,9 @@ mod winapi;
 
 use d3d9::{PresentFn, ResetFn};
 
+use dopamine_sdk::interfaces::*;
 use dopamine_sdk::math::{Angles, Vector3D};
-use dopamine_sdk::utils::{Interfaces, Patterns};
+use dopamine_sdk::utils::Patterns;
 use dopamine_sdk::{Hook, HookResult, TrampolineHook, VmtHook, pcstr};
 
 use dopamine_sdk::client::{Client, ClientMode};
@@ -19,9 +20,7 @@ use dopamine_sdk::surface::Surface;
 use dopamine_sdk::{Entity, UserCommand};
 
 use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::WindowsAndMessaging::{
-  FindWindowA, GWLP_WNDPROC, SetWindowLongPtrW, WNDPROC,
-};
+use windows::Win32::UI::WindowsAndMessaging::*;
 
 use std::ffi::c_void;
 use std::mem;
@@ -55,7 +54,6 @@ pub struct Hooks {
 impl Hooks {
   pub unsafe fn create() -> Self {
     unsafe {
-      let interfaces = Interfaces::get();
       let patterns = Patterns::get();
 
       let window = FindWindowA(pcstr!("Valve001"), pcstr!())
@@ -69,18 +67,18 @@ impl Hooks {
         reset: TrampolineHook::new(patterns.d3d9_reset),
         present: TrampolineHook::new(patterns.d3d9_present),
 
-        override_view: VmtHook::new(interfaces.client_mode, 16),
-        create_move: VmtHook::new(interfaces.client_mode, 21),
-        should_draw_crosshair: VmtHook::new(interfaces.client_mode, 25),
-        do_post_screen_space_effects: VmtHook::new(interfaces.client_mode, 39),
+        override_view: VmtHook::new(client_mode(), 16),
+        create_move: VmtHook::new(client_mode(), 21),
+        should_draw_crosshair: VmtHook::new(client_mode(), 25),
+        do_post_screen_space_effects: VmtHook::new(client_mode(), 39),
 
-        level_init_post_entity: VmtHook::new(interfaces.client, 6),
-        level_shutdown: VmtHook::new(interfaces.client, 7),
+        level_init_post_entity: VmtHook::new(client(), 6),
+        level_shutdown: VmtHook::new(client(), 7),
 
-        draw_model_execute: VmtHook::new(interfaces.model_render, 19),
+        draw_model_execute: VmtHook::new(model_render(), 19),
 
-        is_cursor_visible: VmtHook::new(interfaces.surface, 53),
-        lock_cursor: VmtHook::new(interfaces.surface, 62),
+        is_cursor_visible: VmtHook::new(surface(), 53),
+        lock_cursor: VmtHook::new(surface(), 62),
 
         calc_viewmodel_view: TrampolineHook::new(patterns.calc_viewmodel_view),
       }

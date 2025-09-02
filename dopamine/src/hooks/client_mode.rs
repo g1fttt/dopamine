@@ -21,7 +21,7 @@ pub extern "fastcall" fn create_move(
   App::with_mut(move |app| {
     let result = (app.hooks.create_move.original)(this, input_sample_frame_time, cmd);
     {
-      misc::bunnyhop(app.capture_context(&app.config.misc.bunnyhop), cmd);
+      misc::bunnyhop(&app.config.misc.bunnyhop, cmd);
     }
     result
   })
@@ -35,7 +35,7 @@ pub extern "fastcall" fn do_post_screen_space_effects(
   _this: &ClientMode,
   view: &ViewSetup,
 ) -> bool {
-  App::with_mut(move |app| app.glow.draw(app.capture_context(&app.config.glow), view));
+  App::with_mut(move |app| app.glow.draw(app.player_resource, &app.config.glow, view));
 
   true
 }

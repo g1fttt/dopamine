@@ -1,6 +1,6 @@
 use crate::RecvPropProxy;
 use crate::game::{RecvTable, SendPropKind};
-use crate::utils::Interfaces;
+use crate::interfaces::client;
 
 use std::collections::HashMap;
 use std::ops::Deref;
@@ -17,7 +17,7 @@ impl Netvars<'_> {
   fn precache() -> Self {
     let mut inner = NetvarsInner::new();
 
-    let mut client_class = Interfaces::get().client.all_classes();
+    let mut client_class = client().all_classes();
 
     while let Some(cc) = client_class {
       log::debug!("{} ({}):", cc.name(), cc.id.0);

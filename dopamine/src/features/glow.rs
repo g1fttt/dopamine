@@ -1,10 +1,9 @@
 use crate::config::EnumMapConfig;
 use crate::entities;
-use crate::features::FeatureContext;
 
+use dopamine_sdk::interfaces::{material_system, model_render, render_view, server};
 use dopamine_sdk::material_system::*;
 use dopamine_sdk::render_view::ViewSetup;
-use dopamine_sdk::utils::Interfaces;
 use dopamine_sdk::{Color, Entity, KeyValues};
 
 use educe::Educe;
@@ -25,18 +24,17 @@ pub struct Glow<'a> {
 
 impl Glow<'_> {
   pub fn new() -> Self {
-    let material_system = Interfaces::get().material_system;
-
-    let rt_quarter_size_1 = material_system.find_texture("_rt_SmallFB1", "RenderTargets").unwrap();
+    let rt_quarter_size_1 =
+      material_system().find_texture("_rt_SmallFB1", "RenderTargets").unwrap();
     rt_quarter_size_1.inc_ref_counter();
 
-    let rt_full_frame = material_system.find_texture("_rt_FullFrameFB", "RenderTargets").unwrap();
+    let rt_full_frame = material_system().find_texture("_rt_FullFrameFB", "RenderTargets").unwrap();
 
     let rt_glow_buf_1 =
-      material_system.create_named_rt("_rt_GlowBuf1", rt_full_frame.dimensions()).unwrap();
+      material_system().create_named_rt("_rt_GlowBuf1", rt_full_frame.dimensions()).unwrap();
 
     let rt_glow_buf_2 =
-      material_system.create_named_rt("_rt_GlowBuf2", rt_full_frame.dimensions()).unwrap();
+      material_system().create_named_rt("_rt_GlowBuf2", rt_full_frame.dimensions()).unwrap();
 
     let kv = KeyValues::new_leaked("UnlitGeneric");
     {
@@ -45,7 +43,7 @@ impl Glow<'_> {
       kv.set("$Model", "1");
       kv.set("$LinearWrite", "1");
     }
-    let glow_material = material_system.create_material("_GlowMaterial", kv).unwrap();
+    let glow_material = material_system().create_material("_GlowMaterial", kv).unwrap();
 
     let kv = KeyValues::new_leaked("screenspace_general");
     {
@@ -57,7 +55,7 @@ impl Glow<'_> {
       kv.set("$LinearRead_BaseTexture", "1");
       kv.set("$LinearWrite", "1");
     }
-    let halo_material = material_system.create_material("_HaloMaterial", kv).unwrap();
+    let halo_material = material_system().create_material("_HaloMaterial", kv).unwrap();
 
     let kv = KeyValues::new_leaked("BlurFilterX");
     {
@@ -66,7 +64,7 @@ impl Glow<'_> {
       kv.set("$Translucent", "1");
       kv.set("$AlphaTest", "1");
     }
-    let glow_blur_x_material = material_system.create_material("_GlowBlurX", kv).unwrap();
+    let glow_blur_x_material = material_system().create_material("_GlowBlurX", kv).unwrap();
 
     let kv = KeyValues::new_leaked("BlurFilterY");
     {
@@ -75,7 +73,7 @@ impl Glow<'_> {
       kv.set("$Translucent", "1");
       kv.set("$AlphaTest", "1");
     }
-    let glow_blur_y_material = material_system.create_material("_GlowBlurY", kv).unwrap();
+    let glow_blur_y_material = material_system().create_material("_GlowBlurY", kv).unwrap();
 
     Self {
       rt_quarter_size_1,
@@ -89,30 +87,31 @@ impl Glow<'_> {
     }
   }
 
-  pub fn draw(&mut self, ctx: FeatureContext<'_, '_, GlowConfig>, view: &ViewSetup) {
-    let should_glow = ctx.config.as_array().iter().any(|cfg| cfg.enabled);
+  pub fn draw(&mut self, player_resource: Option<&Entity>, config: &GlowConfig, view: &ViewSetup) {
+    let should_glow = config.as_array().iter().any(|cfg| cfg.enabled);
 
     if should_glow {
-      let render_ctx = ctx.interfaces.material_system.render_ctx();
+      let render_ctx = material_system().render_ctx();
 
-      self.apply_glow_effects(ctx, view, render_ctx);
+      self.apply_glow_effects(player_resource, config, view, render_ctx);
     }
   }
 
   fn draw_glowing_models(
     &mut self,
-    ctx: FeatureContext<'_, '_, GlowConfig>,
+    player_resource: Option<&Entity>,
+    config: &GlowConfig,
     view: &ViewSetup,
     render_ctx: &RenderContext,
   ) {
     render_ctx.push_rt_and_set_viewport(self.rt_glow_buf_1, view.dimensions());
 
-    let orig_color = ctx.interfaces.render_view.color_with_blend();
+    let orig_color = render_view().color_with_blend();
 
     render_ctx.clear_color_3u8(Color::black());
     ClearBuffersBuilder::default().clear_color(true).clear_depth(false).build_and_clear(render_ctx);
 
-    ctx.interfaces.model_render.override_material(self.glow_material);
+    model_render().override_material(self.glow_material);
 
     StencilState { test_mask: 0xFF, ..Default::default() }.set(render_ctx);
 
@@ -121,13 +120,13 @@ impl Glow<'_> {
         continue;
       }
 
-      let config = match determine_config(&ctx, entity) {
+      let config = match determine_config(config, entity) {
         Some(cfg) if cfg.enabled => cfg,
         Some(_) | None => continue,
       };
 
-      let real_time = ctx.interfaces.server.global_vars().real_time;
-      let player_resource = ctx.player_resource.unwrap();
+      let real_time = server().global_vars().real_time;
+      let player_resource = player_resource.unwrap();
 
       let color = match self.calc_fade_out_alpha(real_time, entity, player_resource, config) {
         Some(a) => &config.color.with_alpha(a),
@@ -138,13 +137,13 @@ impl Glow<'_> {
         continue;
       }
 
-      ctx.interfaces.render_view.set_color_with_blend(color);
+      render_view().set_color_with_blend(color);
 
       draw_model(entity);
     }
 
-    ctx.interfaces.render_view.set_color_with_blend(&orig_color);
-    ctx.interfaces.model_render.reset_material();
+    render_view().set_color_with_blend(&orig_color);
+    model_render().reset_material();
 
     StencilState::default().set(render_ctx);
 
@@ -205,14 +204,15 @@ impl Glow<'_> {
 
   fn apply_glow_effects(
     &mut self,
-    ctx: FeatureContext<'_, '_, GlowConfig>,
+    player_resource: Option<&Entity>,
+    config: &GlowConfig,
     view: &ViewSetup,
     render_ctx: &RenderContext,
   ) {
     OverrideDepthBuilder::default().enable(true).build_and_override(render_ctx);
 
-    let orig_blend = ctx.interfaces.render_view.blend();
-    ctx.interfaces.render_view.set_blend(0.0);
+    let orig_blend = render_view().blend();
+    render_view().set_blend(0.0);
 
     StencilState {
       enable: true,
@@ -230,7 +230,7 @@ impl Glow<'_> {
         continue;
       }
 
-      let config = determine_config(&ctx, entity);
+      let config = determine_config(config, entity);
       if config.is_none_or(|cfg| !cfg.enabled) {
         continue;
       }
@@ -244,14 +244,14 @@ impl Glow<'_> {
 
     StencilState::default().set(render_ctx);
 
-    ctx.interfaces.render_view.set_blend(orig_blend);
+    render_view().set_blend(orig_blend);
 
     // https://github.com/ValveSoftware/source-sdk-2013/blob/0d8dceea4310fde5706b3ce1c70609d72a38efdf/sp/src/game/client/glow_outline_effect.cpp#L256-L260
     if !drew_anything {
       return;
     }
 
-    self.draw_glowing_models(ctx, view, render_ctx);
+    self.draw_glowing_models(player_resource, config, view, render_ctx);
     self.blur_glow_effects(view, render_ctx);
 
     StencilState {
@@ -299,11 +299,11 @@ fn draw_model(entity: &Entity) {
 }
 
 fn determine_config<'config>(
-  ctx: &FeatureContext<'config, '_, GlowConfig>,
+  config: &'config GlowConfig,
   entity: &Entity,
 ) -> Option<&'config GlowItemConfig> {
   let config_kind = if entity.is_player() {
-    if let Some(lp) = ctx.local_player
+    if let Some(lp) = Entity::local_player()
       && lp.team() != entity.team()
     {
       GlowConfigKind::Enemies
@@ -315,7 +315,7 @@ fn determine_config<'config>(
   } else {
     return None;
   };
-  Some(&ctx.config[config_kind])
+  Some(&config[config_kind])
 }
 
 #[derive(Educe)]

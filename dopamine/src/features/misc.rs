@@ -1,17 +1,15 @@
-use crate::features::FeatureContext;
-
-use dopamine_sdk::UserCommand;
+use dopamine_sdk::{Entity, UserCommand};
 
 use educe::Educe;
 use serde::{Deserialize, Serialize};
 
-pub fn bunnyhop(ctx: FeatureContext<'_, '_, BunnyhopConfig>, cmd: &mut UserCommand) {
-  if !ctx.config.enabled {
+pub fn bunnyhop(config: &BunnyhopConfig, cmd: &mut UserCommand) {
+  if !config.enabled {
     return;
   }
 
-  let should_bunnyhop = fastrand::i32(1..100) <= ctx.config.chance;
-  if ctx.local_player.is_some_and(move |lp| !lp.is_on_ground() || !should_bunnyhop) {
+  let should_bunnyhop = fastrand::i32(1..100) <= config.chance;
+  if Entity::local_player().is_some_and(move |lp| !lp.is_on_ground() || !should_bunnyhop) {
     cmd.buttons &= !UserCommand::IN_JUMP;
   }
 }

@@ -6,16 +6,12 @@ use dopamine_sdk::math::{Angles, Vector3D};
 use dopamine_sdk::render_view::ViewSetup;
 use dopamine_sdk::{Color, Entity};
 
-pub fn draw_better_crosshair(
-  local_player: Option<&Entity>,
-  config: &BetterCrosshairConfig,
-  draw_list: &mut DrawList,
-) {
+pub fn draw_better_crosshair(config: &BetterCrosshairConfig, draw_list: &mut DrawList) {
   if !config.enabled {
     return;
   }
 
-  let active_weapon = local_player.and_then(Entity::active_weapon);
+  let active_weapon = Entity::local_player().and_then(Entity::active_weapon);
 
   match active_weapon {
     Some(wp) => {

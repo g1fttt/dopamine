@@ -2,8 +2,7 @@ use crate::app::App;
 use crate::features::visuals;
 use crate::ui::{BlurEffect, Context as ImGuiContext};
 
-use dopamine_sdk::utils::Interfaces;
-
+use dopamine_sdk::interfaces::{engine, surface};
 use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::Graphics::Direct3D9::*;
 use windows::Win32::Graphics::Gdi::RGNDATA;
@@ -20,7 +19,7 @@ pub extern "stdcall" fn reset(this: NonNull<c_void>, params: &D3DPRESENT_PARAMET
     let this_raw_ptr = this.as_ptr();
     let device = unsafe { IDirect3DDevice9::from_raw_borrowed(&this_raw_ptr).unwrap() };
 
-    if let Some(blur_effect) = app.blur_effect.as_mut() {
+    if let Some(blur_effect) = app.blur_effect.get_mut() {
       blur_effect.clear_textures();
     }
 
@@ -59,10 +58,6 @@ pub extern "stdcall" fn present(
       let mut params = D3DDEVICE_CREATION_PARAMETERS::default();
       let _ = unsafe { device.GetCreationParameters(&mut params) };
 
-      if app.blur_effect.is_none() {
-        app.blur_effect = Some(BlurEffect::new(device));
-      }
-
       // Fix menu doesn't render without `net_graph` or `cl_showfps`
       let _ = unsafe { device.SetRenderState(D3DRS_COLORWRITEENABLE, u32::MAX) };
 
@@ -88,23 +83,17 @@ fn draw_background(app: &mut App, device: &IDirect3DDevice9, hwnd: HWND) -> Wind
 
   let bg_draw_list = imgui::background_draw_list();
 
-  if let Some(blur_effect) = app.blur_effect.as_mut()
-    && app.config.blur_enabled
-    && !app.menu.is_fully_closed()
-  {
+  let blur_effect = app.blur_effect.get_mut_or_init(|| BlurEffect::new(device));
+  let should_draw_blur_effect = app.config.blur_enabled && !app.menu.is_fully_closed();
+
+  if should_draw_blur_effect {
     blur_effect.render(bg_draw_list, app.menu.transparency())?;
   }
 
-  let interfaces = Interfaces::get();
-  let should_draw_visuals =
-    interfaces.engine.is_in_game() && !interfaces.surface.is_cursor_visible();
+  let should_draw_visuals = engine().is_in_game() && !surface().is_cursor_visible();
 
   if should_draw_visuals {
-    visuals::draw_better_crosshair(
-      app.local_player,
-      &app.config.visuals.better_crosshair,
-      bg_draw_list,
-    );
+    visuals::draw_better_crosshair(&app.config.visuals.better_crosshair, bg_draw_list);
   }
 
   frame.end();

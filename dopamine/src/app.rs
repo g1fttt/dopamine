@@ -2,12 +2,11 @@ use crate::config::Config;
 use crate::hooks::Hooks;
 use crate::ui::{BlurEffect, Context as ImGuiContext, Menu};
 
-use crate::features::FeatureContext;
 use crate::features::chams::Chams;
 use crate::features::glow::Glow;
 
 use dopamine_sdk::Entity;
-use dopamine_sdk::utils::Interfaces;
+use dopamine_sdk::interfaces::input_system;
 
 use windows::Win32::Foundation::{CloseHandle, HMODULE};
 use windows::Win32::System::Diagnostics::Debug::Beep;
@@ -26,16 +25,14 @@ pub struct App<'s: 'static> {
   pub config: Config,
   pub hooks: Hooks,
   pub menu: Menu,
-  pub blur_effect: Option<BlurEffect>,
-
-  pub local_player: Option<&'s Entity>,
-  pub player_resource: Option<&'s Entity>,
-
-  pub background_imgui_context: OnceCell<ImGuiContext>,
-  pub foreground_imgui_context: OnceCell<ImGuiContext>,
-
   pub glow: Glow<'s>,
   pub chams: Chams<'s>,
+
+  pub player_resource: Option<&'s Entity>,
+
+  pub blur_effect: OnceCell<BlurEffect>,
+  pub background_imgui_context: OnceCell<ImGuiContext>,
+  pub foreground_imgui_context: OnceCell<ImGuiContext>,
 }
 
 impl App<'_> {
@@ -71,7 +68,7 @@ impl App<'_> {
       app.background_imgui_context.take();
       app.foreground_imgui_context.take();
 
-      Interfaces::get().input_system.enable_input(true);
+      input_system().enable_input(true);
 
       unsafe {
         let _ = Beep(1500, 200);
@@ -103,14 +100,7 @@ impl App<'_> {
   }
 }
 
-impl App<'_> {
-  #[inline(always)]
-  pub fn capture_context<'a, T>(&self, config: &'a T) -> FeatureContext<'a, 'static, T> {
-    FeatureContext::new(self, config)
-  }
-}
-
-impl App<'_> {
+impl<'s: 'static> App<'s> {
   #[inline(always)]
   pub fn with_mut<T, F>(mut f: F) -> T
   where
@@ -120,11 +110,11 @@ impl App<'_> {
   }
 
   #[inline(always)]
-  fn get_mut() -> &'static mut Self {
+  fn get_mut() -> &'s mut Self {
     unsafe { Self::get_mut_or_init(None) }
   }
 
-  unsafe fn get_mut_or_init(module: Option<HMODULE>) -> &'static mut Self {
+  unsafe fn get_mut_or_init(module: Option<HMODULE>) -> &'s mut Self {
     static mut APP: OnceCell<App> = OnceCell::new();
 
     unsafe {
@@ -134,16 +124,14 @@ impl App<'_> {
         config: Config::create_and_load_from(Config::PATH),
         hooks: Hooks::create(),
         menu: Menu::new(),
-        blur_effect: None,
-
-        local_player: None,
-        player_resource: None,
-
-        background_imgui_context: OnceCell::new(),
-        foreground_imgui_context: OnceCell::new(),
-
         glow: Glow::new(),
         chams: Chams::new(),
+
+        player_resource: None,
+
+        blur_effect: OnceCell::new(),
+        background_imgui_context: OnceCell::new(),
+        foreground_imgui_context: OnceCell::new(),
       })
     }
   }
