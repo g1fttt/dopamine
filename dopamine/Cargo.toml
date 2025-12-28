@@ -11,6 +11,7 @@ workspace = true
 
 [dependencies]
 windows.workspace = true
+windows-numerics.workspace = true
 serde.workspace = true
 strum.workspace = true
 log.workspace = true
@@ -23,6 +24,6 @@ imgui-win32-support.path = "../imgui-win32-support"
 
 educe = { version = "0.6.0", features = ["Default"] }
 enum-map = { version = "2.7.3", features = ["serde"] }
-fastrand = "2.1.0"
+fastrand = "2.3.0"
 serde_yaml_ng = "0.10.0"
-chrono = "0.4.38"
+chrono = "0.4.*"

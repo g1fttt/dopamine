@@ -9,8 +9,10 @@ mod hooks;
 mod logger;
 mod ui;
 
-use windows::Win32::Foundation::{BOOL, HMODULE, TRUE};
+use windows::Win32::Foundation::{HMODULE, TRUE};
 use windows::Win32::System::SystemServices::{DLL_PROCESS_ATTACH, DLL_PROCESS_DETACH};
+
+use windows::core::BOOL;
 
 use app::App;
 use logger::Logger;

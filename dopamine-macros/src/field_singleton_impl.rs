@@ -29,6 +29,7 @@ pub fn macro_impl(item: TokenStream) -> TokenStream {
     let field_type = field.ty;
 
     functions.extend(quote! {
+      #[inline]
       #field_visibility fn #field_name #struct_generics() -> #field_type {
         Interfaces::get().#field_name
       }

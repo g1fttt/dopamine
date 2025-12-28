@@ -1,10 +1,11 @@
+use windows::core::Interface;
 use windows::core::Result as WindowsResult;
-use windows::{Foundation::Numerics::Matrix4x4, core::Interface};
 
 use windows::Win32::Foundation::RECT;
 use windows::Win32::Graphics::Direct3D9::*;
 
 use imgui::*;
+use windows_numerics::Matrix4x4;
 
 use std::ffi::c_void;
 use std::{mem, ptr, slice};

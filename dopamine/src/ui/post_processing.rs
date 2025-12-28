@@ -1,8 +1,8 @@
-use windows::Foundation::Numerics::Matrix4x4;
 use windows::Win32::Graphics::Direct3D::Fxc::D3DCompile;
 use windows::Win32::Graphics::Direct3D9::*;
 
 use windows::core::Result as WindowsResult;
+use windows_numerics::Matrix4x4;
 
 use dopamine_sdk::{cstr, pcstr};
 use imgui::{DrawCmd, DrawList, ImVec2, TextureRef};

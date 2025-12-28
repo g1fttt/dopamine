@@ -1,6 +1,7 @@
-use windows::Win32::Foundation::{HWND, LPARAM, POINT, RECT, WPARAM};
+use windows::Win32::Foundation::{HINSTANCE, HWND, LPARAM, POINT, RECT, WPARAM};
 use windows::Win32::Globalization::*;
 use windows::Win32::Graphics::Gdi::{ClientToScreen, ScreenToClient};
+use windows::Win32::System::LibraryLoader::GetModuleHandleA;
 use windows::Win32::System::SystemServices::SORT_DEFAULT;
 
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
@@ -10,7 +11,6 @@ use windows::core::Result as WindowsResult;
 
 use imgui::{BackendFlags, ConfigFlags, ImVec2, Key, MouseCursor};
 
-use std::ffi::c_void;
 use std::time::Instant;
 
 pub struct Win32 {
@@ -160,7 +160,12 @@ impl Win32 {
       _ => return false,
     };
 
-    unsafe { SetCursor(HCURSOR(win32_cursor.as_ptr().cast_mut().cast::<c_void>())) };
+    unsafe {
+      let module_handle = GetModuleHandleA(None).map(|h| HINSTANCE(h.0)).ok();
+      let cursor_handle = LoadCursorW(module_handle, win32_cursor).ok();
+
+      SetCursor(cursor_handle);
+    }
 
     true
   }
@@ -430,6 +435,7 @@ impl Win32 {
 
         let hwnd_with_capture = unsafe { GetCapture() };
 
+        // Did we externally lost capture?
         if self.mouse_buttons_down != 0 && hwnd_with_capture != hwnd {
           self.mouse_buttons_down = 0;
         }

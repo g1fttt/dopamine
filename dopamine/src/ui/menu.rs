@@ -8,7 +8,6 @@ use crate::features::visuals::VisualsConfig;
 use dopamine_sdk::interfaces::input_system;
 use enum_map::Enum;
 use strum::VariantNames;
-use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
 
 use imgui::{ColorEditFlags, StyleVarKind, WindowFlags};
 
@@ -65,11 +64,6 @@ impl Menu {
     } else {
       self.toggle_animation_end = 0.0;
     }
-  }
-
-  pub fn update_mouse_cursor(&self) {
-    imgui::io_mut().mouse_draw_cursor = self.open;
-    unsafe { ShowCursor(!self.open) };
   }
 
   pub fn render(&mut self, config: &mut Config) {

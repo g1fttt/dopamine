@@ -27,7 +27,6 @@ pub unsafe extern "stdcall" fn wnd_proc(
 
       if imgui::is_key_down(Key::Insert) {
         app.menu.handle_toggle();
-        app.menu.update_mouse_cursor();
       }
     }
     unsafe { CallWindowProcW(app.hooks.wnd_proc, hwnd, msg, w_param, l_param) }

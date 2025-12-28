@@ -8,5 +8,6 @@ workspace = true
 
 [dependencies]
 windows.workspace = true
+windows-numerics.workspace = true
 
 imgui.path = "../imgui"
