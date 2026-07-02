@@ -1,7 +1,6 @@
 [workspace]
 members = [
   "dopamine",
-  "dopamine-macros",
   "dopamine-sdk",
   "imgui",
   "imgui-dx9-renderer",

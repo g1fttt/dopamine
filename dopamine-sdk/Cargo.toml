@@ -14,8 +14,6 @@ serde.workspace = true
 derive_builder.workspace = true
 bumpalo.workspace = true
 
-dopamine-macros.path = "../dopamine-macros"
-
 num-traits = "0.2"
 minhook = "0.9"
 open-enum = { version = "0.5", features = ["std"] }
