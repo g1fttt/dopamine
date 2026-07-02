@@ -2,10 +2,10 @@ use crate::game::{Entity, KeyValues};
 use crate::pcstr;
 use crate::utils::rip_offset_value;
 
+use windows::core::Result as WindowsResult;
 use windows::Win32::System::LibraryLoader::GetModuleHandleA;
 use windows::Win32::System::ProcessStatus::{GetModuleInformation, MODULEINFO};
 use windows::Win32::System::Threading::GetCurrentProcess;
-use windows::core::Result as WindowsResult;
 
 use std::ffi::{c_char, c_void};
 use std::sync::LazyLock;
@@ -58,7 +58,7 @@ impl Patterns {
       let d3d9_present = rip_offset_value(
         find_by_pattern(
           "GameOverlayRenderer64.dll",
-          b"\x48\x8B\x05????\x4D\x8B\xCE\x4C\x8B\xC5",
+          b"\x4C\x8B\x15????\x4D\x8B\xC6\x49\x8B\xD7",
         )
         .unwrap(),
       );
