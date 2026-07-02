@@ -5,8 +5,8 @@ use crate::ui::{BlurEffect, Context as ImGuiContext, Menu};
 use crate::features::chams::Chams;
 use crate::features::glow::Glow;
 
-use dopamine_sdk::Entity;
 use dopamine_sdk::interfaces::input_system;
+use dopamine_sdk::Entity;
 
 use windows::Win32::Foundation::{CloseHandle, HMODULE};
 use windows::Win32::System::Diagnostics::Debug::Beep;
@@ -16,8 +16,10 @@ use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
 
 use windows::core::Result as WindowsResult;
 
-use std::cell::OnceCell;
 use std::ffi::c_void;
+use std::sync::OnceLock;
+
+static mut APP: OnceLock<App> = OnceLock::new();
 
 pub struct App<'s: 'static> {
   module: HMODULE,
@@ -30,15 +32,31 @@ pub struct App<'s: 'static> {
 
   pub player_resource: Option<&'s Entity>,
 
-  pub blur_effect: OnceCell<BlurEffect>,
-  pub background_imgui_context: OnceCell<ImGuiContext>,
-  pub foreground_imgui_context: OnceCell<ImGuiContext>,
+  pub blur_effect: OnceLock<BlurEffect>,
+  pub background_imgui_context: OnceLock<ImGuiContext>,
+  pub foreground_imgui_context: OnceLock<ImGuiContext>,
 }
 
 impl App<'_> {
-  #[inline(always)]
   pub fn on_process_attach(module: HMODULE) -> WindowsResult<()> {
-    unsafe { Self::get_mut_or_init(Some(module)).setup() }
+    let app = unsafe {
+      APP.get_mut_or_init(|| App {
+        module,
+
+        config: Config::create_and_load_from(Config::PATH),
+        hooks: Hooks::create(),
+        menu: Menu::new(),
+        glow: Glow::new(),
+        chams: Chams::new(),
+
+        player_resource: None,
+
+        blur_effect: OnceLock::new(),
+        background_imgui_context: OnceLock::new(),
+        foreground_imgui_context: OnceLock::new(),
+      })
+    };
+    app.setup()
   }
 
   fn setup(&mut self) -> WindowsResult<()> {
@@ -101,7 +119,6 @@ impl App<'_> {
 }
 
 impl<'s: 'static> App<'s> {
-  #[inline(always)]
   pub fn with_mut<T, F>(mut f: F) -> T
   where
     F: FnMut(&mut Self) -> T,
@@ -109,30 +126,10 @@ impl<'s: 'static> App<'s> {
     f(Self::get_mut())
   }
 
-  #[inline(always)]
   fn get_mut() -> &'s mut Self {
-    unsafe { Self::get_mut_or_init(None) }
-  }
-
-  unsafe fn get_mut_or_init(module: Option<HMODULE>) -> &'s mut Self {
-    static mut APP: OnceCell<App> = OnceCell::new();
-
-    unsafe {
-      APP.get_mut_or_init(|| App {
-        module: module.unwrap(),
-
-        config: Config::create_and_load_from(Config::PATH),
-        hooks: Hooks::create(),
-        menu: Menu::new(),
-        glow: Glow::new(),
-        chams: Chams::new(),
-
-        player_resource: None,
-
-        blur_effect: OnceCell::new(),
-        background_imgui_context: OnceCell::new(),
-        foreground_imgui_context: OnceCell::new(),
-      })
-    }
+    unsafe { APP.get_mut().unwrap() }
   }
 }
+
+unsafe impl Send for App<'_> {}
+unsafe impl Sync for App<'_> {}

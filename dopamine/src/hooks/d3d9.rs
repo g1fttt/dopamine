@@ -2,12 +2,14 @@ use crate::app::App;
 use crate::features::visuals;
 use crate::ui::{BlurEffect, Context as ImGuiContext};
 
+use windows::core::{Interface, Result as WindowsResult, HRESULT};
+
 use dopamine_sdk::interfaces::{engine, surface};
+use dopamine_sdk::Hook;
+
 use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::Graphics::Direct3D9::*;
 use windows::Win32::Graphics::Gdi::RGNDATA;
-
-use windows::core::{Interface, Result as WindowsResult, HRESULT};
 
 use std::ffi::c_void;
 use std::ptr::NonNull;
@@ -23,7 +25,7 @@ pub extern "C" fn reset(this: NonNull<c_void>, params: &D3DPRESENT_PARAMETERS) -
       blur_effect.clear_textures();
     }
 
-    let result = (app.hooks.reset.original)(this, params);
+    let result = (app.hooks.reset.original())(this, params);
 
     if let Some((background, foreground)) =
       app.background_imgui_context.get_mut().zip(app.foreground_imgui_context.get_mut())
@@ -65,7 +67,7 @@ pub extern "C" fn present(
 
       let _ = unsafe { state_block.Apply() };
     }
-    (app.hooks.present.original)(this, src, dest, window_override, dirty_region)
+    (app.hooks.present.original())(this, src, dest, window_override, dirty_region)
   })
 }
 

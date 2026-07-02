@@ -1,4 +1,3 @@
-use crate::RecvPropProxy;
 use crate::game::{RecvTable, SendPropKind};
 use crate::interfaces::client;
 
@@ -16,13 +15,14 @@ impl Netvars<'_> {
 
   fn precache() -> Self {
     let mut inner = NetvarsInner::new();
-
     let mut client_class = client().all_classes();
 
     while let Some(cc) = client_class {
-      log::debug!("{} ({}):", cc.name(), cc.id.0);
+      let cc_name = cc.name();
 
-      walk_table(&mut inner, cc.name(), cc.recv_table);
+      log::debug!("{} ({}):", cc_name, cc.id.0);
+
+      walk_table(&mut inner, cc_name, cc.recv_table);
 
       client_class = cc.next;
     }
@@ -31,24 +31,23 @@ impl Netvars<'_> {
 }
 
 fn walk_table<'a>(inner: &mut NetvarsInner<'a>, class_name: &'a str, table: &'a RecvTable) {
-  for i in 0..table.len as usize {
-    let prop = unsafe { &mut *table.props.add(i) };
-
+  for prop in table.props() {
     let prop_name = prop.name();
-    if prop_name.as_bytes()[0].is_ascii_digit() || prop_name == "baseclass" {
+    if prop_name == "baseclass" {
       continue;
     }
 
-    if let Some(t) = prop.table
-      && t.name().starts_with('D')
+    if let Some(table) = prop.table
+      && table.name().starts_with("DT_") // Data Table
       && prop.kind == SendPropKind::NumSendPropKinds
     {
-      walk_table(inner, class_name, t);
+      walk_table(inner, class_name, table);
     }
 
     log::debug!("\t{class_name}->{prop_name}: 0x{:X}", prop.offset);
 
-    let netvar = Netvar::new(prop.offset as usize, &mut prop.proxy);
+    let offset = prop.offset as usize;
+    let netvar = Netvar { offset };
 
     inner.insert((class_name, prop_name), netvar);
   }
@@ -66,13 +65,6 @@ pub type NetvarsInner<'a> = HashMap<(&'a str, &'a str), Netvar>;
 
 pub struct Netvar {
   pub offset: usize,
-  pub(crate) proxy: *mut Option<RecvPropProxy>,
-}
-
-impl Netvar {
-  fn new(offset: usize, proxy: *mut Option<RecvPropProxy>) -> Self {
-    Self { offset, proxy }
-  }
 }
 
 unsafe impl Sync for Netvar {}

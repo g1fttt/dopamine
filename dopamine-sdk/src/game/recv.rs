@@ -15,7 +15,7 @@ pub struct RecvProp<'a> {
   name: *const c_char,
   pub kind: SendPropKind,
   pad1: [u8; 33],
-  pub proxy: Option<RecvPropProxy>,
+  proxy: *mut c_void,
   pad2: [u8; 8],
   pub table: Option<&'a RecvTable<'a>>,
   pub offset: i32,
@@ -26,15 +26,6 @@ impl RecvProp<'_> {
   pub fn name(&self) -> &'static str {
     unsafe { rstr!(self.name) }
   }
-}
-
-pub type RecvPropProxy =
-  extern "C" fn(&mut RecvPropProxyData, r#struct: *mut c_void, out: *mut c_void);
-
-#[repr(C)]
-pub struct RecvPropProxyData<'a> {
-  pub recv_prop: Option<&'a RecvProp<'a>>,
-  pub value: DataTableVariant,
 }
 
 #[repr(C)]
@@ -52,14 +43,18 @@ pub union DataTableVariant {
 
 #[repr(C)]
 pub struct RecvTable<'a> {
-  pub props: *mut RecvProp<'a>,
-  pub len: i32,
+  props: *const RecvProp<'a>,
+  len: i32,
   pad1: [u8; 8],
   name: *const c_char,
 }
 
-impl RecvTable<'_> {
+impl<'a> RecvTable<'a> {
   pub fn name(&self) -> &'static str {
     unsafe { rstr!(self.name) }
+  }
+
+  pub fn props(&self) -> impl Iterator<Item = &RecvProp<'a>> {
+    unsafe { std::slice::from_raw_parts(self.props, self.len as usize) }.iter()
   }
 }

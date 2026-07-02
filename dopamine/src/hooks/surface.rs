@@ -1,9 +1,10 @@
 use crate::App;
 
 use dopamine_sdk::surface::Surface;
+use dopamine_sdk::Hook;
 
 pub extern "C" fn is_cursor_visible(this: &Surface) -> bool {
-  App::with_mut(move |app| (app.hooks.is_cursor_visible.original)(this) || app.menu.is_open())
+  App::with_mut(move |app| (app.hooks.is_cursor_visible.original())(this) || app.menu.is_open())
 }
 
 pub extern "C" fn lock_cursor(this: &Surface) {
@@ -11,7 +12,7 @@ pub extern "C" fn lock_cursor(this: &Surface) {
     if app.menu.is_open() {
       this.unlock_cursor();
     } else {
-      (app.hooks.lock_cursor.original)(this);
+      (app.hooks.lock_cursor.original())(this);
     }
   })
 }

@@ -1,13 +1,9 @@
-use crate::RecvPropProxy;
-use crate::utils::Netvars;
-
 pub use minhook::MH_STATUS;
+
 use minhook::MinHook;
 
-use windows::Win32::System::Memory::{
-  PAGE_EXECUTE_READWRITE, PAGE_PROTECTION_FLAGS, VirtualProtect,
-};
 use windows::core::{Error as WindowsError, Result as WindowsResult};
+use windows::Win32::System::Memory::*;
 
 use std::ffi::c_void;
 use std::marker::FnPtr;
@@ -24,38 +20,42 @@ pub type HookResult<T> = std::result::Result<T, HookError>;
 pub trait Hook<F: FnPtr> {
   unsafe fn detour_to(&mut self, hook: F) -> HookResult<()>;
   unsafe fn remove(&self) -> HookResult<()>;
+  fn original(&self) -> F;
 }
 
 pub struct TrampolineHook<F: FnPtr> {
   target: *mut c_void,
-  pub original: F,
+  original: Option<F>,
 }
 
 impl<F: FnPtr> TrampolineHook<F> {
   pub unsafe fn new(target: *mut c_void) -> Self {
-    Self { target, original: unsafe { mem::transmute_copy(&ptr::null::<c_void>()) } }
+    Self { target, original: None }
   }
 }
 
 impl<F: FnPtr> Hook<F> for TrampolineHook<F> {
   unsafe fn detour_to(&mut self, hook: F) -> HookResult<()> {
-    unsafe {
-      self.original = mem::transmute_copy(
-        &(MinHook::create_hook(self.target, mem::transmute_copy(&hook))
-          .map_err(HookError::Trampoline)?),
-      );
-    }
+    let original = unsafe { MinHook::create_hook(self.target, hook.addr() as *mut c_void) }
+      .map_err(HookError::Trampoline)?;
+
+    self.original = unsafe { mem::transmute_copy(&original) };
+
     Ok(())
   }
 
   unsafe fn remove(&self) -> HookResult<()> {
     unsafe { MinHook::remove_hook(self.target).map_err(HookError::Trampoline) }
   }
+
+  fn original(&self) -> F {
+    self.original.unwrap()
+  }
 }
 
 pub struct VmtHook<F: FnPtr> {
   ptr_to_target: *mut *mut c_void,
-  pub original: F,
+  original: F,
 }
 
 impl<F: FnPtr> VmtHook<F> {
@@ -96,36 +96,9 @@ impl<F: FnPtr> Hook<F> for VmtHook<F> {
   unsafe fn remove(&self) -> HookResult<()> {
     unsafe { self.swap_target_to(self.original).map_err(HookError::Vmt) }
   }
-}
 
-// NOTE: Reserved for the future
-pub struct NetvarHook {
-  ptr_to_target: *mut Option<RecvPropProxy>,
-  pub original: RecvPropProxy,
-}
-
-impl NetvarHook {
-  pub unsafe fn new_unchecked((class, field): (&str, &str), netvars: &Netvars) -> Self {
-    let netvar = netvars.get(&(class, field)).unwrap();
-
-    let ptr_to_target = netvar.proxy;
-    let original = unsafe { (*netvar.proxy).unwrap() };
-
-    Self { ptr_to_target, original }
-  }
-}
-
-impl Hook<RecvPropProxy> for NetvarHook {
-  unsafe fn detour_to(&mut self, hook: RecvPropProxy) -> HookResult<()> {
-    unsafe { *self.ptr_to_target = Some(hook) };
-
-    Ok(())
-  }
-
-  unsafe fn remove(&self) -> HookResult<()> {
-    unsafe { *self.ptr_to_target = Some(self.original) };
-
-    Ok(())
+  fn original(&self) -> F {
+    self.original
   }
 }
 

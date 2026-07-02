@@ -3,11 +3,11 @@ use crate::App;
 
 use dopamine_sdk::client::ClientMode;
 use dopamine_sdk::render_view::ViewSetup;
-use dopamine_sdk::UserCommand;
+use dopamine_sdk::{Hook, UserCommand};
 
 pub extern "C" fn override_view(this: &ClientMode, view: &mut ViewSetup) {
   App::with_mut(move |app| {
-    (app.hooks.override_view.original)(this, view);
+    (app.hooks.override_view.original())(this, view);
 
     visuals::add_fov(&app.config.visuals.add_fov, view);
   })
@@ -19,7 +19,7 @@ pub extern "C" fn create_move(
   cmd: &mut UserCommand,
 ) -> bool {
   App::with_mut(move |app| {
-    let result = (app.hooks.create_move.original)(this, input_sample_frame_time, cmd);
+    let result = (app.hooks.create_move.original())(this, input_sample_frame_time, cmd);
     {
       misc::bunnyhop(&app.config.misc.bunnyhop, cmd);
     }

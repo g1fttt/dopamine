@@ -2,7 +2,7 @@ use crate::app::App;
 use crate::features::visuals;
 
 use dopamine_sdk::math::{Angles, Vector3D};
-use dopamine_sdk::Entity;
+use dopamine_sdk::{Entity, Hook};
 
 pub extern "C" fn calc_viewmodel_view(
   this: &Entity,
@@ -11,7 +11,7 @@ pub extern "C" fn calc_viewmodel_view(
   eye_angles: &Angles,
 ) {
   App::with_mut(move |app| {
-    let original = app.hooks.calc_viewmodel_view.original;
+    let original = app.hooks.calc_viewmodel_view.original();
     let original = move |eye_origin| original(this, owner, eye_origin, eye_angles);
 
     let viewmodel_origin =
