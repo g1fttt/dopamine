@@ -15,7 +15,7 @@ version = "0.1.0"
 edition = "2024"
 
 [workspace.dependencies]
-windows = { version = "0.62.*", features = [
+windows = { version = "0.62", features = [
   "Win32_System_Memory",
   "Win32_System_LibraryLoader",
   "Win32_System_Threading",
@@ -31,11 +31,11 @@ windows = { version = "0.62.*", features = [
   "Win32_Graphics_Direct3D_Fxc",
   "Win32_Globalization",
 ] }
-windows-numerics = "0.3.1"
-log = "0.4.*"
-serde = { version = "1.0.*", features = ["derive"] }
-strum = { version = "0.27.2", features = ["derive"] }
-derive_builder = "0.20.2"
+windows-numerics = "0.3"
+log = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+strum = { version = "0.27", features = ["derive"] }
+derive_builder = "0.20"
 
 [workspace.lints.rust]
 static_mut_refs = { level = "allow" }

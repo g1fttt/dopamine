@@ -83,7 +83,11 @@ impl Win32 {
       )
     };
 
-    if n == 0 { CP_ACP } else { u32::from_le_bytes(raw_kb_code_page) }
+    if n == 0 {
+      CP_ACP
+    } else {
+      u32::from_le_bytes(raw_kb_code_page)
+    }
   }
 
   pub fn new_frame(&mut self) {

@@ -4,7 +4,7 @@ use bitflags::bitflags;
 use derive_builder::Builder;
 use easy_imgui_sys::*;
 
-use std::ffi::{CString, c_char, c_int, c_void};
+use std::ffi::{c_char, c_int, c_void, CString};
 use std::{mem, ptr};
 
 #[doc(alias = "ImGuiContext")]
@@ -632,6 +632,7 @@ pub struct Io {
   config_nav_cursor_visible_auto: bool,
   config_nav_cursor_visible_always: bool,
   config_docking_no_split: bool,
+  config_docking_no_docking_over: bool,
   config_docking_with_shift: bool,
   config_docking_always_tab_bar: bool,
   config_docking_transparent_payload: bool,
@@ -639,6 +640,7 @@ pub struct Io {
   config_viewports_no_task_bar_icon: bool,
   config_viewports_no_decoration: bool,
   config_viewports_no_default_parent: bool,
+  config_viewports_platform_focus_sets_imgui_focus: bool,
   config_dpi_scale_fonts: bool,
   config_dpi_scale_viewports: bool,
   pub mouse_draw_cursor: bool,
@@ -1174,7 +1176,11 @@ pub enum MouseCursor {
 pub fn mouse_cursor() -> Option<MouseCursor> {
   let cursor = unsafe { ImGui_GetMouseCursor() };
 
-  if cursor == -1 { None } else { Some(unsafe { mem::transmute::<i32, MouseCursor>(cursor) }) }
+  if cursor == -1 {
+    None
+  } else {
+    Some(unsafe { mem::transmute::<i32, MouseCursor>(cursor) })
+  }
 }
 
 #[doc(alias = "ImGuiKey")]
@@ -1304,7 +1310,6 @@ pub enum Key {
 }
 
 #[doc(alias = "IsKeyDown")]
-#[inline(always)]
 pub fn is_key_down(key: Key) -> bool {
   unsafe {
     let key_raw = mem::transmute::<Key, ImGuiKey>(key);

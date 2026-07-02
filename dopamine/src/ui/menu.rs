@@ -10,6 +10,7 @@ use enum_map::Enum;
 use strum::VariantNames;
 
 use imgui::{ColorEditFlags, StyleVarKind, WindowFlags};
+use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
 
 use std::mem;
 
@@ -52,12 +53,17 @@ impl Menu {
   }
 
   pub fn handle_toggle(&mut self) {
-    self.open = !self.open;
+    let input = input_system();
 
+    self.open = !self.open;
     if !self.open {
-      input_system().reset_input_state();
+      input.reset_input_state();
     }
-    input_system().enable_input(!self.open);
+
+    input.enable_input(!self.open);
+
+    imgui::io_mut().mouse_draw_cursor = self.open;
+    unsafe { ShowCursor(!self.open) };
 
     if self.toggle_animation_end > 0.0 && self.toggle_animation_end < 1.0 {
       self.toggle_animation_end = 1.0 - self.toggle_animation_end;

@@ -230,9 +230,9 @@ dependencies = [
 
 [[package]]
 name = "easy-imgui-sys"
-version = "0.20.0"
+version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c8d10463fcf15aceaf36502d3b63b15af46b3ec2d77f0a87b2bc477d963e2731"
+checksum = "7cf36007af380a8d2f11b4372bc15f6aac8a4a9982623327601df97bf6afa9e0"
 dependencies = [
  "bindgen",
  "cc",

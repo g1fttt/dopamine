@@ -9,5 +9,5 @@ workspace = true
 [dependencies]
 derive_builder.workspace = true
 
-easy-imgui-sys = "0.20.0"
-bitflags = "2.10.0"
+easy-imgui-sys = "0.23"
+bitflags = "2.10"

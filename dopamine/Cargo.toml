@@ -22,8 +22,8 @@ imgui.path = "../imgui"
 imgui-dx9-renderer.path = "../imgui-dx9-renderer"
 imgui-win32-support.path = "../imgui-win32-support"
 
-educe = { version = "0.6.0", features = ["Default"] }
-enum-map = { version = "2.7.3", features = ["serde"] }
-fastrand = "2.3.0"
-serde_yaml_ng = "0.10.0"
-chrono = "0.4.*"
+educe = { version = "0.6", features = ["Default"] }
+enum-map = { version = "2.7", features = ["serde"] }
+fastrand = "2.3"
+serde_yaml_ng = "0.10"
+chrono = "0.4"
