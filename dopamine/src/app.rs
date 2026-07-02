@@ -5,16 +5,18 @@ use crate::ui::{BlurEffect, Context as ImGuiContext, Menu};
 use crate::features::chams::Chams;
 use crate::features::glow::Glow;
 
-use dopamine_sdk::interfaces::input_system;
+use bumpalo::Bump;
+
+use windows::core::Result as WindowsResult;
+
 use dopamine_sdk::Entity;
+use dopamine_sdk::interfaces::{input_system, material_system};
 
 use windows::Win32::Foundation::{CloseHandle, HMODULE};
 use windows::Win32::System::Diagnostics::Debug::Beep;
 use windows::Win32::System::LibraryLoader::{DisableThreadLibraryCalls, FreeLibraryAndExitThread};
 use windows::Win32::System::Threading::{CreateThread, THREAD_CREATION_FLAGS};
 use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
-
-use windows::core::Result as WindowsResult;
 
 use std::ffi::c_void;
 use std::sync::OnceLock;
@@ -35,46 +37,55 @@ pub struct App<'s: 'static> {
   pub blur_effect: OnceLock<BlurEffect>,
   pub background_imgui_context: OnceLock<ImGuiContext>,
   pub foreground_imgui_context: OnceLock<ImGuiContext>,
+
+  #[allow(dead_code, reason = "App has to hold this in order to make a graceful cleanup on drop")]
+  pub bump: Bump,
 }
 
 impl App<'_> {
   pub fn on_process_attach(module: HMODULE) -> WindowsResult<()> {
     let app = unsafe {
-      APP.get_mut_or_init(|| App {
-        module,
+      APP.get_mut_or_init(|| {
+        let bump = Bump::new();
 
-        config: Config::create_and_load_from(Config::PATH),
-        hooks: Hooks::create(),
-        menu: Menu::new(),
-        glow: Glow::new(),
-        chams: Chams::new(),
+        App {
+          module,
 
-        player_resource: None,
+          config: Config::create_and_load_from(Config::PATH),
+          hooks: Hooks::create(),
+          menu: Menu::new(),
+          glow: Glow::new(&bump),
+          chams: Chams::new(&bump),
 
-        blur_effect: OnceLock::new(),
-        background_imgui_context: OnceLock::new(),
-        foreground_imgui_context: OnceLock::new(),
+          player_resource: None,
+
+          blur_effect: OnceLock::new(),
+          background_imgui_context: OnceLock::new(),
+          foreground_imgui_context: OnceLock::new(),
+
+          bump,
+        }
       })
     };
     app.setup()
+  }
+
+  pub fn on_process_detach() {
+    if let Err(err) = App::get_mut().config.save_to(Config::PATH) {
+      log::error!("Failed to write config: {err}");
+    }
   }
 
   fn setup(&mut self) -> WindowsResult<()> {
     unsafe {
       DisableThreadLibraryCalls(self.module)?;
 
-      let _ =
-        self.hooks.hook_all().inspect_err(|err| log::error!("Failed to setup hooks: {err:?}"));
+      if let Err(err) = self.hooks.hook_all() {
+        log::error!("Failed to setup hooks: {err:?}");
+      }
 
       Beep(750, 200)
     }
-  }
-
-  pub fn on_process_detach() {
-    let _ = App::get_mut()
-      .config
-      .save_to(Config::PATH)
-      .inspect_err(|err| log::error!("Failed to write config: {err}"));
   }
 
   pub fn unload(&mut self) -> WindowsResult<()> {
@@ -85,6 +96,8 @@ impl App<'_> {
 
       app.background_imgui_context.take();
       app.foreground_imgui_context.take();
+
+      app.bump.reset();
 
       input_system().enable_input(true);
 
@@ -98,8 +111,14 @@ impl App<'_> {
     unsafe {
       ShowCursor(true);
 
-      let _ =
-        self.hooks.unhook_all().inspect_err(|err| log::error!("Failed to remove hooks: {err:?}"));
+      if let Err(err) = self.hooks.unhook_all() {
+        log::error!("Failed to remove hooks: {err:?}");
+      }
+
+      self.glow.dec_ref_counters();
+      self.chams.dec_ref_counters();
+
+      material_system().uncache_unused_materials(true);
 
       let handle = CreateThread(
         None,

@@ -1,21 +1,24 @@
 use crate::cstr;
 use crate::utils::Patterns;
 
+use bumpalo::Bump;
+
+use std::alloc::Layout;
+
 #[repr(C)]
 pub struct KeyValues {
   pad: [u8; 68],
 }
 
 impl KeyValues {
-  fn new_boxed(shader: &str) -> Box<Self> {
-    let mut this = Box::new_uninit();
-    (Patterns::get().key_values_new)(this.as_mut_ptr(), cstr!(shader));
-    unsafe { this.assume_init() }
-  }
+  #[allow(clippy::mut_from_ref)]
+  pub fn alloc_in_bump<'a>(shader: &str, bump: &'a Bump) -> &'a mut KeyValues {
+    let layout = Layout::new::<KeyValues>();
+    let mut this = bump.alloc_layout(layout).cast::<KeyValues>();
 
-  // FIXME: It's better to store this somewhere and then free on unload
-  pub fn new_leaked(shader: &str) -> &mut Self {
-    Box::leak(Self::new_boxed(shader))
+    (Patterns::get().key_values_new)(this.as_ptr(), cstr!(shader));
+
+    unsafe { this.as_mut() }
   }
 
   pub fn set(&mut self, key: &str, value: &str) {

@@ -12,8 +12,6 @@ use strum::VariantNames;
 use imgui::{ColorEditFlags, StyleVarKind, WindowFlags};
 use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
 
-use std::mem;
-
 #[derive(Default)]
 struct ShouldDrawWindow {
   misc: bool,
@@ -225,10 +223,7 @@ impl Menu {
         imgui::same_line();
         imgui::checkbox("Wireframe", &mut current_layer.wireframe);
 
-        let current_material_index = unsafe {
-          mem::transmute::<&mut ChamsMaterialKind, &mut usize>(&mut current_layer.material_kind)
-        };
-        imgui::combo("Material", current_material_index, ChamsMaterialKind::VARIANTS);
+        imgui::combo("Material", &mut current_layer.material_index, ChamsMaterialKind::VARIANTS);
       });
   }
 

@@ -1,12 +1,13 @@
 use crate::config::EnumMapConfig;
 
+use bumpalo::Bump;
 use enum_map::{Enum, EnumMap};
 use serde::{Deserialize, Serialize};
-use strum::VariantNames;
+use strum::{EnumCount, VariantNames};
 
 use dopamine_sdk::interfaces::{material_system, model_render, render_view};
 use dopamine_sdk::material_system::{Material, MaterialFlag};
-use dopamine_sdk::{Color, Entity, KeyValues};
+use dopamine_sdk::{Color, Entity};
 
 pub struct Chams<'a> {
   materials: EnumMap<ChamsMaterialKind, &'a Material>,
@@ -14,19 +15,24 @@ pub struct Chams<'a> {
 }
 
 impl Chams<'_> {
-  pub fn new() -> Self {
-    let kv = KeyValues::new_leaked("VertexLitGeneric");
-    let regular_material = material_system().create_material("_RegularMaterial", kv).unwrap();
+  pub fn new(bump: &Bump) -> Self {
+    let regular_material =
+      material_system().create_material_dummy("_RegularMaterial", "VertexLitGeneric", bump);
 
-    let kv = KeyValues::new_leaked("UnlitGeneric");
-    let flat_material = material_system().create_material("_FlatMaterial", kv).unwrap();
+    let flat_material =
+      material_system().create_material_dummy("_FlatMaterial", "UnlitGeneric", bump);
 
     let materials = EnumMap::from_array([regular_material, flat_material]);
 
     Self { materials, applied: false }
   }
 
-  #[inline(always)]
+  pub fn dec_ref_counters(&self) {
+    for material in self.materials.values() {
+      material.dec_ref_counter();
+    }
+  }
+
   pub fn applied(&self) -> bool {
     self.applied
   }
@@ -92,7 +98,7 @@ impl Chams<'_> {
   }
 
   fn apply_material(&self, draw_model_execute: &impl Fn(), config: &ChamsLayerConfig) {
-    let material = self.materials[config.material_kind];
+    let material = self.materials[config.material_kind()];
     material.set_flag(MaterialFlag::IgnoreZ, config.ignore_z);
     material.set_flag(MaterialFlag::Wireframe, config.wireframe);
 
@@ -116,8 +122,7 @@ pub enum ChamsConfigKind {
   Viewmodel,
 }
 
-#[derive(Default, Clone, Copy, Enum, VariantNames, Serialize, Deserialize)]
-#[repr(usize)] // Guarantee for `mem::transmute` in `ui::menu`
+#[derive(Default, Clone, Copy, Enum, EnumCount, VariantNames, Serialize, Deserialize)]
 pub enum ChamsMaterialKind {
   #[default]
   Regular,
@@ -131,8 +136,14 @@ pub struct ChamsLayerConfig {
   pub ignore_z: bool,
   pub wireframe: bool,
   pub cover: bool,
-  pub material_kind: ChamsMaterialKind,
+  pub material_index: usize,
   pub material_color: Color,
+}
+
+impl ChamsLayerConfig {
+  pub fn material_kind(&self) -> ChamsMaterialKind {
+    ChamsMaterialKind::from_usize(self.material_index)
+  }
 }
 
 #[derive(Default, Serialize, Deserialize)]

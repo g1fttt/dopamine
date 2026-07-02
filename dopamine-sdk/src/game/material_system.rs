@@ -1,6 +1,7 @@
 use crate::game::KeyValues;
 use crate::{Color, cstr, virtual_method};
 
+use bumpalo::Bump;
 use derive_builder::Builder;
 use open_enum::open_enum;
 
@@ -17,6 +18,7 @@ pub enum MaterialFlag {
 pub struct Material;
 
 impl Material {
+  virtual_method!(pub fn dec_ref_counter[13](&self));
   virtual_method!(pub fn set_flag[29](&self, flag: MaterialFlag, state: bool));
 }
 
@@ -24,7 +26,6 @@ impl Material {
 pub struct Texture;
 
 impl Texture {
-  #[inline]
   pub fn dimensions(&self) -> (i32, i32) {
     (self.actual_width(), self.actual_height())
   }
@@ -32,6 +33,7 @@ impl Texture {
 
 impl Texture {
   virtual_method!(pub fn inc_ref_counter[10](&self));
+  virtual_method!(pub fn dec_ref_counter[11](&self));
 }
 
 impl Texture {
@@ -43,23 +45,35 @@ impl Texture {
 pub struct MaterialSystem;
 
 impl MaterialSystem {
-  #[inline]
-  pub fn create_material(&self, name: &str, kv: &KeyValues) -> Option<&Material> {
-    self.create_material_raw(cstr!(name), kv)
+  pub fn create_material_with_kv(
+    &self,
+    name: &str,
+    shader: &str,
+    bump: &Bump,
+    f: impl Fn(&mut KeyValues),
+  ) -> &Material {
+    let kv = KeyValues::alloc_in_bump(shader, bump);
+
+    f(kv);
+
+    self.create_material_raw(cstr!(name), kv).unwrap()
   }
 
-  #[inline]
+  pub fn create_material_dummy(&self, name: &str, shader: &str, bump: &Bump) -> &Material {
+    self.create_material_raw(cstr!(name), KeyValues::alloc_in_bump(shader, bump)).unwrap()
+  }
+
   pub fn find_texture(&self, name: &str, group: &str) -> Option<&Texture> {
     self.find_texture_raw(cstr!(name), cstr!(group))
   }
 
-  #[inline]
   pub fn create_named_rt(&self, name: &str, (width, height): (i32, i32)) -> Option<&Texture> {
     self.create_named_rt_ex(cstr!(name), width, height)
   }
 }
 
 impl MaterialSystem {
+  virtual_method!(pub fn uncache_unused_materials[66](&self, recompute_state_snapshots: bool));
   virtual_method!(pub fn render_ctx[98](&self) -> &RenderContext);
 }
 

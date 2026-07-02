@@ -1,15 +1,16 @@
 use crate::config::EnumMapConfig;
 use crate::entities;
 
-use dopamine_sdk::interfaces::{material_system, model_render, render_view, server};
-use dopamine_sdk::material_system::*;
-use dopamine_sdk::render_view::ViewSetup;
-use dopamine_sdk::{Color, Entity, KeyValues};
-
+use bumpalo::Bump;
 use educe::Educe;
 use enum_map::Enum;
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
+
+use dopamine_sdk::interfaces::{material_system, model_render, render_view, server};
+use dopamine_sdk::material_system::*;
+use dopamine_sdk::render_view::ViewSetup;
+use dopamine_sdk::{Color, Entity};
 
 pub struct Glow<'a> {
   rt_quarter_size_1: &'a Texture,
@@ -23,57 +24,55 @@ pub struct Glow<'a> {
 }
 
 impl Glow<'_> {
-  pub fn new() -> Self {
-    let rt_quarter_size_1 =
-      material_system().find_texture("_rt_SmallFB1", "RenderTargets").unwrap();
+  pub fn new(bump: &Bump) -> Self {
+    let materials = material_system();
+
+    let rt_quarter_size_1 = materials.find_texture("_rt_SmallFB1", "RenderTargets").unwrap();
     rt_quarter_size_1.inc_ref_counter();
 
-    let rt_full_frame = material_system().find_texture("_rt_FullFrameFB", "RenderTargets").unwrap();
+    let rt_full_frame = materials.find_texture("_rt_FullFrameFB", "RenderTargets").unwrap();
+    rt_full_frame.inc_ref_counter();
 
     let rt_glow_buf_1 =
-      material_system().create_named_rt("_rt_GlowBuf1", rt_full_frame.dimensions()).unwrap();
+      materials.create_named_rt("_rt_GlowBuf1", rt_full_frame.dimensions()).unwrap();
 
     let rt_glow_buf_2 =
-      material_system().create_named_rt("_rt_GlowBuf2", rt_full_frame.dimensions()).unwrap();
+      materials.create_named_rt("_rt_GlowBuf2", rt_full_frame.dimensions()).unwrap();
 
-    let kv = KeyValues::new_leaked("UnlitGeneric");
-    {
-      kv.set("$BaseTexture", "white");
-      kv.set("$IgnoreZ", "1");
-      kv.set("$Model", "1");
-      kv.set("$LinearWrite", "1");
-    }
-    let glow_material = material_system().create_material("_GlowMaterial", kv).unwrap();
+    let glow_material =
+      materials.create_material_with_kv("_GlowMaterial", "UnlitGeneric", bump, |kv| {
+        kv.set("$BaseTexture", "white");
+        kv.set("$IgnoreZ", "1");
+        kv.set("$Model", "1");
+        kv.set("$LinearWrite", "1");
+      });
 
-    let kv = KeyValues::new_leaked("screenspace_general");
-    {
-      kv.set("$PixShader", "haloaddoutline_ps20");
-      kv.set("$Alpha_Blend_Color_Overlay", "1");
-      kv.set("$BaseTexture", "_rt_GlowBuf1");
-      kv.set("$C0_X", "1");
-      kv.set("$IgnoreZ", "1");
-      kv.set("$LinearRead_BaseTexture", "1");
-      kv.set("$LinearWrite", "1");
-    }
-    let halo_material = material_system().create_material("_HaloMaterial", kv).unwrap();
+    let halo_material =
+      materials.create_material_with_kv("_HaloMaterial", "screenspace_general", bump, |kv| {
+        kv.set("$PixShader", "haloaddoutline_ps20");
+        kv.set("$Alpha_Blend_Color_Overlay", "1");
+        kv.set("$BaseTexture", "_rt_GlowBuf1");
+        kv.set("$C0_X", "1");
+        kv.set("$IgnoreZ", "1");
+        kv.set("$LinearRead_BaseTexture", "1");
+        kv.set("$LinearWrite", "1");
+      });
 
-    let kv = KeyValues::new_leaked("BlurFilterX");
-    {
-      kv.set("$BaseTexture", "_rt_GlowBuf1");
-      kv.set("$IgnoreZ", "1");
-      kv.set("$Translucent", "1");
-      kv.set("$AlphaTest", "1");
-    }
-    let glow_blur_x_material = material_system().create_material("_GlowBlurX", kv).unwrap();
+    let glow_blur_x_material =
+      materials.create_material_with_kv("_GlowBlurX", "BlurFilterX", bump, |kv| {
+        kv.set("$BaseTexture", "_rt_GlowBuf1");
+        kv.set("$IgnoreZ", "1");
+        kv.set("$Translucent", "1");
+        kv.set("$AlphaTest", "1");
+      });
 
-    let kv = KeyValues::new_leaked("BlurFilterY");
-    {
-      kv.set("$BaseTexture", "_rt_GlowBuf2");
-      kv.set("$IgnoreZ", "1");
-      kv.set("$Translucent", "1");
-      kv.set("$AlphaTest", "1");
-    }
-    let glow_blur_y_material = material_system().create_material("_GlowBlurY", kv).unwrap();
+    let glow_blur_y_material =
+      materials.create_material_with_kv("_GlowBlurY", "BlurFilterY", bump, |kv| {
+        kv.set("$BaseTexture", "_rt_GlowBuf2");
+        kv.set("$IgnoreZ", "1");
+        kv.set("$Translucent", "1");
+        kv.set("$AlphaTest", "1");
+      });
 
     Self {
       rt_quarter_size_1,
@@ -95,6 +94,16 @@ impl Glow<'_> {
 
       self.apply_glow_effects(player_resource, config, view, render_ctx);
     }
+  }
+
+  pub fn dec_ref_counters(&self) {
+    self.rt_quarter_size_1.dec_ref_counter();
+    self.rt_glow_buf_1.dec_ref_counter();
+    self.rt_glow_buf_2.dec_ref_counter();
+    self.glow_material.dec_ref_counter();
+    self.halo_material.dec_ref_counter();
+    self.glow_blur_x_material.dec_ref_counter();
+    self.glow_blur_y_material.dec_ref_counter();
   }
 
   fn draw_glowing_models(

@@ -1,4 +1,4 @@
-use crate::app::App;
+use crate::App;
 
 use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
@@ -18,10 +18,10 @@ pub unsafe extern "system" fn wnd_proc(
         return LRESULT(code);
       }
 
-      if is_key_down(VK_HOME) {
-        let _ = app
-          .unload()
-          .inspect_err(|err| log::error!("Failed to deinitialize and unload App instance: {err}"));
+      if is_key_down(VK_HOME)
+        && let Err(err) = app.unload()
+      {
+        log::error!("Failed to deinitialize and unload App instance: {err}");
       } else if is_key_down(VK_INSERT) {
         app.menu.handle_toggle();
       }

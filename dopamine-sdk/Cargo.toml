@@ -12,6 +12,7 @@ strum.workspace = true
 log.workspace = true
 serde.workspace = true
 derive_builder.workspace = true
+bumpalo.workspace = true
 
 dopamine-macros.path = "../dopamine-macros"
 
