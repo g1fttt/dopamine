@@ -8,27 +8,27 @@ use crate::game::studio_render::StudioRender;
 use crate::game::surface::Surface;
 
 use crate::utils::rip_offset_value;
-use crate::{cstr, pcstr};
+use crate::{cstr, pcstr, singleton_fields};
 
-use dopamine_macros::FieldSingleton;
 use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
 
 use std::ffi::{c_char, c_void};
 use std::sync::LazyLock;
 
-#[derive(FieldSingleton)]
-struct Interfaces<'a> {
-  pub client: &'a Client,
-  pub server: &'a Server,
-  pub client_mode: &'a ClientMode,
-  pub entity_list: &'a EntityList,
-  pub engine: &'a Engine,
-  pub render_view: &'a RenderView,
-  pub material_system: &'a MaterialSystem,
-  pub model_render: &'a ModelRender,
-  pub surface: &'a Surface,
-  pub input_system: &'a InputSystem,
-  pub studio_render: &'a StudioRender<'a>,
+singleton_fields! {
+  struct Interfaces<'a> {
+    pub client: &'a Client,
+    pub server: &'a Server,
+    pub client_mode: &'a ClientMode,
+    pub entity_list: &'a EntityList,
+    pub engine: &'a Engine,
+    pub render_view: &'a RenderView,
+    pub material_system: &'a MaterialSystem,
+    pub model_render: &'a ModelRender,
+    pub surface: &'a Surface,
+    pub input_system: &'a InputSystem,
+    pub studio_render: &'a StudioRender<'a>,
+  }
 }
 
 impl Interfaces<'_> {
