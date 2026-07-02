@@ -1,6 +1,4 @@
-use crate::Color;
-
-use crate::virtual_method;
+use crate::{Color, virtual_method};
 
 use std::mem::MaybeUninit;
 

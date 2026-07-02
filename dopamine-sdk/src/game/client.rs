@@ -1,6 +1,4 @@
-use crate::{ClientClass, Entity, EntityHandle};
-
-use crate::virtual_method;
+use crate::{ClientClass, Entity, EntityHandle, virtual_method};
 
 #[repr(C)]
 pub struct Client;

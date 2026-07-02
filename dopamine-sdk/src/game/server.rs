@@ -1,5 +1,4 @@
-use crate::GlobalVars;
-use crate::virtual_method;
+use crate::{GlobalVars, virtual_method};
 
 #[repr(C)]
 pub struct Server;

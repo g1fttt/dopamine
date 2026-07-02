@@ -1,8 +1,8 @@
 use crate::game::{ClassId, ClientClass};
 use crate::interfaces::{engine, entity_list};
 use crate::utils::Patterns;
-
 use crate::virtual_method;
+
 use dopamine_macros::netvar;
 use open_enum::open_enum;
 

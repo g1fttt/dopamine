@@ -1,7 +1,6 @@
 use crate::game::KeyValues;
-use crate::{Color, cstr};
+use crate::{Color, cstr, virtual_method};
 
-use crate::virtual_method;
 use derive_builder::Builder;
 use open_enum::open_enum;
 
