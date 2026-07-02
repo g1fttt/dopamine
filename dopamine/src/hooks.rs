@@ -11,7 +11,7 @@ use d3d9::{PresentFn, ResetFn};
 use dopamine_sdk::interfaces::*;
 use dopamine_sdk::math::{Angles, Vector3D};
 use dopamine_sdk::utils::Patterns;
-use dopamine_sdk::{Hook, HookResult, TrampolineHook, VmtHook, pcstr};
+use dopamine_sdk::{pcstr, Hook, HookResult, TrampolineHook, VmtHook};
 
 use dopamine_sdk::client::{Client, ClientMode};
 use dopamine_sdk::engine::{ModelRender, ModelRenderInfo};
@@ -32,23 +32,22 @@ pub struct Hooks {
   pub(self) reset: TrampolineHook<ResetFn>,
   pub(self) present: TrampolineHook<PresentFn>,
 
-  pub(self) override_view: VmtHook<extern "fastcall" fn(&ClientMode, &mut ViewSetup)>,
-  pub(self) create_move: VmtHook<extern "fastcall" fn(&ClientMode, f32, &mut UserCommand) -> bool>,
-  pub(self) should_draw_crosshair: VmtHook<extern "fastcall" fn(&ClientMode) -> bool>,
-  pub(self) do_post_screen_space_effects:
-    VmtHook<extern "fastcall" fn(&ClientMode, &ViewSetup) -> bool>,
+  pub(self) override_view: VmtHook<extern "C" fn(&ClientMode, &mut ViewSetup)>,
+  pub(self) create_move: VmtHook<extern "C" fn(&ClientMode, f32, &mut UserCommand) -> bool>,
+  pub(self) should_draw_crosshair: VmtHook<extern "C" fn(&ClientMode) -> bool>,
+  pub(self) do_post_screen_space_effects: VmtHook<extern "C" fn(&ClientMode, &ViewSetup) -> bool>,
 
-  pub(self) level_init_post_entity: VmtHook<extern "fastcall" fn(&Client)>,
-  pub(self) level_shutdown: VmtHook<extern "fastcall" fn(&Client)>,
+  pub(self) level_init_post_entity: VmtHook<extern "C" fn(&Client)>,
+  pub(self) level_shutdown: VmtHook<extern "C" fn(&Client)>,
 
   pub(self) draw_model_execute:
-    VmtHook<extern "fastcall" fn(&ModelRender, *mut c_void, &ModelRenderInfo, *mut c_void)>,
+    VmtHook<extern "C" fn(&ModelRender, *mut c_void, &ModelRenderInfo, *mut c_void)>,
 
-  pub(self) is_cursor_visible: VmtHook<extern "fastcall" fn(&Surface) -> bool>,
-  pub(self) lock_cursor: VmtHook<extern "fastcall" fn(&Surface)>,
+  pub(self) is_cursor_visible: VmtHook<extern "C" fn(&Surface) -> bool>,
+  pub(self) lock_cursor: VmtHook<extern "C" fn(&Surface)>,
 
   pub(self) calc_viewmodel_view:
-    TrampolineHook<extern "fastcall" fn(&Entity, &Entity, &Vector3D, &Angles)>,
+    TrampolineHook<extern "C" fn(&Entity, &Entity, &Vector3D, &Angles)>,
 }
 
 impl Hooks {

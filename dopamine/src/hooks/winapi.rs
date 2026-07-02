@@ -4,7 +4,7 @@ use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
 use windows::Win32::UI::WindowsAndMessaging::CallWindowProcW;
 
-pub unsafe extern "stdcall" fn wnd_proc(
+pub unsafe extern "system" fn wnd_proc(
   hwnd: HWND,
   msg: u32,
   w_param: WPARAM,

@@ -6,7 +6,7 @@ use dopamine_macros::virtual_method;
 pub struct Client;
 
 impl Client {
-  virtual_method!(pub fn all_classes[8](&self) -> Option<&ClientClass>);
+  virtual_method!(pub fn all_classes[8](&self) -> Option<&ClientClass<'_>>);
 }
 
 #[repr(C)]

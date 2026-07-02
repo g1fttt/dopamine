@@ -7,14 +7,14 @@ use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::Graphics::Direct3D9::*;
 use windows::Win32::Graphics::Gdi::RGNDATA;
 
-use windows::core::{HRESULT, Interface, Result as WindowsResult};
+use windows::core::{Interface, Result as WindowsResult, HRESULT};
 
 use std::ffi::c_void;
 use std::ptr::NonNull;
 
-pub type ResetFn = extern "stdcall" fn(NonNull<c_void>, &D3DPRESENT_PARAMETERS) -> HRESULT;
+pub type ResetFn = extern "C" fn(NonNull<c_void>, &D3DPRESENT_PARAMETERS) -> HRESULT;
 
-pub extern "stdcall" fn reset(this: NonNull<c_void>, params: &D3DPRESENT_PARAMETERS) -> HRESULT {
+pub extern "C" fn reset(this: NonNull<c_void>, params: &D3DPRESENT_PARAMETERS) -> HRESULT {
   App::with_mut(move |app| {
     let this_raw_ptr = this.as_ptr();
     let device = unsafe { IDirect3DDevice9::from_raw_borrowed(&this_raw_ptr).unwrap() };
@@ -35,15 +35,10 @@ pub extern "stdcall" fn reset(this: NonNull<c_void>, params: &D3DPRESENT_PARAMET
   })
 }
 
-pub type PresentFn = extern "stdcall" fn(
-  NonNull<c_void>,
-  Option<&RECT>,
-  Option<&RECT>,
-  HWND,
-  Option<&RGNDATA>,
-) -> HRESULT;
+pub type PresentFn =
+  extern "C" fn(NonNull<c_void>, Option<&RECT>, Option<&RECT>, HWND, Option<&RGNDATA>) -> HRESULT;
 
-pub extern "stdcall" fn present(
+pub extern "C" fn present(
   this: NonNull<c_void>,
   src: Option<&RECT>,
   dest: Option<&RECT>,

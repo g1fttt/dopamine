@@ -104,7 +104,7 @@ pub fn macro_impl(item: TokenStream) -> TokenStream {
     #[allow(clippy::too_many_arguments)]
     #visibility fn #fn_ident #fn_generics(#fn_args) #fn_output {
       unsafe {
-        (*(*(self as *const Self as *const *const extern "fastcall" fn(&Self, #(#fn_params_types),*) #fn_output))
+        (*(*(self as *const Self as *const *const extern "C" fn(&Self, #(#fn_params_types),*) #fn_output))
           .add(#fn_virtual_index))(self, #(#fn_params_names),* #fn_params_exprs)
       }
     }

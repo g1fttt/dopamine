@@ -11,12 +11,11 @@ use std::ffi::{c_char, c_void};
 use std::sync::LazyLock;
 
 pub struct Patterns {
-  pub(crate) key_values_new:
-    extern "fastcall" fn(*mut KeyValues, shader: *const c_char) -> *mut KeyValues,
+  pub(crate) key_values_new: extern "C" fn(*mut KeyValues, shader: *const c_char) -> *mut KeyValues,
   pub(crate) key_values_set_string:
-    extern "fastcall" fn(&mut KeyValues, key: *const c_char, value: *const c_char),
+    extern "C" fn(&mut KeyValues, key: *const c_char, value: *const c_char),
 
-  pub is_local_player: extern "fastcall" fn(&Entity) -> bool,
+  pub is_local_player: extern "C" fn(&Entity) -> bool,
 
   pub calc_viewmodel_view: *mut c_void,
 

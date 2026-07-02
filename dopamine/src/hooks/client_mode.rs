@@ -1,11 +1,11 @@
-use crate::App;
 use crate::features::{misc, visuals};
+use crate::App;
 
-use dopamine_sdk::UserCommand;
 use dopamine_sdk::client::ClientMode;
 use dopamine_sdk::render_view::ViewSetup;
+use dopamine_sdk::UserCommand;
 
-pub extern "fastcall" fn override_view(this: &ClientMode, view: &mut ViewSetup) {
+pub extern "C" fn override_view(this: &ClientMode, view: &mut ViewSetup) {
   App::with_mut(move |app| {
     (app.hooks.override_view.original)(this, view);
 
@@ -13,7 +13,7 @@ pub extern "fastcall" fn override_view(this: &ClientMode, view: &mut ViewSetup) 
   })
 }
 
-pub extern "fastcall" fn create_move(
+pub extern "C" fn create_move(
   this: &ClientMode,
   input_sample_frame_time: f32,
   cmd: &mut UserCommand,
@@ -27,14 +27,11 @@ pub extern "fastcall" fn create_move(
   })
 }
 
-pub extern "fastcall" fn should_draw_crosshair(_this: &ClientMode) -> bool {
+pub extern "C" fn should_draw_crosshair(_this: &ClientMode) -> bool {
   App::with_mut(move |app| !app.config.visuals.better_crosshair.enabled)
 }
 
-pub extern "fastcall" fn do_post_screen_space_effects(
-  _this: &ClientMode,
-  view: &ViewSetup,
-) -> bool {
+pub extern "C" fn do_post_screen_space_effects(_this: &ClientMode, view: &ViewSetup) -> bool {
   App::with_mut(move |app| app.glow.draw(app.player_resource, &app.config.glow, view));
 
   true

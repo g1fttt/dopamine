@@ -26,7 +26,7 @@ impl Entity {
   }
 
   #[inline(always)]
-  pub fn attachments(&self) -> EntityAttachmentIterator {
+  pub fn attachments(&self) -> EntityAttachmentIterator<'_> {
     EntityAttachmentIterator::new(self)
   }
 
@@ -119,7 +119,7 @@ pub struct NetworkableEntity;
 
 impl NetworkableEntity {
   virtual_method!(pub fn release[1](&self));
-  virtual_method!(pub fn client_class[2](&self) -> &ClientClass);
+  virtual_method!(pub fn client_class[2](&self) -> &ClientClass<'_>);
   virtual_method!(pub fn is_dormant[8](&self) -> bool);
   virtual_method!(pub fn index[9](&self) -> i32);
 }

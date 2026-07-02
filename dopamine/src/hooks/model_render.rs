@@ -5,7 +5,7 @@ use dopamine_sdk::interfaces::{entity_list, model_render, studio_render};
 
 use std::ffi::c_void;
 
-pub extern "fastcall" fn draw_model_execute(
+pub extern "C" fn draw_model_execute(
   this: &ModelRender,
   state: *mut c_void,
   info: &ModelRenderInfo,

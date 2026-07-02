@@ -1,4 +1,4 @@
-#![allow(internal_features)]
+#![allow(internal_features, unused_features)]
 #![feature(once_cell_get_mut, str_from_raw_parts, core_intrinsics /* reserved for debug purpose */)]
 
 mod app;

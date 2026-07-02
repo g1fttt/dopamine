@@ -551,9 +551,9 @@ impl Win32 {
           io.add_input_char(ch);
         }
       },
-      WM_SETCURSOR => if loword(l_param.0 as u32) as u32 == HTCLIENT
+      WM_SETCURSOR if loword(l_param.0 as u32) as u32 == HTCLIENT
         && Self::update_mouse_cursor(io, self.last_mouse_cursor)
-      {
+      => {
         return Ok(1);
       },
       _ => (),
