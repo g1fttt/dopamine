@@ -201,20 +201,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "dopamine-macros"
-version = "0.1.0"
-dependencies = [
- "quote",
- "syn",
-]
-
-[[package]]
 name = "dopamine-sdk"
 version = "0.1.0"
 dependencies = [
  "bumpalo",
  "derive_builder",
- "dopamine-macros",
  "log",
  "minhook",
  "num-traits",
