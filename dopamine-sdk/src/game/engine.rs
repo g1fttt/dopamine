@@ -1,6 +1,5 @@
 use crate::game::material_system::Material;
-
-use dopamine_macros::virtual_method;
+use crate::virtual_method;
 
 #[repr(C)]
 pub struct Engine;
@@ -35,5 +34,5 @@ impl ModelRender {
 
 impl ModelRender {
   virtual_method!(fn forced_material_override[1](&self, new_material: Option<&Material>)
-    where (0: i32 /* NORMAL */));
+    where (i32: 0 /* NORMAL */));
 }

@@ -1,6 +1,4 @@
-use crate::GlobalVars;
-
-use dopamine_macros::virtual_method;
+use crate::{GlobalVars, virtual_method};
 
 #[repr(C)]
 pub struct Server;

@@ -1,8 +1,9 @@
 use crate::game::{ClassId, ClientClass};
 use crate::interfaces::{engine, entity_list};
 use crate::utils::Patterns;
+use crate::virtual_method;
 
-use dopamine_macros::{netvar, virtual_method};
+use dopamine_macros::netvar;
 use open_enum::open_enum;
 
 use std::ops::BitAnd;
@@ -129,7 +130,7 @@ pub struct RenderableEntity;
 
 impl RenderableEntity {
   virtual_method!(pub fn should_draw[3](&self) -> bool);
-  virtual_method!(pub fn draw_model[10](&self) -> i32 where (1: i32 /* StudioRender */));
+  virtual_method!(pub fn draw_model[10](&self) -> i32 where (i32: 1 /* StudioRender */));
 }
 
 #[repr(C)]
