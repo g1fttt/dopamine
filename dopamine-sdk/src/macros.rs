@@ -98,7 +98,7 @@ macro_rules! virtual_method {
     #[allow(clippy::too_many_arguments, clippy::macro_metavars_in_unsafe)]
     $visibility fn $fn_ident $(< $( $lt $( : $clt $(+ $dlt )* )? ),+ >)? (&self $(, $param: $param_ty)*) $(-> $fn_return)? {
       let this = self as *const Self;
-      let vtab = this as *const *const extern "fastcall" fn(&Self $(, $param_ty)* $($(, $extra_arg_ty)*)?) $(-> $fn_return)?;
+      let vtab = this as *const *const extern "C" fn(&Self $(, $param_ty)* $($(, $extra_arg_ty)*)?) $(-> $fn_return)?;
       unsafe { (*(*vtab).add($virtual_index))(self $(, $param)* $($(, $extra_arg)*)?) }
     }
   };
