@@ -63,6 +63,85 @@ macro_rules! rstr {
   };
 }
 
+/// Used specifically for generating getter functions in the [`crate::interfaces`] module.
+///
+/// # Examples
+///
+/// This code:
+/// ```ignore
+/// singleton_fields! {
+///     struct Interfaces<'a> {
+///         pub client: &'a Client,
+///         pub server: &'a Server,
+///     }
+/// }
+/// ```
+/// ... generates this code:
+/// ```ignore
+/// struct Interfaces<'a> {
+///     pub client: &'a Client,
+///     pub server: &'a Server,
+/// }
+///
+/// pub fn client<'a>() -> &'a Client {
+///   Interfaces::get().client
+/// }
+///
+/// pub fn server<'a>() -> &'a Server {
+///   Interfaces::get().server
+/// }
+/// ```
+#[macro_export]
+macro_rules! singleton_fields {
+  (
+    $(#[$attr:meta])*
+    $struct_visibility:vis struct $Struct:ident $(< $( $lt:tt $(: $clt:tt $(+ $dlt:tt )* )? ),+ >)? {
+      $($field_visibility:vis $field_name:ident: $field_type:ty),*
+      $(,)?
+    }
+  ) => {
+    $(#[$attr])*
+    $struct_visibility struct $Struct $(< $( $lt $( : $clt $(+ $dlt )* )? ),+ >)? {
+      $($field_visibility $field_name: $field_type),*
+    }
+
+    $crate::singleton_fields! {
+      @munch
+      struct_name = $Struct;
+      generics = [ $(< $( $lt $( : $clt $(+ $dlt )* )? ),+ >)? ];
+      fields = [ $($field_visibility $field_name: $field_type,)* ];
+    }
+  };
+
+  (
+    @munch
+    struct_name = $Struct:ident;
+    generics = [ $($generics:tt)* ];
+    fields = [
+      $field_visibility:vis $field_name:ident: $field_type:ty,
+      $($rest:tt)*
+    ];
+  ) => {
+    $field_visibility fn $field_name $($generics)* () -> $field_type {
+      $Struct::get().$field_name
+    }
+
+    $crate::singleton_fields! {
+      @munch
+      struct_name = $Struct;
+      generics = [ $($generics)* ];
+      fields = [ $($rest)* ];
+    }
+  };
+
+  (
+    @munch
+    struct_name = $Struct:ident;
+    generics = [ $($generics:tt)* ];
+    fields = [];
+  ) => {};
+}
+
 /// Generates a wrapper function for a function with specified index in underlying v-table.
 ///
 /// # Examples
@@ -109,7 +188,6 @@ macro_rules! virtual_method {
 /// # Examples
 ///
 /// ```ignore
-/// # use crate::netvar;
 /// struct Entity;
 ///
 /// impl Entity {
