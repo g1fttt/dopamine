@@ -103,3 +103,38 @@ macro_rules! virtual_method {
     }
   };
 }
+
+/// Generates a wrapper function for accessing specific Source netvar.
+///
+/// # Examples
+///
+/// ```ignore
+/// # use crate::netvar;
+/// struct Entity;
+///
+/// impl Entity {
+///     netvar!(pub fn flags -> EntityFlags as CBasePlayer->m_fFlags);
+/// }
+/// ```
+#[macro_export]
+macro_rules! netvar {
+  (
+    $visibility:vis fn $fn_name:ident $(-> $fn_return:ty)?
+    as $class:ident->$field:ident $([$index:literal])?
+    $(,)?
+  ) => {
+    $visibility fn $fn_name(&self) $(-> $fn_return)? {
+      const PROP_CLASS: &str = stringify!($class);
+      const PROP_FIELD: &str = concat!(stringify!($field), $("[", stringify!($index), "]")?);
+
+      let offset = $crate::utils::Netvars::get()
+      .get(&(PROP_CLASS, PROP_FIELD))
+      .map(|n| n.offset)
+      .unwrap_or_else(|| {
+        ::log::error!("Failed to find netvar: {PROP_CLASS}->{PROP_FIELD}");
+        panic!();
+      });
+      unsafe { *(self as *const Self).byte_add(offset).cast() }
+    }
+  };
+}

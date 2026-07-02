@@ -1,9 +1,8 @@
 use crate::game::{ClassId, ClientClass};
 use crate::interfaces::{engine, entity_list};
 use crate::utils::Patterns;
-use crate::virtual_method;
+use crate::{netvar, virtual_method};
 
-use dopamine_macros::netvar;
 use open_enum::open_enum;
 
 use std::ops::BitAnd;
@@ -107,12 +106,11 @@ impl Entity {
   virtual_method!(pub fn active_weapon[227](&self) -> Option<&Entity>);
   virtual_method!(pub fn weapon_id[371](&self) -> WeaponId);
 
-  netvar!(pub fn team -> i32 for CBaseEntity->m_iTeamNum);
-  netvar!(pub fn owner_handle -> EntityHandle for CBaseCombatWeapon->m_hOwner);
-  netvar!(fn player_spotted -> [bool; 65] for CCSPlayerResource->m_bPlayerSpotted);
-  netvar!(fn flags -> EntityFlags for CBasePlayer->m_fFlags);
-  netvar!(fn weapon_mode -> WeaponMode for CWeaponCSBase->m_weaponMode);
-  netvar!(fn observer_target_handle -> EntityHandle for CBasePlayer->m_hObserverTarget);
+  netvar!(pub fn team -> i32 as CBaseEntity->m_iTeamNum);
+  netvar!(pub fn owner_handle -> EntityHandle as CBaseCombatWeapon->m_hOwner);
+  netvar!(fn player_spotted -> [bool; 65] as CCSPlayerResource->m_bPlayerSpotted);
+  netvar!(fn flags -> EntityFlags as CBasePlayer->m_fFlags);
+  netvar!(fn weapon_mode -> WeaponMode as CWeaponCSBase->m_weaponMode);
 }
 
 #[repr(C)]
