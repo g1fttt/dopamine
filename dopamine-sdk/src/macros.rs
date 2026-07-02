@@ -62,3 +62,44 @@ macro_rules! rstr {
     std::ffi::CStr::from_ptr($ptr).to_str().unwrap()
   };
 }
+
+/// Generates a wrapper function for a function with specified index in underlying v-table.
+///
+/// # Examples
+///
+/// ```ignore
+/// impl MaterialSystem {
+///     virtual_method!(
+///         pub fn create_material_raw<'a>[70](&self, name: &CStr, kv: &KeyValues) -> Option<&'a Material>,
+///     );
+///     virtual_method!(
+///         fn find_texture_raw[79](&self, name: &CStr, group: &CStr) -> Option<&Texture>
+///         // You could also provide additional trailing arguments to the generated function call.
+///         // Unfortunately, it requires this kind of ugly syntax.
+///         where (bool: true, i32: 0),
+///     );
+/// }
+/// ```
+#[macro_export]
+macro_rules! virtual_method {
+  (
+    $visibility:vis fn $fn_ident:ident
+    // this monstrosity is just for generics
+    $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)?
+    // Function index in the virtual table
+    [$virtual_index:literal]
+    // function arguments and optional return type
+    (&self $(, $param:ident : $param_ty:ty )* $(,)? ) $(-> $fn_return:ty)?
+    // extra trailing arguments not listed in generated wrapper function
+    $(where ($($extra_arg_ty:ty: $extra_arg:expr),+) )?
+    // nice to have
+    $(,)?
+  ) => {
+    #[allow(clippy::too_many_arguments, clippy::macro_metavars_in_unsafe)]
+    $visibility fn $fn_ident $(< $( $lt $( : $clt $(+ $dlt )* )? ),+ >)? (&self $(, $param: $param_ty)*) $(-> $fn_return)? {
+      let this = self as *const Self;
+      let vtab = this as *const *const extern "fastcall" fn(&Self $(, $param_ty)* $($(, $extra_arg_ty)*)?) $(-> $fn_return)?;
+      unsafe { (*(*vtab).add($virtual_index))(self $(, $param)* $($(, $extra_arg)*)?) }
+    }
+  };
+}
