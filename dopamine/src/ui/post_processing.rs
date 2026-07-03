@@ -58,17 +58,17 @@ impl BlurEffect {
       }
     }
 
-    let blur_shader_x = compile_pixel_shader(device, include_str!("../shaders/blur_x.hlsl"))
-      .inspect_err(|err| {
-        log::error!("Failed to compile `blur_shader_x`: {err}");
-      })
-      .unwrap();
+    let pixel_shader = compile_pixel_shader(device, include_str!("../shaders/blur_x.hlsl"));
+    let blur_shader_x = match pixel_shader {
+      Ok(shader) => shader,
+      Err(err) => panic!("Failed to compile `blur_shader_x`: {err}"),
+    };
 
-    let blur_shader_y = compile_pixel_shader(device, include_str!("../shaders/blur_y.hlsl"))
-      .inspect_err(|err| {
-        log::error!("Failed to compile `blur_shader_y`: {err}");
-      })
-      .unwrap();
+    let pixel_shader = compile_pixel_shader(device, include_str!("../shaders/blur_y.hlsl"));
+    let blur_shader_y = match pixel_shader {
+      Ok(shader) => shader,
+      Err(err) => panic!("Failed to compile `blur_shader_y`: {err}"),
+    };
 
     // Increments internal reference counter
     let device = device.clone();
@@ -83,7 +83,7 @@ impl BlurEffect {
     }
   }
 
-  pub fn render(&mut self, draw_list: &mut DrawList, alpha: f32) -> WindowsResult<()> {
+  pub fn draw(&mut self, draw_list: &mut DrawList, alpha: f32) -> WindowsResult<()> {
     self.new_frame()?;
 
     let Some((blur1, blur2)) = self.blur_texture1.as_ref().zip(self.blur_texture2.as_ref()) else {
@@ -155,6 +155,7 @@ impl BlurEffect {
       self.device.SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP.0 as u32)?;
 
       self.device.SetRenderState(D3DRS_SCISSORTESTENABLE, 0)?;
+      self.device.SetRenderState(D3DRS_SRGBWRITEENABLE, 1)?;
     }
 
     let display_size = imgui::io().display_size;
@@ -222,7 +223,10 @@ impl BlurEffect {
     unsafe {
       self.device.SetRenderTarget(0, self.rt_backup.take().as_ref().unwrap())?;
       self.device.SetPixelShader(None)?;
-      self.device.SetRenderState(D3DRS_SCISSORTESTENABLE, 1)
+      self.device.SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 0)?;
+
+      self.device.SetRenderState(D3DRS_SCISSORTESTENABLE, 1)?;
+      self.device.SetRenderState(D3DRS_SRGBWRITEENABLE, 0)
     }
   }
 
@@ -260,7 +264,7 @@ fn create_texture(
       height as u32,
       1,
       D3DUSAGE_RENDERTARGET as u32,
-      D3DFMT_X8R8G8B8,
+      D3DFMT_A8R8G8B8,
       D3DPOOL_DEFAULT,
       &mut texture,
       ptr::null_mut(),

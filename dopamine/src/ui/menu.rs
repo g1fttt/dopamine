@@ -70,7 +70,7 @@ impl Menu {
     }
   }
 
-  pub fn render(&mut self, config: &mut Config) {
+  pub fn draw(&mut self, config: &mut Config) {
     let style = imgui::push_style_var(StyleVarKind::Alpha(self.transparency()));
     {
       self.draw_menu_bar();

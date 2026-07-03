@@ -6,7 +6,6 @@ use crate::features::chams::Chams;
 use crate::features::glow::Glow;
 
 use bumpalo::Bump;
-
 use windows::core::Result as WindowsResult;
 
 use dopamine_sdk::Entity;
@@ -35,8 +34,7 @@ pub struct App<'s: 'static> {
   pub player_resource: Option<&'s Entity>,
 
   pub blur_effect: OnceLock<BlurEffect>,
-  pub background_imgui_context: OnceLock<ImGuiContext>,
-  pub foreground_imgui_context: OnceLock<ImGuiContext>,
+  pub imgui_context: OnceLock<ImGuiContext>,
 
   #[allow(dead_code, reason = "App has to hold this in order to make a graceful cleanup on drop")]
   pub bump: Bump,
@@ -60,8 +58,7 @@ impl App<'_> {
           player_resource: None,
 
           blur_effect: OnceLock::new(),
-          background_imgui_context: OnceLock::new(),
-          foreground_imgui_context: OnceLock::new(),
+          imgui_context: OnceLock::new(),
 
           bump,
         }
@@ -93,9 +90,7 @@ impl App<'_> {
       let app = unsafe { &mut *app.cast::<App>() };
 
       app.blur_effect.take();
-
-      app.background_imgui_context.take();
-      app.foreground_imgui_context.take();
+      app.imgui_context.take();
 
       app.bump.reset();
 

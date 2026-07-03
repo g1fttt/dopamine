@@ -11,8 +11,8 @@ pub unsafe extern "system" fn wnd_proc(
   l_param: LPARAM,
 ) -> LRESULT {
   App::with_mut(move |app| {
-    if let Some(foreground) = app.foreground_imgui_context.get_mut() {
-      if let Ok(code) = foreground.handle_window_proc(hwnd, msg, w_param, l_param)
+    if let Some(ctx) = app.imgui_context.get_mut() {
+      if let Ok(code) = ctx.handle_window_proc(hwnd, msg, w_param, l_param)
         && code > 0
       {
         return LRESULT(code);

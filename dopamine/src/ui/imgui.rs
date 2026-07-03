@@ -15,7 +15,6 @@ pub struct Context {
 impl Context {
   pub fn new(device: &IDirect3DDevice9, hwnd: HWND) -> Self {
     let ctx = imgui::Context::new();
-    ctx.set_current();
 
     let renderer = Renderer::new(device)
       .inspect_err(|err| log::error!("Failed to create ImGui DX9 renderer: {err}"))
@@ -38,10 +37,27 @@ impl Context {
 }
 
 impl Context {
-  pub fn new_frame(&mut self) -> imgui::Frame {
-    self.ctx.set_current();
+  pub fn draw_with_frame(
+    &mut self,
+    device: &IDirect3DDevice9,
+    mut f: impl FnMut() -> WindowsResult<()>,
+  ) -> WindowsResult<()> {
     self.win32.new_frame();
-    self.ctx.new_frame()
+
+    let frame = self.ctx.new_frame();
+    {
+      f()?;
+    }
+    frame.end();
+
+    self.ctx.render();
+
+    unsafe {
+      if device.BeginScene().is_ok() {
+        self.renderer.render(imgui::draw_data())?;
+      }
+      device.EndScene()
+    }
   }
 
   pub fn handle_window_proc(
@@ -51,25 +67,12 @@ impl Context {
     w_param: WPARAM,
     l_param: LPARAM,
   ) -> WindowsResult<isize> {
-    self.ctx.set_current();
     self.win32.handle_window_proc(hwnd, msg, w_param, l_param, imgui::io_mut())
   }
 
-  #[inline]
   pub fn reset(&mut self, device: &IDirect3DDevice9) -> WindowsResult<()> {
     self.renderer = Renderer::new(device)?;
 
     Ok(())
-  }
-
-  pub fn render(&mut self, device: &IDirect3DDevice9) -> WindowsResult<()> {
-    self.ctx.render();
-
-    unsafe {
-      if device.BeginScene().is_ok() {
-        self.renderer.render(imgui::draw_data())?;
-      }
-      device.EndScene()
-    }
   }
 }

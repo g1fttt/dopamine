@@ -27,11 +27,10 @@ pub extern "C" fn reset(this: NonNull<c_void>, params: &D3DPRESENT_PARAMETERS) -
 
     let result = (app.hooks.reset.original())(this, params);
 
-    if let Some((background, foreground)) =
-      app.background_imgui_context.get_mut().zip(app.foreground_imgui_context.get_mut())
+    if let Some(context) = app.imgui_context.get_mut()
+      && let Err(err) = context.reset(device)
     {
-      let _ = background.reset(device);
-      let _ = foreground.reset(device);
+      log::error!("Failed to reset ImGui context: {err}");
     }
     result
   })
@@ -55,15 +54,9 @@ pub extern "C" fn present(
       let mut params = D3DDEVICE_CREATION_PARAMETERS::default();
       let _ = unsafe { device.GetCreationParameters(&mut params) };
 
-      // Fix menu doesn't render without `net_graph` or `cl_showfps`
-      let _ = unsafe { device.SetRenderState(D3DRS_COLORWRITEENABLE, u32::MAX) };
-
-      draw_background(app, device, params.hFocusWindow)
-        .inspect_err(|err| log::error!("Failed to draw ImGui `background` context: {err}"))
-        .unwrap();
-      draw_foreground(app, device, params.hFocusWindow)
-        .inspect_err(|err| log::error!("Failed to draw ImGui `foreground` context: {err}"))
-        .unwrap();
+      if let Err(err) = draw_imgui_context(app, device, params.hFocusWindow) {
+        log::error!("Failed to draw ImGui context: {err}");
+      }
 
       let _ = unsafe { state_block.Apply() };
     }
@@ -71,46 +64,38 @@ pub extern "C" fn present(
   })
 }
 
-fn draw_background(app: &mut App, device: &IDirect3DDevice9, hwnd: HWND) -> WindowsResult<()> {
-  let background = app.background_imgui_context.get_mut_or_init(|| ImGuiContext::new(device, hwnd));
+fn draw_imgui_context(app: &mut App, device: &IDirect3DDevice9, hwnd: HWND) -> WindowsResult<()> {
+  let context = app.imgui_context.get_mut_or_init(|| ImGuiContext::new(device, hwnd));
 
-  let frame = background.new_frame();
+  unsafe {
+    // Fix menu doesn't render without `net_graph` or `cl_showfps`
+    device.SetRenderState(D3DRS_COLORWRITEENABLE, u32::MAX)?;
 
-  app.menu.update_animation();
+    // Fix broken ImGui menu colors with Source engine gamma correction
+    device.SetRenderState(D3DRS_SRGBWRITEENABLE, 0)?;
+  };
 
-  let bg_draw_list = imgui::background_draw_list();
+  context.draw_with_frame(device, || {
+    app.menu.update_animation();
 
-  let blur_effect = app.blur_effect.get_mut_or_init(|| BlurEffect::new(device));
-  let should_draw_blur_effect = app.config.blur_enabled && !app.menu.is_fully_closed();
+    let bg_draw_list = imgui::background_draw_list();
 
-  if should_draw_blur_effect {
-    blur_effect.render(bg_draw_list, app.menu.transparency())?;
-  }
+    let blur_effect = app.blur_effect.get_mut_or_init(|| BlurEffect::new(device));
+    let should_draw_blur_effect = app.config.blur_enabled && !app.menu.is_fully_closed();
 
-  let should_draw_visuals = engine().is_in_game() && !surface().is_cursor_visible();
+    if should_draw_blur_effect {
+      blur_effect.draw(bg_draw_list, app.menu.transparency())?;
+    }
 
-  if should_draw_visuals {
-    visuals::draw_better_crosshair(&app.config.visuals.better_crosshair, bg_draw_list);
-  }
+    let should_draw_visuals = engine().is_in_game() && !surface().is_cursor_visible();
 
-  frame.end();
+    if should_draw_visuals {
+      visuals::draw_better_crosshair(&app.config.visuals.better_crosshair, bg_draw_list);
+    }
 
-  background.render(device)
-}
-
-fn draw_foreground(app: &mut App, device: &IDirect3DDevice9, hwnd: HWND) -> WindowsResult<()> {
-  let foreground = app.foreground_imgui_context.get_mut_or_init(|| ImGuiContext::new(device, hwnd));
-
-  let frame = foreground.new_frame();
-
-  // Fix broken ImGui menu colors with Source engine gamma correction
-  unsafe { device.SetRenderState(D3DRS_SRGBWRITEENABLE, 0)? };
-
-  if app.menu.is_open() {
-    app.menu.render(&mut app.config);
-  }
-
-  frame.end();
-
-  foreground.render(device)
+    if app.menu.is_open() {
+      app.menu.draw(&mut app.config);
+    }
+    Ok(())
+  })
 }

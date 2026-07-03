@@ -4,7 +4,7 @@ use bitflags::bitflags;
 use derive_builder::Builder;
 use easy_imgui_sys::*;
 
-use std::ffi::{c_char, c_int, c_void, CString};
+use std::ffi::{CString, c_char, c_int, c_void};
 use std::{mem, ptr};
 
 #[doc(alias = "ImGuiContext")]
@@ -1176,11 +1176,7 @@ pub enum MouseCursor {
 pub fn mouse_cursor() -> Option<MouseCursor> {
   let cursor = unsafe { ImGui_GetMouseCursor() };
 
-  if cursor == -1 {
-    None
-  } else {
-    Some(unsafe { mem::transmute::<i32, MouseCursor>(cursor) })
-  }
+  if cursor == -1 { None } else { Some(unsafe { mem::transmute::<i32, MouseCursor>(cursor) }) }
 }
 
 #[doc(alias = "ImGuiKey")]
