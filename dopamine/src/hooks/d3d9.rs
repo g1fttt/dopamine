@@ -2,10 +2,10 @@ use crate::app::App;
 use crate::features::visuals;
 use crate::ui::{BlurEffect, Context as ImGuiContext};
 
-use windows::core::{Interface, Result as WindowsResult, HRESULT};
+use windows::core::{HRESULT, Interface, Result as WindowsResult};
 
-use dopamine_sdk::interfaces::{engine, surface};
 use dopamine_sdk::Hook;
+use dopamine_sdk::interfaces::{engine, surface};
 
 use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::Graphics::Direct3D9::*;

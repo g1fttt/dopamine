@@ -21,6 +21,7 @@ pub struct Glow<'a> {
   glow_blur_x_material: &'a Material,
   glow_blur_y_material: &'a Material,
   spotted_time: [f32; 65],
+  is_in_drawing_process: bool,
 }
 
 impl Glow<'_> {
@@ -83,7 +84,12 @@ impl Glow<'_> {
       glow_blur_x_material,
       glow_blur_y_material,
       spotted_time: [Default::default(); 65],
+      is_in_drawing_process: false,
     }
+  }
+
+  pub fn is_in_drawing_process(&self) -> bool {
+    self.is_in_drawing_process
   }
 
   pub fn draw(&mut self, player_resource: Option<&Entity>, config: &GlowConfig, view: &ViewSetup) {
@@ -92,7 +98,11 @@ impl Glow<'_> {
     if should_glow {
       let render_ctx = material_system().render_ctx();
 
-      self.apply_glow_effects(player_resource, config, view, render_ctx);
+      self.is_in_drawing_process = true;
+      {
+        self.apply_glow_effects(player_resource, config, view, render_ctx);
+      }
+      self.is_in_drawing_process = false;
     }
   }
 

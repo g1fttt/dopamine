@@ -1,8 +1,8 @@
 use crate::app::App;
 
+use dopamine_sdk::Hook;
 use dopamine_sdk::engine::{ModelRender, ModelRenderInfo};
 use dopamine_sdk::interfaces::{entity_list, model_render, studio_render};
-use dopamine_sdk::Hook;
 
 use std::ffi::c_void;
 
@@ -16,7 +16,7 @@ pub extern "C" fn draw_model_execute(
     let original = app.hooks.draw_model_execute.original();
     let original = move || original(this, state, info, custom_bone_to_world);
 
-    if studio_render().is_material_overrided() {
+    if studio_render().is_material_overrided() || app.glow.is_in_drawing_process() {
       return original();
     }
     let entity = entity_list().get_entity_by_index(info.entity_index);
