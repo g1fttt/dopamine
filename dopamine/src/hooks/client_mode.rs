@@ -1,5 +1,5 @@
+use crate::app::App;
 use crate::features::{misc, visuals};
-use crate::App;
 
 use dopamine_sdk::client::ClientMode;
 use dopamine_sdk::render_view::ViewSetup;

@@ -1,7 +1,6 @@
 use crate::config::EnumMapConfig;
 use crate::entities;
 
-use bumpalo::Bump;
 use educe::Educe;
 use enum_map::Enum;
 use serde::{Deserialize, Serialize};
@@ -25,7 +24,7 @@ pub struct Glow<'a> {
 }
 
 impl Glow<'_> {
-  pub fn new(bump: &Bump) -> Self {
+  pub fn new() -> Self {
     let materials = material_system();
 
     let rt_quarter_size_1 = materials.find_texture("_rt_SmallFB1", "RenderTargets").unwrap();
@@ -40,16 +39,15 @@ impl Glow<'_> {
     let rt_glow_buf_2 =
       materials.create_named_rt("_rt_GlowBuf2", rt_full_frame.dimensions()).unwrap();
 
-    let glow_material =
-      materials.create_material_with_kv("_GlowMaterial", "UnlitGeneric", bump, |kv| {
-        kv.set("$BaseTexture", "white");
-        kv.set("$IgnoreZ", "1");
-        kv.set("$Model", "1");
-        kv.set("$LinearWrite", "1");
-      });
+    let glow_material = materials.create_material_with_kv("_GlowMaterial", "UnlitGeneric", |kv| {
+      kv.set("$BaseTexture", "white");
+      kv.set("$IgnoreZ", "1");
+      kv.set("$Model", "1");
+      kv.set("$LinearWrite", "1");
+    });
 
     let halo_material =
-      materials.create_material_with_kv("_HaloMaterial", "screenspace_general", bump, |kv| {
+      materials.create_material_with_kv("_HaloMaterial", "screenspace_general", |kv| {
         kv.set("$PixShader", "haloaddoutline_ps20");
         kv.set("$Alpha_Blend_Color_Overlay", "1");
         kv.set("$BaseTexture", "_rt_GlowBuf1");
@@ -60,7 +58,7 @@ impl Glow<'_> {
       });
 
     let glow_blur_x_material =
-      materials.create_material_with_kv("_GlowBlurX", "BlurFilterX", bump, |kv| {
+      materials.create_material_with_kv("_GlowBlurX", "BlurFilterX", |kv| {
         kv.set("$BaseTexture", "_rt_GlowBuf1");
         kv.set("$IgnoreZ", "1");
         kv.set("$Translucent", "1");
@@ -68,7 +66,7 @@ impl Glow<'_> {
       });
 
     let glow_blur_y_material =
-      materials.create_material_with_kv("_GlowBlurY", "BlurFilterY", bump, |kv| {
+      materials.create_material_with_kv("_GlowBlurY", "BlurFilterY", |kv| {
         kv.set("$BaseTexture", "_rt_GlowBuf2");
         kv.set("$IgnoreZ", "1");
         kv.set("$Translucent", "1");

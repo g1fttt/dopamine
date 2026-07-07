@@ -1,7 +1,6 @@
 use crate::game::KeyValues;
 use crate::{Color, cstr, virtual_method};
 
-use bumpalo::Bump;
 use derive_builder::Builder;
 use open_enum::open_enum;
 
@@ -49,18 +48,17 @@ impl MaterialSystem {
     &self,
     name: &str,
     shader: &str,
-    bump: &Bump,
     f: impl Fn(&mut KeyValues),
   ) -> &Material {
-    let kv = KeyValues::alloc_in_bump(shader, bump);
+    let kv = KeyValues::new(shader);
 
     f(kv);
 
     self.create_material_raw(cstr!(name), kv).unwrap()
   }
 
-  pub fn create_material_dummy(&self, name: &str, shader: &str, bump: &Bump) -> &Material {
-    self.create_material_raw(cstr!(name), KeyValues::alloc_in_bump(shader, bump)).unwrap()
+  pub fn create_material_dummy(&self, name: &str, shader: &str) -> &Material {
+    self.create_material_raw(cstr!(name), KeyValues::new(shader)).unwrap()
   }
 
   pub fn find_texture(&self, name: &str, group: &str) -> Option<&Texture> {

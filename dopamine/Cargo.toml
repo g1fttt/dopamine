@@ -15,7 +15,6 @@ windows-numerics.workspace = true
 serde.workspace = true
 strum.workspace = true
 log.workspace = true
-bumpalo.workspace = true
 
 dopamine-sdk.path = "../dopamine-sdk"
 

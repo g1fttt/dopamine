@@ -11,6 +11,7 @@ pub mod render_view;
 pub mod server;
 pub mod studio_render;
 pub mod surface;
+pub mod tier0;
 
 pub use client_class::*;
 pub use entity::*;

@@ -183,7 +183,6 @@ dependencies = [
 name = "dopamine"
 version = "0.1.0"
 dependencies = [
- "bumpalo",
  "chrono",
  "dopamine-sdk",
  "educe",
@@ -204,7 +203,6 @@ dependencies = [
 name = "dopamine-sdk"
 version = "0.1.0"
 dependencies = [
- "bumpalo",
  "derive_builder",
  "log",
  "minhook",

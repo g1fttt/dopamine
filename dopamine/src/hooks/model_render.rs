@@ -19,10 +19,9 @@ pub extern "C" fn draw_model_execute(
     if studio_render().is_material_overrided() || app.glow.is_in_drawing_process() {
       return original();
     }
+
     let entity = entity_list().get_entity_by_index(info.entity_index);
 
-    // FIXME: If enabled at least one ignore-z layer along with a glow
-    //        then ignore-z chams shall be visible even if model isn't occluded
     app.chams.draw(&app.config.chams, &original, entity);
 
     if !app.chams.applied() {

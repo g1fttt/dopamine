@@ -2,10 +2,10 @@ use crate::game::{Entity, KeyValues};
 use crate::pcstr;
 use crate::utils::rip_offset_value;
 
-use windows::core::Result as WindowsResult;
 use windows::Win32::System::LibraryLoader::GetModuleHandleA;
 use windows::Win32::System::ProcessStatus::{GetModuleInformation, MODULEINFO};
 use windows::Win32::System::Threading::GetCurrentProcess;
+use windows::core::Result as WindowsResult;
 
 use std::ffi::{c_char, c_void};
 use std::sync::LazyLock;

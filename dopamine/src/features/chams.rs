@@ -1,6 +1,5 @@
 use crate::config::EnumMapConfig;
 
-use bumpalo::Bump;
 use enum_map::{Enum, EnumMap};
 use serde::{Deserialize, Serialize};
 use strum::{EnumCount, VariantNames};
@@ -15,12 +14,11 @@ pub struct Chams<'a> {
 }
 
 impl Chams<'_> {
-  pub fn new(bump: &Bump) -> Self {
-    let regular_material =
-      material_system().create_material_dummy("_RegularMaterial", "VertexLitGeneric", bump);
+  pub fn new() -> Self {
+    let materials = material_system();
 
-    let flat_material =
-      material_system().create_material_dummy("_FlatMaterial", "UnlitGeneric", bump);
+    let regular_material = materials.create_material_dummy("_Regular", "VertexLitGeneric");
+    let flat_material = materials.create_material_dummy("_Flat", "UnlitGeneric");
 
     let materials = EnumMap::from_array([regular_material, flat_material]);
 

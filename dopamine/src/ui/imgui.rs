@@ -42,6 +42,8 @@ impl Context {
     device: &IDirect3DDevice9,
     mut f: impl FnMut() -> WindowsResult<()>,
   ) -> WindowsResult<()> {
+    self.ctx.set_current();
+
     self.win32.new_frame();
 
     let frame = self.ctx.new_frame();

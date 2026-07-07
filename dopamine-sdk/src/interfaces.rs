@@ -7,6 +7,7 @@ use crate::game::server::Server;
 use crate::game::studio_render::StudioRender;
 use crate::game::surface::Surface;
 
+use crate::tier0::MemAlloc;
 use crate::utils::rip_offset_value;
 use crate::{cstr, pcstr, singleton_fields};
 
@@ -28,6 +29,7 @@ singleton_fields! {
     pub surface: &'a Surface,
     pub input_system: &'a InputSystem,
     pub studio_render: &'a StudioRender<'a>,
+    pub mem_alloc: &'a MemAlloc,
   }
 }
 
@@ -43,7 +45,7 @@ impl Interfaces<'_> {
     Self {
       client,
       server: find_interface("server.dll", "PlayerInfoManager002"),
-      client_mode: unsafe { client_mode_from_client(client) },
+      client_mode: unsafe { client_mode_from_client(client).unwrap() },
       entity_list: find_interface("client.dll", "VClientEntityList003"),
       engine: find_interface("engine.dll", "VEngineClient013"),
       render_view: find_interface("engine.dll", "VEngineRenderView014"),
@@ -52,6 +54,7 @@ impl Interfaces<'_> {
       surface: find_interface("vguimatsurface.dll", "VGUI_Surface030"),
       input_system: find_interface("inputsystem.dll", "InputSystemVersion001"),
       studio_render: find_interface("StudioRender.dll", "VStudioRender025"),
+      mem_alloc: unsafe { find_mem_alloc().unwrap() },
     }
   }
 }
@@ -78,10 +81,18 @@ fn find_interface<'a, T>(module_name: &str, interface_name: &str) -> &'a T {
   }
 }
 
-unsafe fn client_mode_from_client(client: &Client) -> &ClientMode {
+unsafe fn client_mode_from_client(client: &Client) -> Option<&'static ClientMode> {
   unsafe {
     let client_vtable = *(client as *const Client as *const *const *const c_void);
     let client_mode = rip_offset_value((*client_vtable.add(10)).cast_mut());
-    &*client_mode.cast::<ClientMode>()
+    client_mode.cast::<ClientMode>().as_ref()
+  }
+}
+
+unsafe fn find_mem_alloc() -> Option<&'static MemAlloc> {
+  unsafe {
+    let tier0_handle = GetModuleHandleA(pcstr!("tier0.dll")).unwrap();
+    let mem_alloc = GetProcAddress(tier0_handle, pcstr!("g_pMemAlloc"));
+    mem_alloc.map(|proc| *(proc as *const &MemAlloc))
   }
 }

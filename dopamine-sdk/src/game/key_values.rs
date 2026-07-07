@@ -1,9 +1,8 @@
+use std::ptr::NonNull;
+
 use crate::cstr;
+use crate::interfaces::mem_alloc;
 use crate::utils::Patterns;
-
-use bumpalo::Bump;
-
-use std::alloc::Layout;
 
 #[repr(C)]
 pub struct KeyValues {
@@ -11,17 +10,26 @@ pub struct KeyValues {
 }
 
 impl KeyValues {
-  #[allow(clippy::mut_from_ref)]
-  pub fn alloc_in_bump<'a>(shader: &str, bump: &'a Bump) -> &'a mut KeyValues {
-    let layout = Layout::new::<KeyValues>();
-    let mut this = bump.alloc_layout(layout).cast::<KeyValues>();
+  /// # Safety:
+  /// Shall panic if an underlying allocation was failed.
+  pub fn new(shader: &str) -> &'static mut KeyValues {
+    let this = mem_alloc()
+      .alloc(size_of::<KeyValues>())
+      .map(|ptr| ptr.cast::<KeyValues>().as_ptr())
+      .unwrap();
 
-    (Patterns::get().key_values_new)(this.as_ptr(), cstr!(shader));
+    (Patterns::get().key_values_new)(this, cstr!(shader));
 
-    unsafe { this.as_mut() }
+    unsafe { this.as_mut().unwrap() }
   }
 
   pub fn set(&mut self, key: &str, value: &str) {
     (Patterns::get().key_values_set_string)(self, cstr!(key), cstr!(value));
+  }
+}
+
+impl Drop for KeyValues {
+  fn drop(&mut self) {
+    mem_alloc().free(NonNull::from_mut(self).cast::<u8>());
   }
 }

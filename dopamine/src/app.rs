@@ -5,7 +5,6 @@ use crate::ui::{BlurEffect, Context as ImGuiContext, Menu};
 use crate::features::chams::Chams;
 use crate::features::glow::Glow;
 
-use bumpalo::Bump;
 use windows::core::Result as WindowsResult;
 
 use dopamine_sdk::Entity;
@@ -35,33 +34,24 @@ pub struct App<'s: 'static> {
 
   pub blur_effect: OnceLock<BlurEffect>,
   pub imgui_context: OnceLock<ImGuiContext>,
-
-  #[allow(dead_code, reason = "App has to hold this in order to make a graceful cleanup on drop")]
-  pub bump: Bump,
 }
 
 impl App<'_> {
   pub fn on_process_attach(module: HMODULE) -> WindowsResult<()> {
     let app = unsafe {
-      APP.get_mut_or_init(|| {
-        let bump = Bump::new();
+      APP.get_mut_or_init(|| App {
+        module,
 
-        App {
-          module,
+        config: Config::create_and_load_from(Config::PATH),
+        hooks: Hooks::create(),
+        menu: Menu::new(),
+        glow: Glow::new(),
+        chams: Chams::new(),
 
-          config: Config::create_and_load_from(Config::PATH),
-          hooks: Hooks::create(),
-          menu: Menu::new(),
-          glow: Glow::new(&bump),
-          chams: Chams::new(&bump),
+        player_resource: None,
 
-          player_resource: None,
-
-          blur_effect: OnceLock::new(),
-          imgui_context: OnceLock::new(),
-
-          bump,
-        }
+        blur_effect: OnceLock::new(),
+        imgui_context: OnceLock::new(),
       })
     };
     app.setup()
@@ -71,6 +61,8 @@ impl App<'_> {
     if let Err(err) = App::get_mut().config.save_to(Config::PATH) {
       log::error!("Failed to write config: {err}");
     }
+
+    unsafe { APP.take() };
   }
 
   fn setup(&mut self) -> WindowsResult<()> {
@@ -86,40 +78,35 @@ impl App<'_> {
   }
 
   pub fn unload(&mut self) -> WindowsResult<()> {
-    unsafe extern "system" fn free_library(app: *mut c_void) -> u32 {
-      let app = unsafe { &mut *app.cast::<App>() };
-
-      app.blur_effect.take();
-      app.imgui_context.take();
-
-      app.bump.reset();
-
-      input_system().enable_input(true);
-
+    unsafe extern "system" fn free_library(module: *mut c_void) -> u32 {
       unsafe {
-        let _ = Beep(1500, 200);
+        ShowCursor(true);
 
-        FreeLibraryAndExitThread(app.module, 0);
+        FreeLibraryAndExitThread(HMODULE(module), 0)
       }
     }
 
+    if let Err(err) = unsafe { self.hooks.unhook_all() } {
+      log::error!("Failed to remove hooks: {err:?}");
+    }
+
+    self.blur_effect.take();
+    self.imgui_context.take();
+
+    self.glow.dec_ref_counters();
+    self.chams.dec_ref_counters();
+
+    material_system().uncache_unused_materials(true);
+    input_system().enable_input(true);
+
     unsafe {
-      ShowCursor(true);
-
-      if let Err(err) = self.hooks.unhook_all() {
-        log::error!("Failed to remove hooks: {err:?}");
-      }
-
-      self.glow.dec_ref_counters();
-      self.chams.dec_ref_counters();
-
-      material_system().uncache_unused_materials(true);
+      Beep(1500, 200)?;
 
       let handle = CreateThread(
         None,
         0,
         Some(free_library),
-        Some(self as *mut App as *mut c_void),
+        Some(self.module.0),
         THREAD_CREATION_FLAGS::default(),
         None,
       )?;
