@@ -1,8 +1,8 @@
-use std::ptr::NonNull;
-
 use crate::cstr;
 use crate::interfaces::mem_alloc;
 use crate::utils::Patterns;
+
+use std::ptr::NonNull;
 
 #[repr(C)]
 pub struct KeyValues {

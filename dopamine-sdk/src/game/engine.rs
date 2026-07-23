@@ -21,12 +21,10 @@ pub struct ModelRenderInfo {
 pub struct ModelRender;
 
 impl ModelRender {
-  #[inline]
   pub fn override_material(&self, new_material: &Material) {
     self.forced_material_override(Some(new_material));
   }
 
-  #[inline]
   pub fn reset_material(&self) {
     self.forced_material_override(None);
   }

@@ -27,4 +27,5 @@ pub struct BunnyhopConfig {
 #[serde(default)]
 pub struct MiscConfig {
   pub bunnyhop: BunnyhopConfig,
+  pub disable_model_occlusion: bool,
 }

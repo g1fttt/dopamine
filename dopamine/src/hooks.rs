@@ -1,6 +1,7 @@
 mod client;
 mod client_mode;
 mod d3d9;
+mod leaf_system;
 mod model_render;
 mod surface;
 mod viewmodel;
@@ -8,10 +9,10 @@ mod winapi;
 
 use d3d9::{PresentFn, ResetFn};
 
-use dopamine_sdk::interfaces::*;
 use dopamine_sdk::math::{Angles, Vector3D};
 use dopamine_sdk::utils::Patterns;
-use dopamine_sdk::{pcstr, Hook, HookResult, TrampolineHook, VmtHook};
+use dopamine_sdk::{Hook, HookResult, TrampolineHook, VmtHook, pcstr};
+use dopamine_sdk::{RenderableEntity, interfaces::*};
 
 use dopamine_sdk::client::{Client, ClientMode};
 use dopamine_sdk::engine::{ModelRender, ModelRenderInfo};
@@ -48,6 +49,9 @@ pub struct Hooks {
 
   pub(self) calc_viewmodel_view:
     TrampolineHook<extern "C" fn(&Entity, &Entity, &Vector3D, &Angles)>,
+
+  pub(self) calc_renderable_world_space_aabb_fast:
+    TrampolineHook<extern "C" fn(&RenderableEntity, &mut Vector3D, &mut Vector3D)>,
 }
 
 impl Hooks {
@@ -80,6 +84,10 @@ impl Hooks {
         lock_cursor: VmtHook::new(surface(), 62),
 
         calc_viewmodel_view: TrampolineHook::new(patterns.calc_viewmodel_view),
+
+        calc_renderable_world_space_aabb_fast: TrampolineHook::new(
+          patterns.calc_renderable_world_space_aabb_fast,
+        ),
       }
     }
   }
@@ -112,6 +120,10 @@ impl Hooks {
 
       self.calc_viewmodel_view.detour_to(viewmodel::calc_viewmodel_view)?;
 
+      self
+        .calc_renderable_world_space_aabb_fast
+        .detour_to(leaf_system::calc_renderable_world_space_aabb_fast)?;
+
       dopamine_sdk::enable_all_hooks()?;
     }
     Ok(())
@@ -138,6 +150,8 @@ impl Hooks {
       self.lock_cursor.remove()?;
 
       self.calc_viewmodel_view.remove()?;
+
+      self.calc_renderable_world_space_aabb_fast.remove()?;
 
       SetWindowLongPtrW(self.window, GWLP_WNDPROC, mem::transmute::<WNDPROC, isize>(self.wnd_proc));
     }

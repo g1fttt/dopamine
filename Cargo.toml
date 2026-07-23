@@ -38,6 +38,8 @@ derive_builder = "0.20"
 
 [workspace.lints.rust]
 static_mut_refs = { level = "allow" }
+unused_features = { level = "allow" }
+internal_features = { level = "allow" }
 
 [workspace.lints.clippy]
 missing_safety_doc = { level = "allow" }

@@ -118,7 +118,7 @@ pub struct NetworkableEntity;
 
 impl NetworkableEntity {
   virtual_method!(pub fn release[1](&self));
-  virtual_method!(pub fn client_class[2](&self) -> &ClientClass<'_>);
+  virtual_method!(pub fn client_class<'a>[2](&self) -> &'a ClientClass<'_>);
   virtual_method!(pub fn is_dormant[8](&self) -> bool);
   virtual_method!(pub fn index[9](&self) -> i32);
 }
@@ -127,8 +127,22 @@ impl NetworkableEntity {
 pub struct RenderableEntity;
 
 impl RenderableEntity {
+  pub fn base(&self) -> Option<&Entity> {
+    self.unknown_entity().base_entity()
+  }
+}
+
+impl RenderableEntity {
+  virtual_method!(fn unknown_entity<'a>[0](&self) -> &'a UnknownEntity);
   virtual_method!(pub fn should_draw[3](&self) -> bool);
   virtual_method!(pub fn draw_model[10](&self) -> i32 where (i32: 1 /* StudioRender */));
+}
+
+#[repr(C)]
+struct UnknownEntity;
+
+impl UnknownEntity {
+  virtual_method!(fn base_entity<'a>[7](&self) -> Option<&'a Entity>);
 }
 
 #[repr(C)]

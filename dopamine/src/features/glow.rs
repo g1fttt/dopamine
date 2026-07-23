@@ -11,6 +11,8 @@ use dopamine_sdk::material_system::*;
 use dopamine_sdk::render_view::ViewSetup;
 use dopamine_sdk::{Color, Entity};
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
 pub struct Glow<'a> {
   rt_quarter_size_1: &'a Texture,
   rt_glow_buf_1: &'a Texture,
@@ -20,7 +22,7 @@ pub struct Glow<'a> {
   glow_blur_x_material: &'a Material,
   glow_blur_y_material: &'a Material,
   spotted_time: [f32; 65],
-  is_in_drawing_process: bool,
+  is_in_drawing_process: AtomicBool,
 }
 
 impl Glow<'_> {
@@ -82,12 +84,12 @@ impl Glow<'_> {
       glow_blur_x_material,
       glow_blur_y_material,
       spotted_time: [Default::default(); 65],
-      is_in_drawing_process: false,
+      is_in_drawing_process: AtomicBool::new(false),
     }
   }
 
   pub fn is_in_drawing_process(&self) -> bool {
-    self.is_in_drawing_process
+    self.is_in_drawing_process.load(Ordering::Acquire)
   }
 
   pub fn draw(&mut self, player_resource: Option<&Entity>, config: &GlowConfig, view: &ViewSetup) {
@@ -96,11 +98,11 @@ impl Glow<'_> {
     if should_glow {
       let render_ctx = material_system().render_ctx();
 
-      self.is_in_drawing_process = true;
+      self.is_in_drawing_process.swap(true, Ordering::Acquire);
       {
         self.apply_glow_effects(player_resource, config, view, render_ctx);
       }
-      self.is_in_drawing_process = false;
+      self.is_in_drawing_process.store(false, Ordering::Release);
     }
   }
 

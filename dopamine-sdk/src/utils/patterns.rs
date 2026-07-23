@@ -19,6 +19,8 @@ pub struct Patterns {
 
   pub calc_viewmodel_view: *mut c_void,
 
+  pub calc_renderable_world_space_aabb_fast: *mut c_void,
+
   pub d3d9_reset: *mut c_void,
   pub d3d9_present: *mut c_void,
 }
@@ -47,6 +49,10 @@ impl Patterns {
         find_by_pattern("client.dll", b"\x48\x89\x5C\x24?\x56\x48\x83\xEC?\xF2\x41\x0F\x10\x01")
         .unwrap();
 
+      let calc_renderable_world_space_aabb_fast =
+        find_by_pattern("client.dll", b"\x48\x89\x5C\x24?\x48\x89\x6C\x24?\x48\x89\x74\x24?\x57\x48\x83\xEC?\x48\x8B\x01\x49\x8B\xF0\x48\x8B\xEA\x48\x8B\xD9\xFF\x10")
+        .unwrap();
+
       let d3d9_reset = rip_offset_value(
         find_by_pattern(
           "GameOverlayRenderer64.dll",
@@ -69,6 +75,8 @@ impl Patterns {
         is_local_player,
 
         calc_viewmodel_view,
+
+        calc_renderable_world_space_aabb_fast,
 
         d3d9_reset,
         d3d9_present,
