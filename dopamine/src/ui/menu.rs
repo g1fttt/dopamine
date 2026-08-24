@@ -112,6 +112,8 @@ impl Menu {
         imgui::checkbox("Bunnyhop", &mut config.bunnyhop.enabled);
         imgui::same_line();
         imgui::slider_int("Chance", &mut config.bunnyhop.chance, 10, 100);
+
+        imgui::checkbox("Discord Rich Presence", &mut config.enable_discord_rich_presence);
       });
   }
 

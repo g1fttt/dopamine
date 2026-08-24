@@ -5,6 +5,7 @@ use crate::ui::{BlurEffect, Context as ImGuiContext, Menu};
 use crate::features::chams::Chams;
 use crate::features::glow::Glow;
 
+use presenceforge::DiscordIpcClient;
 use windows::core::Result as WindowsResult;
 
 use dopamine_sdk::Entity;
@@ -16,6 +17,7 @@ use windows::Win32::System::LibraryLoader::{DisableThreadLibraryCalls, FreeLibra
 use windows::Win32::System::Threading::{CreateThread, THREAD_CREATION_FLAGS};
 use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
 
+use std::cell::OnceCell;
 use std::ffi::c_void;
 use std::sync::OnceLock;
 
@@ -34,6 +36,8 @@ pub struct App<'s: 'static> {
 
   pub blur_effect: OnceLock<BlurEffect>,
   pub imgui_context: OnceLock<ImGuiContext>,
+
+  pub discord_ipc_client: OnceCell<DiscordIpcClient>,
 }
 
 impl App<'_> {
@@ -52,6 +56,8 @@ impl App<'_> {
 
         blur_effect: OnceLock::new(),
         imgui_context: OnceLock::new(),
+
+        discord_ipc_client: OnceCell::new(),
       })
     };
     app.setup()

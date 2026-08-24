@@ -1,6 +1,7 @@
 mod client;
 mod client_mode;
 mod d3d9;
+mod game_events;
 mod leaf_system;
 mod model_render;
 mod surface;
@@ -15,7 +16,7 @@ use dopamine_sdk::{Hook, HookResult, TrampolineHook, VmtHook, pcstr};
 use dopamine_sdk::{RenderableEntity, interfaces::*};
 
 use dopamine_sdk::client::{Client, ClientMode};
-use dopamine_sdk::engine::{ModelRender, ModelRenderInfo};
+use dopamine_sdk::engine::{GameEvent, GameEventManager, ModelRender, ModelRenderInfo};
 use dopamine_sdk::render_view::ViewSetup;
 use dopamine_sdk::surface::Surface;
 use dopamine_sdk::{Entity, UserCommand};
@@ -43,6 +44,8 @@ pub struct Hooks {
 
   pub(self) draw_model_execute:
     VmtHook<extern "C" fn(&ModelRender, *mut c_void, &ModelRenderInfo, *mut c_void)>,
+
+  pub(self) fire_event_client_side: VmtHook<extern "C" fn(&GameEventManager, &GameEvent) -> bool>,
 
   pub(self) is_cursor_visible: VmtHook<extern "C" fn(&Surface) -> bool>,
   pub(self) lock_cursor: VmtHook<extern "C" fn(&Surface)>,
@@ -80,6 +83,8 @@ impl Hooks {
 
         draw_model_execute: VmtHook::new(model_render(), 19),
 
+        fire_event_client_side: VmtHook::new(game_event_manager(), 8),
+
         is_cursor_visible: VmtHook::new(surface(), 53),
         lock_cursor: VmtHook::new(surface(), 62),
 
@@ -115,6 +120,8 @@ impl Hooks {
 
       self.draw_model_execute.detour_to(model_render::draw_model_execute)?;
 
+      self.fire_event_client_side.detour_to(game_events::fire_event_client_side)?;
+
       self.is_cursor_visible.detour_to(surface::is_cursor_visible)?;
       self.lock_cursor.detour_to(surface::lock_cursor)?;
 
@@ -145,6 +152,8 @@ impl Hooks {
       self.level_shutdown.remove()?;
 
       self.draw_model_execute.remove()?;
+
+      self.fire_event_client_side.remove()?;
 
       self.is_cursor_visible.remove()?;
       self.lock_cursor.remove()?;

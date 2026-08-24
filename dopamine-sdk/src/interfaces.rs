@@ -1,5 +1,5 @@
 use crate::game::client::{Client, ClientMode, EntityList};
-use crate::game::engine::{Engine, ModelRender};
+use crate::game::engine::{Engine, GameEventManager, ModelRender};
 use crate::game::input_system::InputSystem;
 use crate::game::material_system::MaterialSystem;
 use crate::game::render_view::RenderView;
@@ -30,6 +30,7 @@ singleton_fields! {
     pub input_system: &'a InputSystem,
     pub studio_render: &'a StudioRender<'a>,
     pub mem_alloc: &'a MemAlloc,
+    pub game_event_manager: &'a GameEventManager,
   }
 }
 
@@ -55,6 +56,7 @@ impl Interfaces<'_> {
       input_system: find_interface("inputsystem.dll", "InputSystemVersion001"),
       studio_render: find_interface("StudioRender.dll", "VStudioRender025"),
       mem_alloc: unsafe { find_mem_alloc().unwrap() },
+      game_event_manager: find_interface("engine.dll", "GAMEEVENTSMANAGER002"),
     }
   }
 }
