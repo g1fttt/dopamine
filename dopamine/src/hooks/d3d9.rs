@@ -46,19 +46,15 @@ pub extern "C" fn present(
   window_override: HWND,
   dirty_region: Option<&RGNDATA>,
 ) -> HRESULT {
-  App::with_mut(move |app| {
+  App::with_mut(move |app| unsafe {
     let this_raw_ptr = this.as_ptr();
-    let device = unsafe { IDirect3DDevice9::from_raw_borrowed(&this_raw_ptr).unwrap() };
+    let device = IDirect3DDevice9::from_raw_borrowed(&this_raw_ptr).unwrap();
 
-    if let Ok(state_block) = unsafe { device.CreateStateBlock(D3DSBT_ALL) } {
-      let mut params = D3DDEVICE_CREATION_PARAMETERS::default();
-      let _ = unsafe { device.GetCreationParameters(&mut params) };
+    let mut params = D3DDEVICE_CREATION_PARAMETERS::default();
+    let _ = device.GetCreationParameters(&mut params);
 
-      if let Err(err) = draw_imgui_context(app, device, params.hFocusWindow) {
-        log::error!("Failed to draw ImGui context: {err}");
-      }
-
-      let _ = unsafe { state_block.Apply() };
+    if let Err(err) = draw_imgui_context(app, device, params.hFocusWindow) {
+      log::error!("Failed to draw ImGui context: {err}");
     }
     (app.hooks.present.original())(this, src, dest, window_override, dirty_region)
   })
@@ -97,5 +93,13 @@ fn draw_imgui_context(app: &mut App, device: &IDirect3DDevice9, hwnd: HWND) -> W
       app.menu.draw(&mut app.config);
     }
     Ok(())
-  })
+  })?;
+
+  unsafe {
+    device.SetRenderState(
+      D3DRS_COLORWRITEENABLE,
+      0xF, // Default value according to winapi docs
+    )?;
+    device.SetRenderState(D3DRS_SRGBWRITEENABLE, 1)
+  }
 }
