@@ -18,7 +18,7 @@ macro_rules! pcstr {
     windows::core::PCSTR::from_raw(std::concat!($str, '\0').as_ptr())
   };
   ($str:expr) => {
-    windows::core::PCSTR::from_raw(std::ffi::CString::new($str).unwrap().into_raw().cast())
+    windows::core::PCSTR::from_raw($crate::cstr!($str).cast())
   };
   () => {
     windows::core::PCSTR::from_raw(std::ptr::null())

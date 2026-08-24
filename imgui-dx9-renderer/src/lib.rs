@@ -1,11 +1,11 @@
+use imgui::*;
+use windows_numerics::Matrix4x4;
+
 use windows::core::Interface;
 use windows::core::Result as WindowsResult;
 
 use windows::Win32::Foundation::RECT;
 use windows::Win32::Graphics::Direct3D9::*;
-
-use imgui::*;
-use windows_numerics::Matrix4x4;
 
 use std::ffi::c_void;
 use std::{mem, ptr, slice};
@@ -198,7 +198,7 @@ impl Renderer {
         }
 
         let backend_texture = unsafe { IDirect3DTexture9::from_raw(texture.tex_id as *mut c_void) };
-        mem::drop(backend_texture);
+        drop(backend_texture);
 
         texture.tex_id = 0; // ImTextureID_Invalid
         texture.status = TextureStatus::Destroyed;
@@ -266,8 +266,8 @@ impl Renderer {
   }
 
   pub unsafe fn setup_render_state(&mut self, draw_data: &imgui::DrawData) -> WindowsResult<()> {
-    let fb_width = draw_data.display_size.x * draw_data.framebuffer_scale.x;
-    let fb_height = draw_data.display_size.y * draw_data.framebuffer_scale.y;
+    let fb_width = draw_data.display_size.x;
+    let fb_height = draw_data.display_size.y;
 
     let vp = D3DVIEWPORT9 {
       X: 0,
@@ -402,6 +402,7 @@ impl Renderer {
       vertex_buffer = &mut vertex_buffer[cmd_list.vtx_buffer_size()..];
       index_buffer = &mut index_buffer[cmd_list.idx_buffer_size()..];
     }
+
     unsafe {
       let (ref vb, _vtx_count) = self.vertex_buffer;
       vb.Unlock()?;

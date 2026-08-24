@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use dopamine_sdk::math::{Angles, Vector3D};
 use dopamine_sdk::render_view::ViewSetup;
-use dopamine_sdk::{Color, Entity};
+use dopamine_sdk::{Color, Entity, RenderableEntity};
 
 pub fn draw_better_crosshair(config: &BetterCrosshairConfig, draw_list: &mut DrawList) {
   if !config.enabled {
@@ -90,6 +90,23 @@ pub fn calc_viewmodel_origin(
   Some(new_eye_origin)
 }
 
+pub fn extend_player_world_space_aabb(
+  enabled: bool,
+  renderable: &RenderableEntity,
+) -> Option<(Vector3D, Vector3D)> {
+  if !enabled || renderable.base().is_none_or(|ent| !ent.is_player()) {
+    return None;
+  }
+
+  const MAX_COORD: f32 = 16384.0;
+  const MIN_COORD: f32 = -MAX_COORD;
+
+  const MAX_COORD_3D: Vector3D = Vector3D::new(MAX_COORD, MAX_COORD, MAX_COORD);
+  const MIN_COORD_3D: Vector3D = Vector3D::new(MIN_COORD, MIN_COORD, MIN_COORD);
+
+  Some((MAX_COORD_3D, MIN_COORD_3D))
+}
+
 #[derive(Educe, Serialize, Deserialize)]
 #[serde(default)]
 #[educe(Default)]
@@ -128,4 +145,5 @@ pub struct VisualsConfig {
   pub better_crosshair: BetterCrosshairConfig,
   pub add_fov: AddFovConfig,
   pub viewmodel_origin: ViewmodelOriginConfig,
+  pub disable_model_occlusion: bool,
 }

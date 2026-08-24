@@ -451,7 +451,7 @@ impl<'a> ComboBuilder<'a> {
     };
 
     for item in items {
-      unsafe { mem::drop(CString::from_raw(item.cast_mut())) };
+      unsafe { drop(CString::from_raw(item.cast_mut())) };
     }
 
     result
@@ -590,7 +590,7 @@ impl<'a> MenuItemBuilder<'a> {
       unsafe { ImGui_MenuItem(label.as_ptr(), shortcut.cast_const(), selected, enabled) };
 
     if !shortcut.is_null() {
-      unsafe { mem::drop(CString::from_raw(shortcut)) };
+      unsafe { drop(CString::from_raw(shortcut)) };
     }
 
     result

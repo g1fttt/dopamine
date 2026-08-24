@@ -112,7 +112,6 @@ impl Menu {
         imgui::checkbox("Bunnyhop", &mut config.bunnyhop.enabled);
         imgui::same_line();
         imgui::slider_int("Chance", &mut config.bunnyhop.chance, 10, 100);
-        imgui::checkbox("Disable model occlusion", &mut config.disable_model_occlusion);
       });
   }
 
@@ -146,6 +145,8 @@ impl Menu {
         imgui::slider_float("X", &mut config.viewmodel_origin.value.x, -10.0, 10.0);
         imgui::slider_float("Y", &mut config.viewmodel_origin.value.y, -10.0, 10.0);
         imgui::slider_float("Z", &mut config.viewmodel_origin.value.z, -10.0, 10.0);
+
+        imgui::checkbox("Disable model occlusion", &mut config.disable_model_occlusion);
       });
   }
 

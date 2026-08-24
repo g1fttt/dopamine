@@ -46,3 +46,4 @@ missing_safety_doc = { level = "allow" }
 
 [profile.release]
 lto = true
+panic = "abort"
