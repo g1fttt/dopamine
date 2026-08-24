@@ -27,3 +27,4 @@ enum-map = { version = "2.7", features = ["serde"] }
 fastrand = "2.3"
 yaml_serde = "0.10"
 chrono = "0.4"
+presenceforge = "0.2"
