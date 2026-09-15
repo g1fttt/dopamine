@@ -1,6 +1,6 @@
 use crate::game::{Entity, KeyValues};
 use crate::pcstr;
-use crate::utils::rip_offset_value;
+use crate::utils::resolve_rip;
 
 use windows::Win32::System::LibraryLoader::GetModuleHandleA;
 use windows::Win32::System::ProcessStatus::{GetModuleInformation, MODULEINFO};
@@ -35,7 +35,7 @@ impl Patterns {
   fn find() -> Self {
     unsafe {
       let key_values_new =
-        find_by_pattern("studiorender.dll", b"\x40\x53\x48\x83\xEC?\x48\x8B\xD9\xC7\x01")
+        find_by_pattern("MaterialSystem.dll", b"\x40\x53\x48\x83\xEC?\x48\x8B\xD9\xC6\x41??\x33\xC9\x48\x8B\xC2")
         .unwrap();
       let key_values_set_string =
         find_by_pattern("client.dll", b"\x48\x89\x5C\x24?\x55\x48\x83\xEC?\x49\x8B\xD8")
@@ -53,14 +53,14 @@ impl Patterns {
         find_by_pattern("client.dll", b"\x48\x89\x5C\x24?\x48\x89\x6C\x24?\x48\x89\x74\x24?\x57\x48\x83\xEC?\x48\x8B\x01\x49\x8B\xF0\x48\x8B\xEA\x48\x8B\xD9\xFF\x10")
         .unwrap();
 
-      let d3d9_reset = rip_offset_value(
+      let d3d9_reset = resolve_rip(
         find_by_pattern(
           "GameOverlayRenderer64.dll",
           b"\x48\x8B\x05????\x48\x8B\xD6\x48\x8B\xCF\xFF\xD0\x8B\xF8",
         )
         .unwrap(),
       );
-      let d3d9_present = rip_offset_value(
+      let d3d9_present = resolve_rip(
         find_by_pattern(
           "GameOverlayRenderer64.dll",
           b"\x4C\x8B\x15????\x4D\x8B\xC6\x49\x8B\xD7",

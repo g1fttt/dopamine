@@ -2,11 +2,11 @@ pub use minhook::MH_STATUS;
 
 use minhook::MinHook;
 
-use windows::core::{Error as WindowsError, Result as WindowsResult};
 use windows::Win32::System::Memory::*;
+use windows::core::{Error as WindowsError, Result as WindowsResult};
 
 use std::ffi::c_void;
-use std::marker::FnPtr;
+use std::ops::FnPtr;
 use std::{mem, ptr};
 
 #[derive(Debug)]

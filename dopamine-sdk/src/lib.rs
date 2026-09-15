@@ -1,4 +1,4 @@
-#![feature(maybe_uninit_array_assume_init, fn_ptr_trait)]
+#![feature(maybe_uninit_array_assume_init, fn_static)]
 
 mod color;
 mod game;

@@ -8,7 +8,7 @@ use crate::game::studio_render::StudioRender;
 use crate::game::surface::Surface;
 
 use crate::tier0::MemAlloc;
-use crate::utils::rip_offset_value;
+use crate::utils::resolve_rip;
 use crate::{cstr, pcstr, singleton_fields};
 
 use windows::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
@@ -84,8 +84,7 @@ fn find_interface<'a, T>(module_name: &str, interface_name: &str) -> &'a T {
 unsafe fn client_mode_from_client(client: &Client) -> Option<&'static ClientMode> {
   unsafe {
     let client_vtable = *(client as *const Client as *const *const *const c_void);
-    let client_mode = rip_offset_value((*client_vtable.add(10)).cast_mut());
-    client_mode.cast::<ClientMode>().as_ref()
+    resolve_rip::<ClientMode>((*client_vtable.add(10)).cast_mut()).as_ref()
   }
 }
 
