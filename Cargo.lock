@@ -209,7 +209,6 @@ dependencies = [
  "num-traits",
  "open-enum",
  "serde",
- "strum",
  "windows",
 ]
 

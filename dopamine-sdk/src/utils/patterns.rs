@@ -34,8 +34,9 @@ impl Patterns {
   #[rustfmt::skip]
   fn find() -> Self {
     unsafe {
+      // "DepthWrite" XREF
       let key_values_new =
-        find_by_pattern("MaterialSystem.dll", b"\x40\x53\x48\x83\xEC?\x48\x8B\xD9\xC6\x41??\x33\xC9\x48\x8B\xC2")
+        find_by_pattern("studiorender.dll", b"\x40\x53\x48\x83\xEC?\x48\x8B\xD9\x66\xC7\x41")
         .unwrap();
       let key_values_set_string =
         find_by_pattern("client.dll", b"\x48\x89\x5C\x24?\x55\x48\x83\xEC?\x49\x8B\xD8")
