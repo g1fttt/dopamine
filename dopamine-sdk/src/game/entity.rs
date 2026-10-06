@@ -1,7 +1,8 @@
+use crate::engine::Model;
 use crate::game::{ClassId, ClientClass};
 use crate::interfaces::{engine, entity_list};
 use crate::math::{Mat3x4, Vec3};
-use crate::utils::Patterns;
+use crate::utils::{Netvars, Patterns};
 use crate::{netvar, virtual_method};
 
 use open_enum::open_enum;
@@ -82,6 +83,17 @@ impl Entity {
     )
   }
 
+  pub fn bone_accessor(&self) -> Option<&BoneAccessor> {
+    let force_bone = Netvars::get().get(&("CBaseAnimating", "m_nForceBone"))?;
+
+    unsafe {
+      // 48 8B C4 4C 89 48 ? 4C 89 40 ? 55 53 41 57
+      // (*(*m_pRagdoll + 8i64))(m_pRagdoll, this, pbones, *(*hdr + 156i64), boneSimulated, this + 257);
+      // ------------------------------------------------------------------------------------------^^^
+      (self as *const Self).byte_add(force_bone.offset + 20).cast::<BoneAccessor>().as_ref()
+    }
+  }
+
   #[inline(always)]
   pub fn local_player() -> Option<&'static Self> {
     entity_list().get_entity_by_index(engine().local_player_index())
@@ -110,9 +122,22 @@ impl Entity {
 
   netvar!(pub fn team -> i32 as CBaseEntity->m_iTeamNum);
   netvar!(pub fn owner_handle -> EntityHandle as CBaseCombatWeapon->m_hOwner);
+  netvar!(pub fn hitbox_set -> i32 as CBaseAnimating->m_nHitboxSet);
   netvar!(fn player_spotted -> [bool; 65] as CCSPlayerResource->m_bPlayerSpotted);
   netvar!(fn flags -> EntityFlags as CBasePlayer->m_fFlags);
   netvar!(fn weapon_mode -> WeaponMode as CWeaponCSBase->m_weaponMode);
+}
+
+#[repr(C)]
+pub struct BoneAccessor {
+  pad: [u8; 8],
+  bones: *const Mat3x4,
+}
+
+impl BoneAccessor {
+  pub fn to_world_transform(&self, index: usize) -> Option<&Mat3x4> {
+    unsafe { self.bones.add(index).as_ref() }
+  }
 }
 
 #[repr(C)]
@@ -145,6 +170,7 @@ impl RenderableEntity {
 impl RenderableEntity {
   virtual_method!(fn unknown_entity<'a>[0](&self) -> &'a UnknownEntity);
   virtual_method!(pub fn should_draw[3](&self) -> bool);
+  virtual_method!(pub fn model[9](&self) -> Option<&Model>);
   virtual_method!(pub fn draw_model[10](&self) -> i32 where (i32: 1 /* StudioRender */));
   // 48 89 5C 24 ? 55 56 41 56 48 81 EC ? ? ? ? 49 8B 00
   // ...

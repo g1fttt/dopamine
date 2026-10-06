@@ -9,19 +9,19 @@ mod winapi;
 
 use d3d9::{PresentFn, ResetFn};
 
+use windows::Win32::Foundation::HWND;
+use windows::Win32::UI::WindowsAndMessaging::*;
+
+use dopamine_sdk::interfaces::*;
 use dopamine_sdk::math::{Angles, Vec3};
 use dopamine_sdk::utils::Patterns;
-use dopamine_sdk::{Hook, HookResult, TrampolineHook, VmtHook, pcstr};
-use dopamine_sdk::{RenderableEntity, interfaces::*};
+use dopamine_sdk::{Hook, HookResult, RenderableEntity, TrampolineHook, VmtHook, pcstr};
 
 use dopamine_sdk::client::{Client, ClientMode, FrameStage};
 use dopamine_sdk::engine::{ModelRender, ModelRenderInfo};
 use dopamine_sdk::render_view::ViewSetup;
 use dopamine_sdk::surface::Surface;
 use dopamine_sdk::{Entity, UserCommand};
-
-use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::WindowsAndMessaging::*;
 
 use std::ffi::c_void;
 use std::mem;

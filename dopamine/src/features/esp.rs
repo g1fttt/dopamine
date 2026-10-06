@@ -36,31 +36,39 @@ fn draw_bounding_box(
     return;
   }
 
-  let mins = info.obb_mins;
-  let mut maxs = info.obb_maxs;
-  maxs.z += 10.0;
-
   let mut screen_min = ImVec2 { x: f32::MAX, y: f32::MAX };
   let mut screen_max = ImVec2 { x: f32::MIN, y: f32::MIN };
 
-  for i in 0..8 {
-    let local_point = Vec3 {
+  fn make_point(mins: &Vec3, maxs: &Vec3, i: usize) -> Vec3 {
+    Vec3 {
       x: if i & 1 > 0 { maxs.x } else { mins.x },
       y: if i & 2 > 0 { maxs.y } else { mins.y },
       z: if i & 4 > 0 { maxs.z } else { mins.z },
-    };
+    }
+  }
 
-    let point = local_point.transform(&info.coordinate_frame);
+  for i in 0..8 {
+    let body_point =
+      make_point(&info.obb_mins, &info.obb_maxs, i).transform(&info.coordinate_frame);
 
-    let Some(screen_pos) = world_to_screen_pixel_aligned(matrix, &point) else {
+    let Some(body_screen_pos) = world_to_screen_pixel_aligned(matrix, &body_point) else {
       return;
     };
 
-    screen_min.x = screen_min.x.min(screen_pos.x);
-    screen_min.y = screen_min.y.min(screen_pos.y);
+    screen_min.x = screen_min.x.min(body_screen_pos.x);
+    screen_min.y = screen_min.y.min(body_screen_pos.y);
 
-    screen_max.x = screen_max.x.max(screen_pos.x);
-    screen_max.y = screen_max.y.max(screen_pos.y);
+    screen_max.x = screen_max.x.max(body_screen_pos.x);
+    screen_max.y = screen_max.y.max(body_screen_pos.y);
+
+    let head_point =
+      make_point(&info.head_obb_mins, &info.head_obb_maxs, i).transform(&info.head_to_world_matrix);
+
+    let Some(head_screen_pos) = world_to_screen_pixel_aligned(matrix, &head_point) else {
+      return;
+    };
+
+    screen_min.y = screen_min.y.min(head_screen_pos.y);
   }
 
   let col = &config.color;

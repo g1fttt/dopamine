@@ -1,4 +1,6 @@
+use crate::game::StudioHeader;
 use crate::game::material_system::Material;
+
 use crate::math::Mat4x4;
 use crate::virtual_method;
 
@@ -36,3 +38,13 @@ impl ModelRender {
   virtual_method!(fn forced_material_override[1](&self, new_material: Option<&Material>)
     where (i32: 0 /* NORMAL */));
 }
+
+#[repr(C)]
+pub struct ModelInfo;
+
+impl ModelInfo {
+  virtual_method!(pub fn get_studio_header<'a>[28](&self, model: &Model) -> Option<&'a StudioHeader>);
+}
+
+#[repr(C)]
+pub struct Model;
