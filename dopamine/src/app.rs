@@ -1,13 +1,14 @@
 use crate::config::Config;
 use crate::hooks::Hooks;
+use crate::state::GameState;
 use crate::ui::{BlurEffect, Context as ImGuiContext, Menu};
 
 use crate::features::chams::Chams;
 use crate::features::glow::Glow;
 
+use dopamine_sdk::Entity;
 use windows::core::Result as WindowsResult;
 
-use dopamine_sdk::Entity;
 use dopamine_sdk::interfaces::{input_system, material_system};
 
 use windows::Win32::Foundation::{CloseHandle, HMODULE};
@@ -18,6 +19,7 @@ use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
 
 use std::ffi::c_void;
 use std::sync::OnceLock;
+use std::sync::nonpoison::Mutex;
 
 static mut APP: OnceLock<App> = OnceLock::new();
 
@@ -30,6 +32,7 @@ pub struct App<'s: 'static> {
   pub glow: Glow<'s>,
   pub chams: Chams<'s>,
 
+  pub game_state: Mutex<GameState<'s>>,
   pub player_resource: Option<&'s Entity>,
 
   pub blur_effect: OnceLock<BlurEffect>,
@@ -48,6 +51,7 @@ impl App<'_> {
         glow: Glow::new(),
         chams: Chams::new(),
 
+        game_state: Mutex::default(),
         player_resource: None,
 
         blur_effect: OnceLock::new(),

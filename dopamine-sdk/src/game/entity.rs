@@ -1,5 +1,6 @@
 use crate::game::{ClassId, ClientClass};
 use crate::interfaces::{engine, entity_list};
+use crate::math::Vec3;
 use crate::utils::Patterns;
 use crate::{netvar, virtual_method};
 
@@ -30,12 +31,10 @@ impl Entity {
     EntityAttachmentIterator::new(self)
   }
 
-  #[inline]
   pub fn is_viewmodel(&self) -> bool {
     self.networkable().client_class().id == ClassId::PredictedViewModel
   }
 
-  #[inline]
   pub fn is_spotted(&self, index: usize) -> bool {
     self.player_spotted()[index]
   }
@@ -100,8 +99,11 @@ impl Entity {
 }
 
 impl Entity {
+  virtual_method!(pub fn collideable[3](&self) -> &CollideableEntity);
   virtual_method!(pub fn networkable[4](&self) -> &NetworkableEntity);
   virtual_method!(pub fn renderable[5](&self) -> &RenderableEntity);
+  virtual_method!(pub fn abs_origin[9](&self) -> &Vec3);
+  virtual_method!(pub fn is_alive[131](&self) -> bool);
   virtual_method!(pub fn is_player[132](&self) -> bool);
   virtual_method!(pub fn active_weapon[227](&self) -> Option<&Entity>);
   virtual_method!(pub fn weapon_id[371](&self) -> WeaponId);
@@ -111,6 +113,14 @@ impl Entity {
   netvar!(fn player_spotted -> [bool; 65] as CCSPlayerResource->m_bPlayerSpotted);
   netvar!(fn flags -> EntityFlags as CBasePlayer->m_fFlags);
   netvar!(fn weapon_mode -> WeaponMode as CWeaponCSBase->m_weaponMode);
+}
+
+#[repr(C)]
+pub struct CollideableEntity;
+
+impl CollideableEntity {
+  virtual_method!(pub fn obb_mins[3](&self) -> &Vec3);
+  virtual_method!(pub fn obb_maxs[4](&self) -> &Vec3);
 }
 
 #[repr(C)]

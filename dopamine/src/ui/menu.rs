@@ -1,6 +1,7 @@
 use crate::config::Config;
 
 use crate::features::chams::{ChamsConfig, ChamsConfigKind, ChamsMaterialKind};
+use crate::features::esp::{EspConfig, EspConfigKind};
 use crate::features::glow::{GlowConfig, GlowConfigKind};
 use crate::features::misc::MiscConfig;
 use crate::features::visuals::VisualsConfig;
@@ -18,6 +19,7 @@ struct ShouldDrawWindow {
   visuals: bool,
   glow: bool,
   chams: bool,
+  esp: bool,
   config: bool,
 }
 
@@ -78,6 +80,7 @@ impl Menu {
       self.draw_visuals_window(&mut config.visuals);
       self.draw_glow_window(&mut config.glow);
       self.draw_chams_window(&mut config.chams);
+      self.draw_esp_window(&mut config.esp);
       self.draw_config_window(config);
     }
     style.pop();
@@ -93,6 +96,8 @@ impl Menu {
         self.should_draw_window.glow = true;
       } else if imgui::menu_item("Chams") {
         self.should_draw_window.chams = true;
+      } else if imgui::menu_item("ESP") {
+        self.should_draw_window.esp = true;
       } else if imgui::menu_item("Config") {
         self.should_draw_window.config = true;
       }
@@ -226,6 +231,31 @@ impl Menu {
         imgui::checkbox("Wireframe", &mut current_layer.wireframe);
 
         imgui::combo("Material", &mut current_layer.material_index, ChamsMaterialKind::VARIANTS);
+      });
+  }
+
+  fn draw_esp_window(&mut self, config: &mut EspConfig) {
+    if !self.should_draw_window.esp {
+      return;
+    }
+
+    imgui::window_ex("ESP")
+      .open(&mut self.should_draw_window.esp)
+      .flags(Self::window_flags())
+      .build(|| {
+        imgui::combo("##ConfigKind", &mut config.current_config_index, EspConfigKind::VARIANTS);
+
+        let current_config_index = config.current_config_index;
+        let cfg = &mut config.as_mut_slice()[current_config_index];
+
+        imgui::separator();
+
+        imgui::text("Bounding box");
+        imgui::checkbox("Enabled", &mut cfg.bounding_box.enabled);
+        imgui::same_line();
+        imgui::color_edit4_ex("##BoundingBoxColor", cfg.bounding_box.color.as_mut_array())
+          .flags(Self::color_edit_flags())
+          .build();
       });
   }
 

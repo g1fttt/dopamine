@@ -1,5 +1,5 @@
 use crate::app::App;
-use crate::features::visuals;
+use crate::features::{esp, visuals};
 use crate::ui::{BlurEffect, Context as ImGuiContext};
 
 use windows::core::{HRESULT, Interface, Result as WindowsResult};
@@ -87,6 +87,9 @@ fn draw_imgui_context(app: &mut App, device: &IDirect3DDevice9, hwnd: HWND) -> W
 
     if should_draw_visuals {
       visuals::draw_better_crosshair(&app.config.visuals.better_crosshair, bg_draw_list);
+
+      let state = app.game_state.lock();
+      esp::draw(&app.config.esp, bg_draw_list, &state);
     }
 
     if app.menu.is_open() {

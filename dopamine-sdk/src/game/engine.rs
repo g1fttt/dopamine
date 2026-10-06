@@ -1,4 +1,5 @@
 use crate::game::material_system::Material;
+use crate::math::Mat4x4;
 use crate::virtual_method;
 
 #[repr(C)]
@@ -8,6 +9,7 @@ impl Engine {
   virtual_method!(pub fn local_player_index[12](&self) -> i32);
   virtual_method!(pub fn max_clients[21](&self) -> i32);
   virtual_method!(pub fn is_in_game[26](&self) -> bool);
+  virtual_method!(pub fn world_to_screen_matrix[36](&self) -> &Mat4x4);
 }
 
 // TODO: Use `IClientRenderable *pRenderable` instead of `int entity_index`

@@ -2,7 +2,6 @@ use dopamine_sdk::Entity;
 use dopamine_sdk::interfaces::{engine, entity_list};
 
 /// Returns iterator over all players (except _local player_)
-#[expect(dead_code)] // Reserved for Aimbot and Esp
 pub fn players_iter<'a>() -> impl Iterator<Item = &'a Entity> {
   generic_iter(engine().max_clients())
 }

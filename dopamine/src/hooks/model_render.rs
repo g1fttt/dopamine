@@ -22,7 +22,9 @@ pub extern "C" fn draw_model_execute(
 
     let entity = entity_list().get_entity_by_index(info.entity_index);
 
-    app.chams.draw(&app.config.chams, &original, entity);
+    if let Some(ent) = entity {
+      app.chams.draw(&app.config.chams, &original, ent);
+    }
 
     if !app.chams.applied() {
       original();

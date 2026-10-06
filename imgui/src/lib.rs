@@ -894,6 +894,18 @@ pub struct DrawList {
 }
 
 impl DrawList {
+  #[doc(alias = "AddRect")]
+  #[inline(always)]
+  pub fn add_rect(&mut self, min: ImVec2, max: ImVec2, color: u32) {
+    self.add_rect_ex(min, max, color).build(self)
+  }
+
+  #[doc(alias = "AddRect")]
+  #[inline(always)]
+  pub fn add_rect_ex(&mut self, min: ImVec2, max: ImVec2, color: u32) -> AddRectBuilder {
+    AddRectBuilder::create_empty().min(min).max(max).color(color)
+  }
+
   #[doc(alias = "AddRectFilled")]
   #[inline(always)]
   pub fn add_rect_filled(&mut self, min: ImVec2, max: ImVec2, color: u32) {
@@ -902,13 +914,8 @@ impl DrawList {
 
   #[doc(alias = "AddRectFilled")]
   #[inline(always)]
-  pub fn add_rect_filled_ex(
-    &mut self,
-    min: ImVec2,
-    max: ImVec2,
-    color: u32,
-  ) -> AddRectFilledBuilder {
-    AddRectFilledBuilder::create_empty().min(min).max(max).color(color)
+  pub fn add_rect_filled_ex(&mut self, min: ImVec2, max: ImVec2, color: u32) -> AddRectBuilder {
+    AddRectBuilder::create_empty().min(min).max(max).color(color).filled(true)
   }
 
   #[doc(alias = "AddImage")]
@@ -978,33 +985,52 @@ impl DrawList {
 
 #[derive(Builder)]
 #[builder(pattern = "owned", build_fn(private, name = "_build"))]
-pub struct AddRectFilled {
+pub struct AddRect {
   min: ImVec2,
   max: ImVec2,
   color: u32,
   #[builder(setter(strip_option), default)]
   rounding: Option<f32>,
   #[builder(setter(strip_option), default)]
+  thickness: Option<f32>,
+  #[builder(setter(strip_option), default)]
   flags: Option<DrawFlags>,
+  #[builder(default)]
+  filled: bool,
 }
 
-impl AddRectFilledBuilder {
+impl AddRectBuilder {
   pub fn build(self, draw_list: &mut DrawList) {
-    let add_rect_filled = self._build().unwrap();
+    let add_rect = self._build().unwrap();
 
-    let rounding = add_rect_filled.rounding.unwrap_or(0.0);
-    let flags = add_rect_filled.flags.unwrap_or_else(DrawFlags::empty);
+    let rounding = add_rect.rounding.unwrap_or(0.0);
+    let thickness = add_rect.thickness.unwrap_or(1.0);
+    let flags = add_rect.flags.unwrap_or_else(DrawFlags::empty);
+
+    let draw_list = draw_list as *mut DrawList as *mut ImDrawList;
 
     unsafe {
-      ImDrawList_AddRectFilled(
-        draw_list as *mut DrawList as *mut ImDrawList,
-        &add_rect_filled.min,
-        &add_rect_filled.max,
-        add_rect_filled.color,
-        rounding,
-        flags.bits(),
-      )
-    };
+      if add_rect.filled {
+        ImDrawList_AddRectFilled(
+          draw_list,
+          &add_rect.min,
+          &add_rect.max,
+          add_rect.color,
+          rounding,
+          flags.bits(),
+        );
+      } else {
+        ImDrawList_AddRect(
+          draw_list,
+          &add_rect.min,
+          &add_rect.max,
+          add_rect.color,
+          rounding,
+          thickness,
+          flags.bits(),
+        );
+      }
+    }
   }
 }
 
