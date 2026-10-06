@@ -1,6 +1,6 @@
 use crate::game::{ClassId, ClientClass};
 use crate::interfaces::{engine, entity_list};
-use crate::math::Vec3;
+use crate::math::{Mat3x4, Vec3};
 use crate::utils::Patterns;
 use crate::{netvar, virtual_method};
 
@@ -146,6 +146,14 @@ impl RenderableEntity {
   virtual_method!(fn unknown_entity<'a>[0](&self) -> &'a UnknownEntity);
   virtual_method!(pub fn should_draw[3](&self) -> bool);
   virtual_method!(pub fn draw_model[10](&self) -> i32 where (i32: 1 /* StudioRender */));
+  // 48 89 5C 24 ? 55 56 41 56 48 81 EC ? ? ? ? 49 8B 00
+  // ...
+  // coordinateFrame = (*(*i + 272i64))(i);
+  // --------------------------^^^ => 272 / 8 = 34
+  // ConcatTransforms(a2, coordinateFrame, v19);
+  // TransformAABB(v19, v18, v17, v15, v16);
+  // ...
+  virtual_method!(pub fn to_world_transform[34](&self) -> &Mat3x4);
 }
 
 #[repr(C)]

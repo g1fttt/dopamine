@@ -27,7 +27,7 @@ impl Vec3 {
     self.x * other.x + self.y * other.y + self.z * other.z
   }
 
-  pub fn transform(&self, mat: &Mat4x4) -> Self {
+  pub fn transform(&self, mat: &Mat3x4) -> Self {
     Self {
       x: self.dot_product(&Self::new(mat[0][0], mat[0][1], mat[0][2])) + mat[0][3],
       y: self.dot_product(&Self::new(mat[1][0], mat[1][1], mat[1][2])) + mat[1][3],
@@ -125,6 +125,18 @@ pub struct Mat4x4 {
 }
 
 impl Index<usize> for Mat4x4 {
+  type Output = Row<4>;
+
+  fn index(&self, index: usize) -> &Self::Output {
+    &self.inner[index]
+  }
+}
+
+pub struct Mat3x4 {
+  inner: MatN<3, 4>,
+}
+
+impl Index<usize> for Mat3x4 {
   type Output = Row<4>;
 
   fn index(&self, index: usize) -> &Self::Output {
