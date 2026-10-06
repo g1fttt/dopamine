@@ -27,7 +27,7 @@ pub extern "C" fn frame_stage_notify(this: &Client, current_stage: FrameStage) {
   App::with_mut(move |app| {
     (app.hooks.frame_stage_notify.original())(this, current_stage);
 
-    if current_stage == FrameStage::RenderStart && engine().is_in_game() {
+    if current_stage == FrameStage::RenderEnd && engine().is_in_game() {
       app.game_state.with_mut(GameState::collect);
     }
   });

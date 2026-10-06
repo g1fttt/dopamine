@@ -22,5 +22,5 @@ impl EntityList {
 #[derive(Clone, Copy, PartialEq)]
 #[repr(C)]
 pub enum FrameStage {
-  RenderStart = 5,
+  RenderEnd = 6,
 }

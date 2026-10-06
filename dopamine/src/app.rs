@@ -32,7 +32,7 @@ pub struct App<'s: 'static> {
   pub glow: Glow<'s>,
   pub chams: Chams<'s>,
 
-  pub game_state: Mutex<GameState<'s>>,
+  pub game_state: Mutex<GameState>,
   pub player_resource: Option<&'s Entity>,
 
   pub blur_effect: OnceLock<BlurEffect>,

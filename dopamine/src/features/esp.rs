@@ -50,7 +50,7 @@ fn draw_bounding_box(
       z: if i & 4 > 0 { maxs.z } else { mins.z },
     };
 
-    let point = local_point.transform(info.coordinate_frame);
+    let point = local_point.transform(&info.coordinate_frame);
 
     let Some(screen_pos) = world_to_screen_pixel_aligned(matrix, &point) else {
       return;

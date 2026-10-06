@@ -118,7 +118,7 @@ impl Angles {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct Mat4x4 {
   inner: MatN<4, 4>,
@@ -132,6 +132,8 @@ impl Index<usize> for Mat4x4 {
   }
 }
 
+#[derive(Debug, Clone)]
+#[repr(C)]
 pub struct Mat3x4 {
   inner: MatN<3, 4>,
 }
@@ -146,7 +148,7 @@ impl Index<usize> for Mat3x4 {
 
 pub type Row<const N: usize> = [f32; N];
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 #[repr(C)]
 struct MatN<const R: usize, const C: usize> {
   data: [Row<C>; R],
