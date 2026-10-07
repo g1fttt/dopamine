@@ -43,7 +43,7 @@ impl ModelRender {
 pub struct ModelInfo;
 
 impl ModelInfo {
-  virtual_method!(pub fn get_studio_header<'a>[28](&self, model: &Model) -> Option<&'a StudioHeader>);
+  virtual_method!(pub fn studio_header<'a>[28](&self, model: &Model) -> Option<&'a StudioHeader>);
 }
 
 #[repr(C)]

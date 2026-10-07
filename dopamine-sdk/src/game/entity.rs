@@ -1,6 +1,6 @@
 use crate::engine::Model;
 use crate::game::{ClassId, ClientClass};
-use crate::interfaces::{engine, entity_list};
+use crate::interfaces::{engine, entity_list, model_info};
 use crate::math::{Mat3x4, Vec3};
 use crate::utils::{Netvars, Patterns};
 use crate::{netvar, virtual_method};
@@ -83,6 +83,20 @@ impl Entity {
     )
   }
 
+  /// Retrieves OBB minimum, OBB maximum and "transform to world" matrix by utilizing hitbox bone
+  pub fn bone_info(&self, hitbox: Hitbox) -> Option<(Vec3, Vec3, &Mat3x4)> {
+    let model = self.renderable().model()?;
+    let studio_header = model_info().studio_header(model)?;
+
+    let hitbox_set = studio_header.hitbox_set(self.hitbox_set() as usize)?;
+    let head_hitbox = hitbox_set.hitbox(hitbox)?;
+
+    let bones = self.bone_accessor()?;
+    let matrix = bones.to_world_transform(head_hitbox.bone_index as usize)?;
+
+    Some((head_hitbox.mins, head_hitbox.maxs, matrix))
+  }
+
   pub fn bone_accessor(&self) -> Option<&BoneAccessor> {
     let force_bone = Netvars::get().get(&("CBaseAnimating", "m_nForceBone"))?;
 
@@ -126,6 +140,13 @@ impl Entity {
   netvar!(fn player_spotted -> [bool; 65] as CCSPlayerResource->m_bPlayerSpotted);
   netvar!(fn flags -> EntityFlags as CBasePlayer->m_fFlags);
   netvar!(fn weapon_mode -> WeaponMode as CWeaponCSBase->m_weaponMode);
+}
+
+#[derive(Clone, Copy)]
+#[open_enum]
+#[repr(C)]
+pub enum Hitbox {
+  Head = 12,
 }
 
 #[repr(C)]

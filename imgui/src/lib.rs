@@ -1154,7 +1154,7 @@ impl TextureRef {
   }
 }
 
-#[doc(alias = "IM_COl32")]
+#[doc(alias = "IM_COL32")]
 #[inline]
 pub fn im_col32(r: f32, g: f32, b: f32, a: f32) -> u32 {
   let col = ImVec4 { x: r, y: g, z: b, w: a };

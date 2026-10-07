@@ -1,6 +1,5 @@
+use crate::Hitbox;
 use crate::math::Vec3;
-
-use open_enum::open_enum;
 
 pub const MAX_STUDIO_BONES: i32 = 128;
 
@@ -54,13 +53,6 @@ pub struct StudioBoundingBox {
   pub mins: Vec3,
   pub maxs: Vec3,
   pad2: [u8; 36],
-}
-
-#[derive(Clone, Copy)]
-#[open_enum]
-#[repr(C)]
-pub enum Hitbox {
-  Head = 12,
 }
 
 impl From<Hitbox> for usize {

@@ -1,6 +1,6 @@
 use crate::entities;
 
-use dopamine_sdk::interfaces::{engine, model_info};
+use dopamine_sdk::interfaces::engine;
 use dopamine_sdk::math::{Mat3x4, Mat4x4, Vec3};
 use dopamine_sdk::{Entity, Hitbox};
 
@@ -16,44 +16,17 @@ impl GameState {
     self.view_matrix.replace(engine().world_to_screen_matrix().clone());
 
     for entity in entities::iter() {
-      if entity.networkable().is_dormant() {
-        continue;
-      }
-
-      let renderable = entity.renderable();
-
-      let Some(header) = renderable.model().and_then(|mdl| model_info().get_studio_header(mdl))
-      else {
-        continue;
-      };
-
-      let Some(head_bbox) =
-        header.hitbox_set(entity.hitbox_set() as usize).and_then(|set| set.hitbox(Hitbox::Head))
-      else {
-        continue;
-      };
-
-      let Some(head_to_world_matrix) = entity
-        .bone_accessor()
-        .and_then(|acc| acc.to_world_transform(head_bbox.bone_index as usize))
-        .cloned()
-      else {
-        continue;
-      };
-
       let collideable = entity.collideable();
 
       self.entity_info.push(EntityInfo {
         obb_mins: *collideable.obb_mins(),
         obb_maxs: *collideable.obb_maxs(),
-        is_player: entity.is_player(),
-        is_alive: entity.is_alive(),
-        is_enemy: Entity::local_player().is_some_and(|lp| lp.team() != entity.team()),
-        coordinate_frame: renderable.to_world_transform().clone(),
-
-        head_obb_mins: head_bbox.mins,
-        head_obb_maxs: head_bbox.maxs,
-        head_to_world_matrix,
+        coordinate_frame: entity.renderable().to_world_transform().clone(),
+        extra_info: if entity.is_player() {
+          PlayerInfo::new(entity).map(EntityInfoExtra::Player)
+        } else {
+          None
+        },
       });
     }
   }
@@ -68,16 +41,39 @@ impl GameState {
 }
 
 #[derive(Debug)]
+pub struct PlayerInfo {
+  pub is_dormant: bool,
+  pub is_alive: bool,
+  pub is_enemy: bool,
+  pub head_obb_mins: Vec3,
+  pub head_obb_maxs: Vec3,
+  pub head_to_world_transform: Mat3x4,
+}
+
+impl PlayerInfo {
+  fn new(entity: &Entity) -> Option<Self> {
+    let (head_obb_mins, head_obb_maxs, head_to_world_matrix) = entity.bone_info(Hitbox::Head)?;
+
+    Some(PlayerInfo {
+      is_dormant: entity.networkable().is_dormant(),
+      is_alive: entity.is_alive(),
+      is_enemy: Entity::local_player().is_some_and(|lp| lp.team() != entity.team()),
+      head_obb_mins,
+      head_obb_maxs,
+      head_to_world_transform: head_to_world_matrix.clone(),
+    })
+  }
+}
+
+#[derive(Debug)]
 pub struct EntityInfo {
   pub obb_mins: Vec3,
   pub obb_maxs: Vec3,
-  pub is_player: bool,
-  pub is_alive: bool,
-  pub is_enemy: bool,
   pub coordinate_frame: Mat3x4,
+  pub extra_info: Option<EntityInfoExtra>,
+}
 
-  // TODO: Refactor
-  pub head_obb_mins: Vec3,
-  pub head_obb_maxs: Vec3,
-  pub head_to_world_matrix: Mat3x4,
+#[derive(Debug)]
+pub enum EntityInfoExtra {
+  Player(PlayerInfo),
 }

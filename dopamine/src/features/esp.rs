@@ -1,5 +1,5 @@
 use crate::config::EnumMapConfig;
-use crate::state::{EntityInfo, GameState};
+use crate::state::{EntityInfo, EntityInfoExtra, GameState, PlayerInfo};
 
 use dopamine_sdk::Color;
 use dopamine_sdk::math::{Mat4x4, Vec3};
@@ -10,77 +10,96 @@ use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 
 pub fn draw(config: &EspConfig, draw_list: &mut DrawList, state: &GameState) {
-  let Some(matrix) = state.view_matrix() else {
+  let Some(view_matrix) = state.view_matrix() else {
     return;
   };
 
-  for info in state.entity_info() {
-    if !info.is_player || !info.is_alive {
+  for entity_info in state.entity_info() {
+    let Some(extra_info) = &entity_info.extra_info else {
       continue;
-    }
+    };
 
-    let config_kind = if info.is_enemy { EspConfigKind::Enemies } else { EspConfigKind::Allies };
-    let item_config = &config[config_kind];
+    match extra_info {
+      EntityInfoExtra::Player(player_info) => {
+        let Some(bbox) = BoundingBox::for_player(entity_info, player_info, view_matrix) else {
+          continue;
+        };
 
-    draw_bounding_box(&item_config.bounding_box, draw_list, info, matrix);
+        let config_kind =
+          if player_info.is_enemy { EspConfigKind::Enemies } else { EspConfigKind::Allies };
+        let config = &config[config_kind];
+
+        bbox.draw(&config.bounding_box, draw_list);
+      }
+    };
   }
 }
 
-fn draw_bounding_box(
-  config: &BoundingBoxConfig,
-  draw_list: &mut DrawList,
-  info: &EntityInfo,
-  matrix: &Mat4x4,
-) {
-  if !config.enabled {
-    return;
-  }
+#[derive(Debug)]
+struct BoundingBox {
+  mins: ImVec2,
+  maxs: ImVec2,
+}
 
-  let mut screen_min = ImVec2 { x: f32::MAX, y: f32::MAX };
-  let mut screen_max = ImVec2 { x: f32::MIN, y: f32::MIN };
-
-  fn make_point(mins: &Vec3, maxs: &Vec3, i: usize) -> Vec3 {
-    Vec3 {
-      x: if i & 1 > 0 { maxs.x } else { mins.x },
-      y: if i & 2 > 0 { maxs.y } else { mins.y },
-      z: if i & 4 > 0 { maxs.z } else { mins.z },
+impl BoundingBox {
+  fn for_player(
+    entity_info: &EntityInfo,
+    player_info: &PlayerInfo,
+    view_matrix: &Mat4x4,
+  ) -> Option<Self> {
+    if !player_info.is_alive || player_info.is_dormant {
+      return None;
     }
+
+    let mut screen_min = ImVec2 { x: f32::MAX, y: f32::MAX };
+    let mut screen_max = ImVec2 { x: f32::MIN, y: f32::MIN };
+
+    for i in 0..8 {
+      let body_point = make_point(&entity_info.obb_mins, &entity_info.obb_maxs, i)
+        .transform(&entity_info.coordinate_frame);
+
+      let body_screen_pos = world_to_screen_pixel_aligned(view_matrix, &body_point)?;
+
+      screen_min.x = screen_min.x.min(body_screen_pos.x);
+      screen_min.y = screen_min.y.min(body_screen_pos.y);
+
+      screen_max.x = screen_max.x.max(body_screen_pos.x);
+      screen_max.y = screen_max.y.max(body_screen_pos.y);
+
+      let head_point = make_point(&player_info.head_obb_mins, &player_info.head_obb_maxs, i)
+        .transform(&player_info.head_to_world_transform);
+
+      let head_screen_pos = world_to_screen_pixel_aligned(view_matrix, &head_point)?;
+
+      screen_min.y = screen_min.y.min(head_screen_pos.y);
+    }
+    Some(Self { mins: screen_min, maxs: screen_max })
   }
 
-  for i in 0..8 {
-    let body_point =
-      make_point(&info.obb_mins, &info.obb_maxs, i).transform(&info.coordinate_frame);
-
-    let Some(body_screen_pos) = world_to_screen_pixel_aligned(matrix, &body_point) else {
+  fn draw(&self, config: &BoundingBoxConfig, draw_list: &mut DrawList) {
+    if !config.enabled {
       return;
-    };
+    }
 
-    screen_min.x = screen_min.x.min(body_screen_pos.x);
-    screen_min.y = screen_min.y.min(body_screen_pos.y);
+    let col = &config.color;
+    let im_color = imgui::im_col32(col.r, col.g, col.b, col.a);
 
-    screen_max.x = screen_max.x.max(body_screen_pos.x);
-    screen_max.y = screen_max.y.max(body_screen_pos.y);
+    draw_list.add_rect(
+      ImVec2 { x: self.mins.x + 1.0, y: self.mins.y + 1.0 },
+      ImVec2 { x: self.maxs.x + 1.0, y: self.maxs.y + 1.0 },
+      imgui::im_col32(0.0, 0.0, 0.0, 255.0),
+    );
 
-    let head_point =
-      make_point(&info.head_obb_mins, &info.head_obb_maxs, i).transform(&info.head_to_world_matrix);
-
-    let Some(head_screen_pos) = world_to_screen_pixel_aligned(matrix, &head_point) else {
-      return;
-    };
-
-    screen_min.y = screen_min.y.min(head_screen_pos.y);
+    AddRectBuilder::default().min(self.mins).max(self.maxs).color(im_color).build(draw_list);
   }
+}
 
-  let col = &config.color;
-  let im_color = imgui::im_col32(col.r, col.g, col.b, col.a);
-
-  draw_list.add_rect(
-    ImVec2 { x: screen_min.x + 1.0, y: screen_min.y + 1.0 },
-    ImVec2 { x: screen_max.x + 1.0, y: screen_max.y + 1.0 },
-    imgui::im_col32(0.0, 0.0, 0.0, 255.0),
-  );
-
-  AddRectBuilder::default().min(screen_min).max(screen_max).color(im_color).build(draw_list);
+fn make_point(mins: &Vec3, maxs: &Vec3, i: usize) -> Vec3 {
+  Vec3 {
+    x: if i & 1 > 0 { maxs.x } else { mins.x },
+    y: if i & 2 > 0 { maxs.y } else { mins.y },
+    z: if i & 4 > 0 { maxs.z } else { mins.z },
+  }
 }
 
 #[rustfmt::skip]
