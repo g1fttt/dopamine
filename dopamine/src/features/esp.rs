@@ -5,7 +5,7 @@ use dopamine_sdk::Color;
 use dopamine_sdk::math::{Mat4x4, Vec3};
 
 use enum_map::Enum;
-use imgui::{AddRectBuilder, DrawList, ImVec2};
+use imgui::{DrawList, ImVec2};
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 
@@ -21,15 +21,24 @@ pub fn draw(config: &EspConfig, draw_list: &mut DrawList, state: &GameState) {
 
     match extra_info {
       EntityInfoExtra::Player(player_info) => {
-        let Some(bbox) = BoundingBox::for_player(entity_info, player_info, view_matrix) else {
-          continue;
-        };
-
         let config_kind =
           if player_info.is_enemy { EspConfigKind::Enemies } else { EspConfigKind::Allies };
         let config = &config[config_kind];
 
-        bbox.draw(&config.bounding_box, draw_list);
+        if let Some(bbox) = BoundingBox::for_player(entity_info, player_info, view_matrix) {
+          draw_bounding_box(&config.bounding_box, &bbox, draw_list);
+
+          let health_bar_pos = ImVec2 { x: bbox.mins.x - 7.0, y: bbox.mins.y };
+          let health_bar_height = bbox.maxs.y - bbox.mins.y;
+
+          draw_health_bar(
+            &config.heatlh_bar,
+            health_bar_pos,
+            health_bar_height,
+            player_info.health,
+            draw_list,
+          );
+        }
       }
     };
   }
@@ -75,23 +84,56 @@ impl BoundingBox {
     }
     Some(Self { mins: screen_min, maxs: screen_max })
   }
+}
 
-  fn draw(&self, config: &BoundingBoxConfig, draw_list: &mut DrawList) {
-    if !config.enabled {
-      return;
-    }
-
-    let col = &config.color;
-    let im_color = imgui::im_col32(col.r, col.g, col.b, col.a);
-
-    draw_list.add_rect(
-      ImVec2 { x: self.mins.x + 1.0, y: self.mins.y + 1.0 },
-      ImVec2 { x: self.maxs.x + 1.0, y: self.maxs.y + 1.0 },
-      imgui::im_col32(0.0, 0.0, 0.0, 255.0),
-    );
-
-    AddRectBuilder::default().min(self.mins).max(self.maxs).color(im_color).build(draw_list);
+fn draw_bounding_box(config: &BoundingBoxConfig, bbox: &BoundingBox, draw_list: &mut DrawList) {
+  if !config.enabled {
+    return;
   }
+
+  let col = &config.color;
+  let im_color = imgui::im_col32(col.r, col.g, col.b, col.a);
+
+  draw_list.add_rect(
+    ImVec2 { x: bbox.mins.x + 1.0, y: bbox.mins.y + 1.0 },
+    ImVec2 { x: bbox.maxs.x + 1.0, y: bbox.maxs.y + 1.0 },
+    imgui::im_col32(0.0, 0.0, 0.0, 255.0),
+  );
+
+  draw_list.add_rect(bbox.mins, bbox.maxs, im_color);
+}
+
+fn draw_health_bar(
+  config: &HealthBarConfig,
+  pos: ImVec2,
+  height: f32,
+  health: i32,
+  draw_list: &mut DrawList,
+) {
+  if !config.enabled {
+    return;
+  }
+
+  let width = 3.0;
+
+  let min = pos;
+  let max = ImVec2 { x: pos.x + width, y: pos.y + height };
+
+  draw_list.add_rect_filled(
+    ImVec2 { x: min.x + 1.0, y: min.y + 1.0 },
+    ImVec2 { x: max.x + 1.0, y: max.y + 1.0 },
+    imgui::im_col32(0.0, 0.0, 0.0, 255.0),
+  );
+
+  let (r, g) = match health {
+    65..=100 => (0.0, 255.0),
+    30..65 => (255.0, 200.0),
+    _ => (255.0, 0.0),
+  };
+
+  let min = ImVec2 { x: pos.x, y: pos.y + ((100 - health) as f32 / 100.0 * height) };
+
+  draw_list.add_rect_filled(min, max, imgui::im_col32(r, g, 0.0, 255.0));
 }
 
 fn make_point(mins: &Vec3, maxs: &Vec3, i: usize) -> Vec3 {
@@ -139,8 +181,15 @@ pub struct BoundingBoxConfig {
 
 #[derive(Default, Serialize, Deserialize)]
 #[serde(default)]
+pub struct HealthBarConfig {
+  pub enabled: bool,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct EspItemConfig {
   pub bounding_box: BoundingBoxConfig,
+  pub heatlh_bar: HealthBarConfig,
 }
 
 pub type EspConfig = EnumMapConfig<EspConfigKind, EspItemConfig>;

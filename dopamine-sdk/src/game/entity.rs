@@ -134,6 +134,7 @@ impl Entity {
   virtual_method!(pub fn active_weapon[227](&self) -> Option<&Entity>);
   virtual_method!(pub fn weapon_id[371](&self) -> WeaponId);
 
+  netvar!(pub fn health -> i32 as CBasePlayer->m_iHealth);
   netvar!(pub fn team -> i32 as CBaseEntity->m_iTeamNum);
   netvar!(pub fn owner_handle -> EntityHandle as CBaseCombatWeapon->m_hOwner);
   netvar!(pub fn hitbox_set -> i32 as CBaseAnimating->m_nHitboxSet);

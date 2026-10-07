@@ -250,12 +250,13 @@ impl Menu {
 
         imgui::separator();
 
-        imgui::text("Bounding box");
-        imgui::checkbox("Enabled", &mut cfg.bounding_box.enabled);
+        imgui::checkbox("Bounding box", &mut cfg.bounding_box.enabled);
         imgui::same_line();
         imgui::color_edit4_ex("##BoundingBoxColor", cfg.bounding_box.color.as_mut_array())
           .flags(Self::color_edit_flags())
           .build();
+
+        imgui::checkbox("Health bar", &mut cfg.heatlh_bar.enabled);
       });
   }
 
