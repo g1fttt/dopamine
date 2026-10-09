@@ -74,6 +74,14 @@ impl Drop for Frame {
   }
 }
 
+#[doc(alias = "CalcTextSize")]
+#[inline]
+pub fn calc_text_size(text: impl AsRef<str>) -> ImVec2 {
+  let text = CString::new(text.as_ref()).unwrap();
+
+  unsafe { ImGui_CalcTextSize(text.as_ptr(), ptr::null(), false, -1.0) }.into()
+}
+
 #[doc(alias = "ShowDemoWindow")]
 #[inline(always)]
 pub fn show_demo_window() {
@@ -894,21 +902,44 @@ pub struct DrawList {
 }
 
 impl DrawList {
+  #[doc(alias = "AddText")]
+  #[inline(always)]
+  pub fn add_text(&mut self, pos: ImVec2, color: ImU32, text: impl AsRef<str>) {
+    let text = CString::new(text.as_ref()).unwrap();
+
+    unsafe {
+      ImDrawList_AddText(
+        self as *mut DrawList as *mut ImDrawList,
+        &pos,
+        color,
+        text.as_ptr(),
+        ptr::null(),
+      );
+    }
+  }
+
+  #[doc(alias = "AddRect")]
+  #[inline(always)]
+  pub fn add_rect(&mut self, min: ImVec2, max: ImVec2, color: ImU32) {
+    self.add_rect_ex(min, max, color).build(self)
+  }
+
+  #[doc(alias = "AddRect")]
+  #[inline(always)]
+  pub fn add_rect_ex(&mut self, min: ImVec2, max: ImVec2, color: ImU32) -> AddRectBuilder {
+    AddRectBuilder::create_empty().min(min).max(max).color(color)
+  }
+
   #[doc(alias = "AddRectFilled")]
   #[inline(always)]
-  pub fn add_rect_filled(&mut self, min: ImVec2, max: ImVec2, color: u32) {
+  pub fn add_rect_filled(&mut self, min: ImVec2, max: ImVec2, color: ImU32) {
     self.add_rect_filled_ex(min, max, color).build(self);
   }
 
   #[doc(alias = "AddRectFilled")]
   #[inline(always)]
-  pub fn add_rect_filled_ex(
-    &mut self,
-    min: ImVec2,
-    max: ImVec2,
-    color: u32,
-  ) -> AddRectFilledBuilder {
-    AddRectFilledBuilder::create_empty().min(min).max(max).color(color)
+  pub fn add_rect_filled_ex(&mut self, min: ImVec2, max: ImVec2, color: ImU32) -> AddRectBuilder {
+    AddRectBuilder::create_empty().min(min).max(max).color(color).filled(true)
   }
 
   #[doc(alias = "AddImage")]
@@ -976,35 +1007,80 @@ impl DrawList {
   }
 }
 
+// #[derive(Builder)]
+// #[builder(pattern = "owned", build_fn(private, name = "_build"))]
+// pub struct AddText<'a> {
+//   pos: ImVec2,
+//   color: ImU32,
+//   text: &'a str,
+// }
+//
+// impl AddTextBuilder<'_> {
+//   pub fn build(self, draw_list: &mut DrawList) {
+//     let add_text = self._build().unwrap();
+//
+//     let text = CString::new(add_text.text).unwrap();
+//
+//     unsafe {
+//       ImDrawList_AddText(
+//         draw_list as *mut DrawList as *mut ImDrawList,
+//         &add_text.pos,
+//         add_text.color,
+//         text.as_ptr(),
+//         ptr::null(),
+//       );
+//     }
+//   }
+// }
+
 #[derive(Builder)]
 #[builder(pattern = "owned", build_fn(private, name = "_build"))]
-pub struct AddRectFilled {
+pub struct AddRect {
   min: ImVec2,
   max: ImVec2,
-  color: u32,
+  color: ImU32,
   #[builder(setter(strip_option), default)]
   rounding: Option<f32>,
   #[builder(setter(strip_option), default)]
+  thickness: Option<f32>,
+  #[builder(setter(strip_option), default)]
   flags: Option<DrawFlags>,
+  #[builder(default)]
+  filled: bool,
 }
 
-impl AddRectFilledBuilder {
+impl AddRectBuilder {
   pub fn build(self, draw_list: &mut DrawList) {
-    let add_rect_filled = self._build().unwrap();
+    let add_rect = self._build().unwrap();
 
-    let rounding = add_rect_filled.rounding.unwrap_or(0.0);
-    let flags = add_rect_filled.flags.unwrap_or_else(DrawFlags::empty);
+    let rounding = add_rect.rounding.unwrap_or(0.0);
+    let thickness = add_rect.thickness.unwrap_or(1.0);
+    let flags = add_rect.flags.unwrap_or_else(DrawFlags::empty);
+
+    let draw_list = draw_list as *mut DrawList as *mut ImDrawList;
 
     unsafe {
-      ImDrawList_AddRectFilled(
-        draw_list as *mut DrawList as *mut ImDrawList,
-        &add_rect_filled.min,
-        &add_rect_filled.max,
-        add_rect_filled.color,
-        rounding,
-        flags.bits(),
-      )
-    };
+      if add_rect.filled {
+        ImDrawList_AddRectFilled(
+          draw_list,
+          &add_rect.min,
+          &add_rect.max,
+          add_rect.color,
+          rounding,
+          flags.bits(),
+        );
+      } else {
+        ImDrawList_AddRect(
+          draw_list,
+          &add_rect.min,
+          &add_rect.max,
+          add_rect.color,
+          rounding,
+          thickness,
+          flags.bits(),
+        );
+      }
+    }
   }
 }
 
@@ -1128,7 +1204,7 @@ impl TextureRef {
   }
 }
 
-#[doc(alias = "IM_COl32")]
+#[doc(alias = "IM_COL32")]
 #[inline]
 pub fn im_col32(r: f32, g: f32, b: f32, a: f32) -> u32 {
   let col = ImVec4 { x: r, y: g, z: b, w: a };

@@ -1,6 +1,8 @@
+use crate::engine::Model;
 use crate::game::{ClassId, ClientClass};
-use crate::interfaces::{engine, entity_list};
-use crate::utils::Patterns;
+use crate::interfaces::{engine, entity_list, model_info};
+use crate::math::{Mat3x4, Vec3};
+use crate::utils::{Netvars, Patterns};
 use crate::{netvar, virtual_method};
 
 use open_enum::open_enum;
@@ -30,12 +32,10 @@ impl Entity {
     EntityAttachmentIterator::new(self)
   }
 
-  #[inline]
   pub fn is_viewmodel(&self) -> bool {
     self.networkable().client_class().id == ClassId::PredictedViewModel
   }
 
-  #[inline]
   pub fn is_spotted(&self, index: usize) -> bool {
     self.player_spotted()[index]
   }
@@ -83,6 +83,31 @@ impl Entity {
     )
   }
 
+  /// Retrieves OBB minimum, OBB maximum and "transform to world" matrix by utilizing hitbox bone
+  pub fn bone_info(&self, hitbox: Hitbox) -> Option<(Vec3, Vec3, &Mat3x4)> {
+    let model = self.renderable().model()?;
+    let studio_header = model_info().studio_header(model)?;
+
+    let hitbox_set = studio_header.hitbox_set(self.hitbox_set() as usize)?;
+    let head_hitbox = hitbox_set.hitbox(hitbox)?;
+
+    let bones = self.bone_accessor()?;
+    let matrix = bones.to_world_transform(head_hitbox.bone_index as usize)?;
+
+    Some((head_hitbox.mins, head_hitbox.maxs, matrix))
+  }
+
+  pub fn bone_accessor(&self) -> Option<&BoneAccessor> {
+    let force_bone = Netvars::get().get(&("CBaseAnimating", "m_nForceBone"))?;
+
+    unsafe {
+      // 48 8B C4 4C 89 48 ? 4C 89 40 ? 55 53 41 57
+      // (*(*m_pRagdoll + 8i64))(m_pRagdoll, this, pbones, *(*hdr + 156i64), boneSimulated, this + 257);
+      // ------------------------------------------------------------------------------------------^^^
+      (self as *const Self).byte_add(force_bone.offset + 20).cast::<BoneAccessor>().as_ref()
+    }
+  }
+
   #[inline(always)]
   pub fn local_player() -> Option<&'static Self> {
     entity_list().get_entity_by_index(engine().local_player_index())
@@ -100,17 +125,49 @@ impl Entity {
 }
 
 impl Entity {
+  virtual_method!(pub fn collideable[3](&self) -> &CollideableEntity);
   virtual_method!(pub fn networkable[4](&self) -> &NetworkableEntity);
   virtual_method!(pub fn renderable[5](&self) -> &RenderableEntity);
+  virtual_method!(pub fn abs_origin[9](&self) -> &Vec3);
+  virtual_method!(pub fn is_alive[131](&self) -> bool);
   virtual_method!(pub fn is_player[132](&self) -> bool);
   virtual_method!(pub fn active_weapon[227](&self) -> Option<&Entity>);
   virtual_method!(pub fn weapon_id[371](&self) -> WeaponId);
 
+  netvar!(pub fn health -> i32 as CBasePlayer->m_iHealth);
   netvar!(pub fn team -> i32 as CBaseEntity->m_iTeamNum);
   netvar!(pub fn owner_handle -> EntityHandle as CBaseCombatWeapon->m_hOwner);
+  netvar!(pub fn hitbox_set -> i32 as CBaseAnimating->m_nHitboxSet);
   netvar!(fn player_spotted -> [bool; 65] as CCSPlayerResource->m_bPlayerSpotted);
   netvar!(fn flags -> EntityFlags as CBasePlayer->m_fFlags);
   netvar!(fn weapon_mode -> WeaponMode as CWeaponCSBase->m_weaponMode);
+}
+
+#[derive(Clone, Copy)]
+#[open_enum]
+#[repr(C)]
+pub enum Hitbox {
+  Head = 12,
+}
+
+#[repr(C)]
+pub struct BoneAccessor {
+  pad: [u8; 8],
+  bones: *const Mat3x4,
+}
+
+impl BoneAccessor {
+  pub fn to_world_transform(&self, index: usize) -> Option<&Mat3x4> {
+    unsafe { self.bones.add(index).as_ref() }
+  }
+}
+
+#[repr(C)]
+pub struct CollideableEntity;
+
+impl CollideableEntity {
+  virtual_method!(pub fn obb_mins[3](&self) -> &Vec3);
+  virtual_method!(pub fn obb_maxs[4](&self) -> &Vec3);
 }
 
 #[repr(C)]
@@ -135,7 +192,16 @@ impl RenderableEntity {
 impl RenderableEntity {
   virtual_method!(fn unknown_entity<'a>[0](&self) -> &'a UnknownEntity);
   virtual_method!(pub fn should_draw[3](&self) -> bool);
+  virtual_method!(pub fn model[9](&self) -> Option<&Model>);
   virtual_method!(pub fn draw_model[10](&self) -> i32 where (i32: 1 /* StudioRender */));
+  // 48 89 5C 24 ? 55 56 41 56 48 81 EC ? ? ? ? 49 8B 00
+  // ...
+  // coordinateFrame = (*(*i + 272i64))(i);
+  // --------------------------^^^ => 272 / 8 = 34
+  // ConcatTransforms(a2, coordinateFrame, v19);
+  // TransformAABB(v19, v18, v17, v15, v16);
+  // ...
+  virtual_method!(pub fn to_world_transform[34](&self) -> &Mat3x4);
 }
 
 #[repr(C)]

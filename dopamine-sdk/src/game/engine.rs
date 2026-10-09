@@ -1,4 +1,7 @@
+use crate::game::StudioHeader;
 use crate::game::material_system::Material;
+
+use crate::math::Mat4x4;
 use crate::virtual_method;
 
 #[repr(C)]
@@ -8,6 +11,7 @@ impl Engine {
   virtual_method!(pub fn local_player_index[12](&self) -> i32);
   virtual_method!(pub fn max_clients[21](&self) -> i32);
   virtual_method!(pub fn is_in_game[26](&self) -> bool);
+  virtual_method!(pub fn world_to_screen_matrix[36](&self) -> &Mat4x4);
 }
 
 // TODO: Use `IClientRenderable *pRenderable` instead of `int entity_index`
@@ -34,3 +38,13 @@ impl ModelRender {
   virtual_method!(fn forced_material_override[1](&self, new_material: Option<&Material>)
     where (i32: 0 /* NORMAL */));
 }
+
+#[repr(C)]
+pub struct ModelInfo;
+
+impl ModelInfo {
+  virtual_method!(pub fn studio_header<'a>[28](&self, model: &Model) -> Option<&'a StudioHeader>);
+}
+
+#[repr(C)]
+pub struct Model;
