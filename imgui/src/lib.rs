@@ -74,6 +74,14 @@ impl Drop for Frame {
   }
 }
 
+#[doc(alias = "CalcTextSize")]
+#[inline]
+pub fn calc_text_size(text: impl AsRef<str>) -> ImVec2 {
+  let text = CString::new(text.as_ref()).unwrap();
+
+  unsafe { ImGui_CalcTextSize(text.as_ptr(), ptr::null(), false, -1.0) }.into()
+}
+
 #[doc(alias = "ShowDemoWindow")]
 #[inline(always)]
 pub fn show_demo_window() {
@@ -894,27 +902,43 @@ pub struct DrawList {
 }
 
 impl DrawList {
+  #[doc(alias = "AddText")]
+  #[inline(always)]
+  pub fn add_text(&mut self, pos: ImVec2, color: ImU32, text: impl AsRef<str>) {
+    let text = CString::new(text.as_ref()).unwrap();
+
+    unsafe {
+      ImDrawList_AddText(
+        self as *mut DrawList as *mut ImDrawList,
+        &pos,
+        color,
+        text.as_ptr(),
+        ptr::null(),
+      );
+    }
+  }
+
   #[doc(alias = "AddRect")]
   #[inline(always)]
-  pub fn add_rect(&mut self, min: ImVec2, max: ImVec2, color: u32) {
+  pub fn add_rect(&mut self, min: ImVec2, max: ImVec2, color: ImU32) {
     self.add_rect_ex(min, max, color).build(self)
   }
 
   #[doc(alias = "AddRect")]
   #[inline(always)]
-  pub fn add_rect_ex(&mut self, min: ImVec2, max: ImVec2, color: u32) -> AddRectBuilder {
+  pub fn add_rect_ex(&mut self, min: ImVec2, max: ImVec2, color: ImU32) -> AddRectBuilder {
     AddRectBuilder::create_empty().min(min).max(max).color(color)
   }
 
   #[doc(alias = "AddRectFilled")]
   #[inline(always)]
-  pub fn add_rect_filled(&mut self, min: ImVec2, max: ImVec2, color: u32) {
+  pub fn add_rect_filled(&mut self, min: ImVec2, max: ImVec2, color: ImU32) {
     self.add_rect_filled_ex(min, max, color).build(self);
   }
 
   #[doc(alias = "AddRectFilled")]
   #[inline(always)]
-  pub fn add_rect_filled_ex(&mut self, min: ImVec2, max: ImVec2, color: u32) -> AddRectBuilder {
+  pub fn add_rect_filled_ex(&mut self, min: ImVec2, max: ImVec2, color: ImU32) -> AddRectBuilder {
     AddRectBuilder::create_empty().min(min).max(max).color(color).filled(true)
   }
 
@@ -983,12 +1007,38 @@ impl DrawList {
   }
 }
 
+// #[derive(Builder)]
+// #[builder(pattern = "owned", build_fn(private, name = "_build"))]
+// pub struct AddText<'a> {
+//   pos: ImVec2,
+//   color: ImU32,
+//   text: &'a str,
+// }
+//
+// impl AddTextBuilder<'_> {
+//   pub fn build(self, draw_list: &mut DrawList) {
+//     let add_text = self._build().unwrap();
+//
+//     let text = CString::new(add_text.text).unwrap();
+//
+//     unsafe {
+//       ImDrawList_AddText(
+//         draw_list as *mut DrawList as *mut ImDrawList,
+//         &add_text.pos,
+//         add_text.color,
+//         text.as_ptr(),
+//         ptr::null(),
+//       );
+//     }
+//   }
+// }
+
 #[derive(Builder)]
 #[builder(pattern = "owned", build_fn(private, name = "_build"))]
 pub struct AddRect {
   min: ImVec2,
   max: ImVec2,
-  color: u32,
+  color: ImU32,
   #[builder(setter(strip_option), default)]
   rounding: Option<f32>,
   #[builder(setter(strip_option), default)]

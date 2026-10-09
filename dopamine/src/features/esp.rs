@@ -31,7 +31,7 @@ pub fn draw(config: &EspConfig, draw_list: &mut DrawList, state: &GameState) {
           let health_bar_pos = ImVec2 { x: bbox.mins.x - 7.0, y: bbox.mins.y };
           let health_bar_height = bbox.maxs.y - bbox.mins.y;
 
-          draw_health_bar(
+          draw_health_info(
             &config.heatlh_bar,
             health_bar_pos,
             health_bar_height,
@@ -103,7 +103,8 @@ fn draw_bounding_box(config: &BoundingBoxConfig, bbox: &BoundingBox, draw_list: 
   draw_list.add_rect(bbox.mins, bbox.maxs, im_color);
 }
 
-fn draw_health_bar(
+/// Draws a health bar and a health amount at the top point of the health bar
+fn draw_health_info(
   config: &HealthBarConfig,
   pos: ImVec2,
   height: f32,
@@ -134,6 +135,14 @@ fn draw_health_bar(
   let min = ImVec2 { x: pos.x, y: pos.y + ((100 - health) as f32 / 100.0 * height) };
 
   draw_list.add_rect_filled(min, max, imgui::im_col32(r, g, 0.0, 255.0));
+
+  let health_string = health.to_string();
+  let text_size = imgui::calc_text_size(&health_string);
+
+  let padding_from_bar = 3.0;
+  let pos = ImVec2 { x: min.x - text_size.x - padding_from_bar, y: min.y };
+
+  draw_list.add_text(pos, imgui::im_col32(255.0, 255.0, 255.0, 255.0), health_string);
 }
 
 fn make_point(mins: &Vec3, maxs: &Vec3, i: usize) -> Vec3 {
