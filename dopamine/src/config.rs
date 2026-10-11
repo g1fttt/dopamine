@@ -1,4 +1,5 @@
 use crate::features::chams::ChamsConfig;
+use crate::features::esp::EspConfig;
 use crate::features::glow::GlowConfig;
 use crate::features::misc::MiscConfig;
 use crate::features::visuals::VisualsConfig;
@@ -19,6 +20,7 @@ pub struct Config {
   pub visuals: VisualsConfig,
   pub glow: GlowConfig,
   pub chams: ChamsConfig,
+  pub esp: EspConfig,
 
   #[educe(Default = true)]
   pub blur_enabled: bool,

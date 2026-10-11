@@ -2,7 +2,7 @@ use educe::Educe;
 use imgui::{DrawList, ImVec2};
 use serde::{Deserialize, Serialize};
 
-use dopamine_sdk::math::{Angles, Vector3D};
+use dopamine_sdk::math::{Angles, Vec3};
 use dopamine_sdk::render_view::ViewSetup;
 use dopamine_sdk::{Color, Entity, RenderableEntity};
 
@@ -73,9 +73,9 @@ pub fn add_fov(config: &AddFovConfig, view: &mut ViewSetup) {
 
 pub fn calc_viewmodel_origin(
   config: &ViewmodelOriginConfig,
-  eye_origin: &Vector3D,
+  eye_origin: &Vec3,
   eye_angles: &Angles,
-) -> Option<Vector3D> {
+) -> Option<Vec3> {
   if !config.enabled {
     return None;
   }
@@ -93,7 +93,7 @@ pub fn calc_viewmodel_origin(
 pub fn extend_player_world_space_aabb(
   enabled: bool,
   renderable: &RenderableEntity,
-) -> Option<(Vector3D, Vector3D)> {
+) -> Option<(Vec3, Vec3)> {
   if !enabled || renderable.base().is_none_or(|ent| !ent.is_player()) {
     return None;
   }
@@ -101,8 +101,8 @@ pub fn extend_player_world_space_aabb(
   const MAX_COORD: f32 = 16384.0;
   const MIN_COORD: f32 = -MAX_COORD;
 
-  const MAX_COORD_3D: Vector3D = Vector3D::new(MAX_COORD, MAX_COORD, MAX_COORD);
-  const MIN_COORD_3D: Vector3D = Vector3D::new(MIN_COORD, MIN_COORD, MIN_COORD);
+  const MAX_COORD_3D: Vec3 = Vec3::new(MAX_COORD, MAX_COORD, MAX_COORD);
+  const MIN_COORD_3D: Vec3 = Vec3::new(MIN_COORD, MIN_COORD, MIN_COORD);
 
   Some((MAX_COORD_3D, MIN_COORD_3D))
 }
@@ -136,7 +136,7 @@ pub struct AddFovConfig {
 pub struct ViewmodelOriginConfig {
   pub enabled: bool,
   #[serde(flatten)]
-  pub value: Vector3D,
+  pub value: Vec3,
 }
 
 #[derive(Default, Serialize, Deserialize)]

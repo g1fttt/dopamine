@@ -16,6 +16,7 @@ pub struct Patterns {
     extern "C" fn(&mut KeyValues, key: *const c_char, value: *const c_char),
 
   pub is_local_player: extern "C" fn(&Entity) -> bool,
+  pub has_c4: extern "C" fn(&Entity) -> bool,
 
   pub calc_viewmodel_view: *mut c_void,
 
@@ -46,6 +47,11 @@ impl Patterns {
         find_by_pattern("client.dll", b"\x48\x39\x0D????\x0F\x94\xC0\xC3\xCC")
         .unwrap();
 
+      // "weapon_c4" XREF
+      let has_c4 =
+        find_by_pattern("client.dll", b"\x40\x57\x48\x83\xEC?\x48\x8B\xF9\xE8????\x48\x3B\xF8")
+        .unwrap();
+
       let calc_viewmodel_view =
         find_by_pattern("client.dll", b"\x48\x89\x5C\x24?\x56\x48\x83\xEC?\xF2\x41\x0F\x10\x01")
         .unwrap();
@@ -74,6 +80,7 @@ impl Patterns {
         key_values_set_string,
 
         is_local_player,
+        has_c4,
 
         calc_viewmodel_view,
 
