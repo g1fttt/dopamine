@@ -50,21 +50,26 @@ pub struct PlayerInfo {
   pub is_dormant: bool,
   pub is_alive: bool,
   pub is_enemy: bool,
+  pub is_zoomed: bool,
+  pub is_bomb_carrier: bool,
 }
 
 impl PlayerInfo {
   fn new(entity: &Entity) -> Option<Self> {
     let (head_obb_mins, head_obb_maxs, head_to_world_matrix) = entity.bone_info(Hitbox::Head)?;
+    let active_weapon = entity.active_weapon();
 
     Some(PlayerInfo {
       health: entity.health(),
-      ammo: entity.active_weapon().and_then(Entity::ammo),
+      ammo: active_weapon.and_then(Entity::ammo),
       head_obb_mins,
       head_obb_maxs,
       head_to_world_transform: head_to_world_matrix.clone(),
       is_dormant: entity.networkable().is_dormant(),
       is_alive: entity.is_alive(),
       is_enemy: Entity::local_player().is_some_and(|lp| lp.team() != entity.team()),
+      is_zoomed: active_weapon.map(Entity::is_in_scope).unwrap_or_default(),
+      is_bomb_carrier: entity.has_c4(),
     })
   }
 }

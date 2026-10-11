@@ -11,6 +11,7 @@ use strum::VariantNames;
 
 const BAR_WIDTH: f32 = 3.0;
 const BAR_HEIGHT: f32 = 3.0;
+const DEFAULT_PADDING: f32 = 3.0;
 
 pub fn draw(config: &EspConfig, draw_list: &mut DrawList, state: &GameState) {
   let Some(view_matrix) = state.view_matrix() else {
@@ -34,22 +35,24 @@ pub fn draw(config: &EspConfig, draw_list: &mut DrawList, state: &GameState) {
 
         draw_bounding_box(&config.bounding_box, &bbox, draw_list);
 
-        let health_bar_pos = ImVec2 { x: bbox.mins.x - 7.0, y: bbox.mins.y };
-        let health_bar_height = bbox.maxs.y - bbox.mins.y;
+        let height_max = bbox.maxs.y - bbox.mins.y;
+        let width_max = bbox.maxs.x - bbox.mins.x;
 
+        let player_status_pos = ImVec2 { x: bbox.maxs.x + DEFAULT_PADDING, y: bbox.mins.y };
+        draw_player_status(&config.player_status, player_status_pos, player_info, draw_list);
+
+        let health_bar_pos = ImVec2 { x: bbox.mins.x - 7.0, y: bbox.mins.y };
         draw_health_info(
           &config.health_bar,
           health_bar_pos,
-          health_bar_height,
+          height_max,
           player_info.health,
           draw_list,
         );
 
         if let Some(ammo) = player_info.ammo {
           let ammo_bar_pos = ImVec2 { x: bbox.mins.x, y: bbox.maxs.y + 3.5 };
-          let ammo_bar_width = bbox.maxs.x - bbox.mins.x;
-
-          draw_ammo_info(&config.ammo_bar, ammo_bar_pos, ammo_bar_width, ammo, draw_list);
+          draw_ammo_info(&config.ammo_bar, ammo_bar_pos, width_max, ammo, draw_list);
         }
       }
     };
@@ -115,6 +118,33 @@ fn draw_bounding_box(config: &BoundingBoxConfig, bbox: &BoundingBox, draw_list: 
   draw_list.add_rect(bbox.mins, bbox.maxs, im_color);
 }
 
+fn draw_player_status(
+  config: &PlayerStatusConfig,
+  mut min: ImVec2,
+  player_info: &PlayerInfo,
+  draw_list: &mut DrawList,
+) {
+  if !config.enabled {
+    return;
+  }
+
+  fn add_text_increment(text: &str, color: &Color, min: &mut ImVec2, draw_list: &mut DrawList) {
+    let im_color = imgui::im_col32(color.r, color.g, color.b, color.a);
+    draw_list.add_text(*min, im_color, text);
+
+    let text_size = imgui::calc_text_size(text);
+    min.y = min.y + text_size.y + 2.0;
+  }
+
+  if config.bomb_carrier && player_info.is_bomb_carrier {
+    add_text_increment("C4", &config.color, &mut min, draw_list);
+  }
+
+  if config.zoomed && player_info.is_zoomed {
+    add_text_increment("Zoom", &config.color, &mut min, draw_list);
+  }
+}
+
 /// Draws a health bar and a health amount at the top point of the bar
 fn draw_health_info(
   config: &HealthBarConfig,
@@ -148,8 +178,7 @@ fn draw_health_info(
   let health_string = health.to_string();
   let text_size = imgui::calc_text_size(&health_string);
 
-  let padding_from_bar = 3.0;
-  let pos = ImVec2 { x: min.x - text_size.x - padding_from_bar, y: min.y };
+  let pos = ImVec2 { x: min.x - text_size.x - DEFAULT_PADDING, y: min.y };
 
   draw_list.add_text(pos, imgui::im_col32(255.0, 255.0, 255.0, 255.0), health_string);
 }
@@ -182,8 +211,7 @@ fn draw_ammo_info(
   let ammo_string = format!("{}/{}", current_ammo, max_ammo);
   let text_size = imgui::calc_text_size(&ammo_string);
 
-  let padding_from_bar = 3.0;
-  let pos = ImVec2 { x: max.x - text_size.x, y: max.y + padding_from_bar };
+  let pos = ImVec2 { x: max.x - text_size.x, y: max.y + DEFAULT_PADDING };
 
   draw_list.add_text(pos, imgui::im_col32(255.0, 255.0, 255.0, 255.0), ammo_string);
 }
@@ -245,10 +273,20 @@ pub struct AmmoBarConfig {
 
 #[derive(Default, Serialize, Deserialize)]
 #[serde(default)]
+pub struct PlayerStatusConfig {
+  pub enabled: bool,
+  pub zoomed: bool,
+  pub bomb_carrier: bool,
+  pub color: Color,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct EspItemConfig {
   pub bounding_box: BoundingBoxConfig,
   pub health_bar: HealthBarConfig,
   pub ammo_bar: AmmoBarConfig,
+  pub player_status: PlayerStatusConfig,
 }
 
 pub type EspConfig = EnumMapConfig<EspConfigKind, EspItemConfig>;

@@ -258,6 +258,19 @@ impl Menu {
 
         imgui::checkbox("Health bar", &mut cfg.health_bar.enabled);
         imgui::checkbox("Ammo bar", &mut cfg.ammo_bar.enabled);
+
+        imgui::separator();
+
+        imgui::checkbox("Player status", &mut cfg.player_status.enabled);
+        imgui::same_line();
+        imgui::color_edit4_ex("##PlayerStatusColor", cfg.player_status.color.as_mut_array())
+          .flags(Self::color_edit_flags())
+          .build();
+
+        if cfg.player_status.enabled {
+          imgui::checkbox("Bomb carrier", &mut cfg.player_status.bomb_carrier);
+          imgui::checkbox("Zoomed", &mut cfg.player_status.zoomed);
+        }
       });
   }
 

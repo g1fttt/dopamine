@@ -28,6 +28,11 @@ impl Entity {
   }
 
   #[inline(always)]
+  pub fn has_c4(&self) -> bool {
+    (Patterns::get().has_c4)(self)
+  }
+
+  #[inline(always)]
   pub fn attachments(&self) -> EntityAttachmentIterator<'_> {
     EntityAttachmentIterator::new(self)
   }
