@@ -108,6 +108,16 @@ impl Entity {
     }
   }
 
+  pub fn ammo(&self) -> Option<(i32, i32)> {
+    let current = self.clip_amount();
+    let max = self.max_clip_amount();
+
+    if current == -1 || max == -1 {
+      return None;
+    }
+    Some((current, max))
+  }
+
   #[inline(always)]
   pub fn local_player() -> Option<&'static Self> {
     entity_list().get_entity_by_index(engine().local_player_index())
@@ -132,12 +142,14 @@ impl Entity {
   virtual_method!(pub fn is_alive[131](&self) -> bool);
   virtual_method!(pub fn is_player[132](&self) -> bool);
   virtual_method!(pub fn active_weapon[227](&self) -> Option<&Entity>);
+  virtual_method!(fn max_clip_amount[305](&self) -> i32);
   virtual_method!(pub fn weapon_id[371](&self) -> WeaponId);
 
   netvar!(pub fn health -> i32 as CBasePlayer->m_iHealth);
   netvar!(pub fn team -> i32 as CBaseEntity->m_iTeamNum);
   netvar!(pub fn owner_handle -> EntityHandle as CBaseCombatWeapon->m_hOwner);
   netvar!(pub fn hitbox_set -> i32 as CBaseAnimating->m_nHitboxSet);
+  netvar!(fn clip_amount -> i32 as CBaseCombatWeapon->m_iClip1);
   netvar!(fn player_spotted -> [bool; 65] as CCSPlayerResource->m_bPlayerSpotted);
   netvar!(fn flags -> EntityFlags as CBasePlayer->m_fFlags);
   netvar!(fn weapon_mode -> WeaponMode as CWeaponCSBase->m_weaponMode);

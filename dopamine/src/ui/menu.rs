@@ -256,7 +256,8 @@ impl Menu {
           .flags(Self::color_edit_flags())
           .build();
 
-        imgui::checkbox("Health bar", &mut cfg.heatlh_bar.enabled);
+        imgui::checkbox("Health bar", &mut cfg.health_bar.enabled);
+        imgui::checkbox("Ammo bar", &mut cfg.ammo_bar.enabled);
       });
   }
 

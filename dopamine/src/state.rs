@@ -42,13 +42,14 @@ impl GameState {
 
 #[derive(Debug)]
 pub struct PlayerInfo {
-  pub is_dormant: bool,
-  pub is_alive: bool,
-  pub is_enemy: bool,
   pub health: i32,
+  pub ammo: Option<(i32, i32)>,
   pub head_obb_mins: Vec3,
   pub head_obb_maxs: Vec3,
   pub head_to_world_transform: Mat3x4,
+  pub is_dormant: bool,
+  pub is_alive: bool,
+  pub is_enemy: bool,
 }
 
 impl PlayerInfo {
@@ -56,13 +57,14 @@ impl PlayerInfo {
     let (head_obb_mins, head_obb_maxs, head_to_world_matrix) = entity.bone_info(Hitbox::Head)?;
 
     Some(PlayerInfo {
-      is_dormant: entity.networkable().is_dormant(),
-      is_alive: entity.is_alive(),
-      is_enemy: Entity::local_player().is_some_and(|lp| lp.team() != entity.team()),
       health: entity.health(),
+      ammo: entity.active_weapon().and_then(Entity::ammo),
       head_obb_mins,
       head_obb_maxs,
       head_to_world_transform: head_to_world_matrix.clone(),
+      is_dormant: entity.networkable().is_dormant(),
+      is_alive: entity.is_alive(),
+      is_enemy: Entity::local_player().is_some_and(|lp| lp.team() != entity.team()),
     })
   }
 }

@@ -1007,32 +1007,6 @@ impl DrawList {
   }
 }
 
-// #[derive(Builder)]
-// #[builder(pattern = "owned", build_fn(private, name = "_build"))]
-// pub struct AddText<'a> {
-//   pos: ImVec2,
-//   color: ImU32,
-//   text: &'a str,
-// }
-//
-// impl AddTextBuilder<'_> {
-//   pub fn build(self, draw_list: &mut DrawList) {
-//     let add_text = self._build().unwrap();
-//
-//     let text = CString::new(add_text.text).unwrap();
-//
-//     unsafe {
-//       ImDrawList_AddText(
-//         draw_list as *mut DrawList as *mut ImDrawList,
-//         &add_text.pos,
-//         add_text.color,
-//         text.as_ptr(),
-//         ptr::null(),
-//       );
-//     }
-//   }
-// }
-
 #[derive(Builder)]
 #[builder(pattern = "owned", build_fn(private, name = "_build"))]
 pub struct AddRect {
