@@ -223,7 +223,10 @@ impl BlurEffect {
     unsafe {
       self.device.SetRenderTarget(0, self.rt_backup.take().as_ref().unwrap())?;
       self.device.SetPixelShader(None)?;
+
       self.device.SetSamplerState(0, D3DSAMP_SRGBTEXTURE, 0)?;
+      self.device.SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP.0 as u32)?;
+      self.device.SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP.0 as u32)?;
 
       self.device.SetRenderState(D3DRS_SCISSORTESTENABLE, 1)?;
       self.device.SetRenderState(D3DRS_SRGBWRITEENABLE, 0)
