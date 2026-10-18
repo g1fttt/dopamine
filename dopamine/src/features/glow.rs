@@ -6,7 +6,7 @@ use enum_map::Enum;
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 
-use dopamine_sdk::interfaces::{material_system, model_render, render_view, server};
+use dopamine_sdk::interfaces::{material_system, model_render, player_info_manager, render_view};
 use dopamine_sdk::material_system::*;
 use dopamine_sdk::render_view::ViewSetup;
 use dopamine_sdk::{Color, Entity};
@@ -144,7 +144,7 @@ impl Glow<'_> {
         Some(_) | None => continue,
       };
 
-      let real_time = server().global_vars().real_time;
+      let real_time = player_info_manager().global_vars().real_time;
       let player_resource = player_resource.unwrap();
 
       let color = match self.calc_fade_out_alpha(real_time, entity, player_resource, config) {

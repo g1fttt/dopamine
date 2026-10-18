@@ -3,7 +3,7 @@ use crate::game::engine::{Engine, ModelInfo, ModelRender};
 use crate::game::input_system::InputSystem;
 use crate::game::material_system::MaterialSystem;
 use crate::game::render_view::RenderView;
-use crate::game::server::Server;
+use crate::game::server::PlayerInfoManager;
 use crate::game::studio_render::StudioRender;
 use crate::game::surface::Surface;
 
@@ -19,7 +19,7 @@ use std::sync::LazyLock;
 singleton_fields! {
   struct Interfaces<'a> {
     pub client: &'a Client,
-    pub server: &'a Server,
+    pub player_info_manager: &'a PlayerInfoManager,
     pub client_mode: &'a ClientMode,
     pub entity_list: &'a EntityList,
     pub engine: &'a Engine,
@@ -45,7 +45,7 @@ impl Interfaces<'_> {
 
     Self {
       client,
-      server: find_interface("server.dll", "PlayerInfoManager002"),
+      player_info_manager: find_interface("server.dll", "PlayerInfoManager002"),
       client_mode: unsafe { client_mode_from_client(client).unwrap() },
       entity_list: find_interface("client.dll", "VClientEntityList003"),
       engine: find_interface("engine.dll", "VEngineClient013"),
