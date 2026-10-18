@@ -47,3 +47,8 @@ missing_safety_doc = { level = "allow" }
 [profile.release]
 lto = true
 panic = "abort"
+
+[profile.release-debug]
+inherits = "release"
+debug = true
+debug-assertions = true
