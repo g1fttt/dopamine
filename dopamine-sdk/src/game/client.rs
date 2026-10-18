@@ -1,5 +1,7 @@
 use crate::{ClientClass, Entity, EntityHandle, virtual_method};
 
+use open_enum::open_enum;
+
 #[repr(C)]
 pub struct Client;
 
@@ -19,7 +21,8 @@ impl EntityList {
   virtual_method!(pub fn highest_entity_index[6](&self) -> i32);
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy)]
+#[open_enum]
 #[repr(C)]
 pub enum FrameStage {
   RenderEnd = 6,
