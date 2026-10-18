@@ -82,6 +82,51 @@ pub fn calc_text_size(text: impl AsRef<str>) -> ImVec2 {
   unsafe { ImGui_CalcTextSize(text.as_ptr(), ptr::null(), false, -1.0) }.into()
 }
 
+#[doc(alias = "Selectable")]
+#[inline]
+pub fn selectable(label: &str, selected: bool) -> bool {
+  selectable_ex(label).selected(selected).build()
+}
+
+#[doc(alias = "Selectable")]
+#[inline]
+pub fn selectable_ex<'a>(label: &'a str) -> SelectableBuilder<'a> {
+  SelectableBuilder::create_empty().label(label)
+}
+
+#[derive(Builder)]
+#[builder(pattern = "owned", build_fn(private, name = "_build"))]
+pub struct Selectable<'a> {
+  label: &'a str,
+  #[builder(setter(strip_option), default)]
+  selected: Option<bool>,
+  #[builder(setter(strip_option), default)]
+  flags: Option<SelectableFlags>,
+  #[builder(setter(strip_option), default)]
+  size: Option<ImVec2>,
+}
+
+impl<'a> SelectableBuilder<'a> {
+  pub fn build(self) -> bool {
+    let selectable = self._build().unwrap();
+
+    let label = CString::new(selectable.label).unwrap();
+    let selected = selectable.selected.unwrap_or_default();
+    let flags = selectable.flags.unwrap_or_else(SelectableFlags::empty);
+    let size = selectable.size.unwrap_or(ImVec2 { x: 0.0, y: 0.0 });
+
+    unsafe { ImGui_Selectable(label.as_ptr(), selected, flags.bits(), &size) }
+  }
+}
+
+bitflags! {
+  #[doc(alias = "ImGuiSelectableFlags")]
+  #[repr(transparent)]
+  pub struct SelectableFlags: ImGuiSelectableFlags {
+    const NO_AUTO_CLOSE_POPUS = ImGuiSelectableFlags_::ImGuiSelectableFlags_NoAutoClosePopups.0;
+  }
+}
+
 #[doc(alias = "ShowDemoWindow")]
 #[inline(always)]
 pub fn show_demo_window() {
@@ -239,6 +284,45 @@ bitflags! {
     const NO_SCROLLBAR = ImGuiWindowFlags_::ImGuiWindowFlags_NoScrollbar.0;
     const ALWAYS_AUTO_RESIZE = ImGuiWindowFlags_::ImGuiWindowFlags_AlwaysAutoResize.0;
   }
+}
+
+#[doc(alias = "BeginMultiSelect")]
+#[inline]
+pub fn multi_select(f: impl FnMut()) {
+  MultiSelectBuilder::create_empty().build(f);
+}
+
+#[derive(Builder)]
+#[builder(pattern = "owned", build_fn(private, name = "_build"))]
+pub struct MultiSelect {
+  #[builder(setter(strip_option), default)]
+  flags: Option<MultiSelectFlags>,
+  #[builder(setter(strip_option), default)]
+  selection_size: Option<i32>,
+  #[builder(setter(strip_option), default)]
+  items_count: Option<i32>,
+}
+
+impl MultiSelectBuilder {
+  pub fn build(self, mut f: impl FnMut()) {
+    let multi_select = self._build().unwrap();
+
+    let flags = multi_select.flags.unwrap_or_else(MultiSelectFlags::empty);
+    let selection_size = multi_select.selection_size.unwrap_or(-1);
+    let items_count = multi_select.items_count.unwrap_or(-1);
+
+    unsafe {
+      ImGui_BeginMultiSelect(flags.bits(), selection_size, items_count);
+      f();
+      ImGui_EndMultiSelect();
+    }
+  }
+}
+
+bitflags! {
+  #[doc(alias = "ImGuiMultiSelectFlags")]
+  #[repr(transparent)]
+  pub struct MultiSelectFlags: ImGuiMultiSelectFlags {}
 }
 
 #[doc(alias = "SliderFloat")]
@@ -412,25 +496,67 @@ impl<'a> ButtonBuilder<'a> {
   }
 }
 
-#[doc(alias = "Combo")]
-#[inline(always)]
-pub fn combo(label: &str, current_item: &mut usize, items: &[&str]) -> bool {
-  combo_ex(label, current_item, items).build()
+#[doc(alias = "BeginCombo")]
+#[inline]
+pub fn combo(label: &str, preview_value: &str, f: impl FnMut()) {
+  combo_ex(label, preview_value).build(f);
 }
 
-#[doc(alias = "Combo")]
-#[inline(always)]
-pub fn combo_ex<'a>(
-  label: &'a str,
-  current_item: &'a mut usize,
-  items: &'a [&'a str],
-) -> ComboBuilder<'a> {
-  ComboBuilder::create_empty().label(label).current_item(current_item).items(items)
+pub fn combo_ex<'a>(label: &'a str, preview_value: &'a str) -> ComboBuilder<'a> {
+  ComboBuilder::create_empty().label(label).preview_value(preview_value)
 }
 
 #[derive(Builder)]
 #[builder(pattern = "owned", build_fn(private, name = "_build"))]
 pub struct Combo<'a> {
+  label: &'a str,
+  preview_value: &'a str,
+  #[builder(setter(strip_option), default)]
+  flags: Option<ComboFlags>,
+}
+
+impl<'a> ComboBuilder<'a> {
+  pub fn build(self, mut f: impl FnMut()) {
+    let combo = self._build().unwrap();
+
+    let label = CString::new(combo.label).unwrap();
+    let preview_value = CString::new(combo.preview_value).unwrap();
+    let flags = combo.flags.unwrap_or_else(ComboFlags::empty);
+
+    unsafe {
+      if ImGui_BeginCombo(label.as_ptr(), preview_value.as_ptr(), flags.bits()) {
+        f();
+        ImGui_EndCombo();
+      }
+    }
+  }
+}
+
+bitflags! {
+  #[doc(alias = "ImGuiComboFlags")]
+  #[repr(transparent)]
+  pub struct ComboFlags: ImGuiComboFlags {}
+}
+
+#[doc(alias = "Combo")]
+#[inline(always)]
+pub fn combo_box(label: &str, current_item: &mut usize, items: &[&str]) -> bool {
+  combo_box_ex(label, current_item, items).build()
+}
+
+#[doc(alias = "Combo")]
+#[inline(always)]
+pub fn combo_box_ex<'a>(
+  label: &'a str,
+  current_item: &'a mut usize,
+  items: &'a [&'a str],
+) -> ComboBoxBuilder<'a> {
+  ComboBoxBuilder::create_empty().label(label).current_item(current_item).items(items)
+}
+
+#[derive(Builder)]
+#[builder(pattern = "owned", build_fn(private, name = "_build"))]
+pub struct ComboBox<'a> {
   label: &'a str,
   current_item: &'a mut usize,
   items: &'a [&'a str],
@@ -438,7 +564,7 @@ pub struct Combo<'a> {
   popup_max_height_in_items: Option<i32>,
 }
 
-impl<'a> ComboBuilder<'a> {
+impl<'a> ComboBoxBuilder<'a> {
   pub fn build(self) -> bool {
     let combo = self._build().unwrap();
 

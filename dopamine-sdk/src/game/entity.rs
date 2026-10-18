@@ -123,6 +123,10 @@ impl Entity {
     Some((current, max))
   }
 
+  pub fn is_enemy_for(&self, other: &Entity) -> bool {
+    self.is_player() && other.is_player() && self.team() != other.team()
+  }
+
   #[inline(always)]
   pub fn local_player() -> Option<&'static Self> {
     entity_list().get_entity_by_index(engine().local_player_index())
@@ -154,6 +158,11 @@ impl Entity {
   netvar!(pub fn team -> i32 as CBaseEntity->m_iTeamNum);
   netvar!(pub fn owner_handle -> EntityHandle as CBaseCombatWeapon->m_hOwner);
   netvar!(pub fn hitbox_set -> i32 as CBaseAnimating->m_nHitboxSet);
+  netvar!(pub fn has_helmet -> bool as CCSPlayer->m_bHasHelmet);
+  netvar!(pub fn has_defuser -> bool as CCSPlayer->m_bHasDefuser);
+  netvar!(pub fn is_defusing -> bool as CCSPlayer->m_bIsDefusing);
+  netvar!(pub fn armor -> i32 as CCSPlayer->m_ArmorValue);
+  netvar!(pub fn is_planting -> bool as CC4->m_bStartedArming);
   netvar!(fn clip_amount -> i32 as CBaseCombatWeapon->m_iClip1);
   netvar!(fn player_spotted -> [bool; 65] as CCSPlayerResource->m_bPlayerSpotted);
   netvar!(fn flags -> EntityFlags as CBasePlayer->m_fFlags);

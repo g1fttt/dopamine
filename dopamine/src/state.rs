@@ -43,6 +43,7 @@ impl GameState {
 #[derive(Debug)]
 pub struct PlayerInfo {
   pub health: i32,
+  pub armor: i32,
   pub ammo: Option<(i32, i32)>,
   pub head_obb_mins: Vec3,
   pub head_obb_maxs: Vec3,
@@ -51,7 +52,11 @@ pub struct PlayerInfo {
   pub is_alive: bool,
   pub is_enemy: bool,
   pub is_zoomed: bool,
-  pub is_bomb_carrier: bool,
+  pub is_defusing: bool,
+  pub is_planting: bool,
+  pub has_c4: bool,
+  pub has_helmet: bool,
+  pub has_defuser: bool,
 }
 
 impl PlayerInfo {
@@ -61,6 +66,7 @@ impl PlayerInfo {
 
     Some(PlayerInfo {
       health: entity.health(),
+      armor: entity.armor(),
       ammo: active_weapon.and_then(Entity::ammo),
       head_obb_mins,
       head_obb_maxs,
@@ -69,7 +75,11 @@ impl PlayerInfo {
       is_alive: entity.is_alive(),
       is_enemy: Entity::local_player().is_some_and(|lp| lp.team() != entity.team()),
       is_zoomed: active_weapon.map(Entity::is_in_scope).unwrap_or_default(),
-      is_bomb_carrier: entity.has_c4(),
+      is_defusing: entity.is_defusing(),
+      is_planting: entity.is_planting(),
+      has_c4: entity.has_c4(),
+      has_helmet: entity.has_helmet(),
+      has_defuser: entity.has_defuser(),
     })
   }
 }

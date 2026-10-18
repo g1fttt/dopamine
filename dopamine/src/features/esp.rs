@@ -1,4 +1,4 @@
-use crate::config::EnumMapConfig;
+use crate::config::{EnumMapConfig, MultiSelectConfig};
 use crate::state::{EntityInfo, EntityInfoExtra, GameState, PlayerInfo};
 
 use dopamine_sdk::Color;
@@ -7,7 +7,7 @@ use dopamine_sdk::math::{Mat4x4, Vec3};
 use enum_map::Enum;
 use imgui::{DrawList, ImVec2};
 use serde::{Deserialize, Serialize};
-use strum::VariantNames;
+use strum::{VariantArray, VariantNames};
 
 const BAR_WIDTH: f32 = 3.0;
 const BAR_HEIGHT: f32 = 3.0;
@@ -136,12 +136,32 @@ fn draw_player_status(
     min.y = min.y + text_size.y + 2.0;
   }
 
-  if config.bomb_carrier && player_info.is_bomb_carrier {
+  if config.status.is_selected(&PlayerStatus::HasC4) && player_info.has_c4 {
     add_text_increment("C4", &config.color, &mut min, draw_list);
   }
 
-  if config.zoomed && player_info.is_zoomed {
+  if config.status.is_selected(&PlayerStatus::HasDefuser) && player_info.has_defuser {
+    add_text_increment("Defuser", &config.color, &mut min, draw_list);
+  }
+
+  if config.status.is_selected(&PlayerStatus::Zoomed) && player_info.is_zoomed {
     add_text_increment("Zoom", &config.color, &mut min, draw_list);
+  }
+
+  if config.status.is_selected(&PlayerStatus::Defusing) && player_info.is_defusing {
+    add_text_increment("Defusing", &config.color, &mut min, draw_list);
+  }
+
+  if config.status.is_selected(&PlayerStatus::Planting) && player_info.is_planting {
+    add_text_increment("Planting", &config.color, &mut min, draw_list);
+  }
+
+  if config.status.is_selected(&PlayerStatus::HasArmor) {
+    if player_info.has_helmet {
+      add_text_increment("Helmet", &config.color, &mut min, draw_list);
+    } else if player_info.armor > 0 {
+      add_text_increment("Kevlar", &config.color, &mut min, draw_list);
+    }
   }
 }
 
@@ -275,8 +295,7 @@ pub struct AmmoBarConfig {
 #[serde(default)]
 pub struct PlayerStatusConfig {
   pub enabled: bool,
-  pub zoomed: bool,
-  pub bomb_carrier: bool,
+  pub status: MultiSelectConfig<PlayerStatus>,
   pub color: Color,
 }
 
@@ -287,6 +306,19 @@ pub struct EspItemConfig {
   pub health_bar: HealthBarConfig,
   pub ammo_bar: AmmoBarConfig,
   pub player_status: PlayerStatusConfig,
+}
+
+#[derive(strum::Display, VariantArray, Serialize, Deserialize, PartialEq)]
+pub enum PlayerStatus {
+  Zoomed,
+  #[strum(to_string = "Has C4")]
+  HasC4,
+  #[strum(to_string = "Has defuser")]
+  HasDefuser,
+  Defusing,
+  #[strum(to_string = "Has armor")]
+  HasArmor,
+  Planting,
 }
 
 pub type EspConfig = EnumMapConfig<EspConfigKind, EspItemConfig>;
