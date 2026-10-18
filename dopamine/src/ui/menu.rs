@@ -324,6 +324,10 @@ impl Menu {
         }
       }
 
+      if preview_value.is_empty() {
+        preview_value.push_str("None");
+      }
+
       preview_value
     }
 
