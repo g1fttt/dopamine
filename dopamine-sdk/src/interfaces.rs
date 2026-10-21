@@ -1,13 +1,13 @@
 use crate::game::client::{Client, ClientMode, EntityList};
-use crate::game::engine::{Engine, ModelRender};
+use crate::game::engine::{Engine, ModelInfo, ModelRender};
 use crate::game::input_system::InputSystem;
 use crate::game::material_system::MaterialSystem;
 use crate::game::render_view::RenderView;
-use crate::game::server::Server;
+use crate::game::server::PlayerInfoManager;
 use crate::game::studio_render::StudioRender;
 use crate::game::surface::Surface;
+use crate::game::tier0::MemAlloc;
 
-use crate::tier0::MemAlloc;
 use crate::utils::resolve_rip;
 use crate::{cstr, pcstr, singleton_fields};
 
@@ -19,7 +19,7 @@ use std::sync::LazyLock;
 singleton_fields! {
   struct Interfaces<'a> {
     pub client: &'a Client,
-    pub server: &'a Server,
+    pub player_info_manager: &'a PlayerInfoManager,
     pub client_mode: &'a ClientMode,
     pub entity_list: &'a EntityList,
     pub engine: &'a Engine,
@@ -30,6 +30,7 @@ singleton_fields! {
     pub input_system: &'a InputSystem,
     pub studio_render: &'a StudioRender<'a>,
     pub mem_alloc: &'a MemAlloc,
+    pub model_info: &'a ModelInfo,
   }
 }
 
@@ -44,7 +45,7 @@ impl Interfaces<'_> {
 
     Self {
       client,
-      server: find_interface("server.dll", "PlayerInfoManager002"),
+      player_info_manager: find_interface("server.dll", "PlayerInfoManager002"),
       client_mode: unsafe { client_mode_from_client(client).unwrap() },
       entity_list: find_interface("client.dll", "VClientEntityList003"),
       engine: find_interface("engine.dll", "VEngineClient013"),
@@ -55,6 +56,7 @@ impl Interfaces<'_> {
       input_system: find_interface("inputsystem.dll", "InputSystemVersion001"),
       studio_render: find_interface("StudioRender.dll", "VStudioRender025"),
       mem_alloc: unsafe { find_mem_alloc().unwrap() },
+      model_info: find_interface("engine.dll", "VModelInfoClient006"),
     }
   }
 }

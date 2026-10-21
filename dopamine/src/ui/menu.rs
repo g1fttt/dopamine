@@ -1,15 +1,17 @@
-use crate::config::Config;
+use std::fmt::Display;
+
+use crate::config::{Config, MultiSelectConfig};
 
 use crate::features::chams::{ChamsConfig, ChamsConfigKind, ChamsMaterialKind};
+use crate::features::esp::{EspConfig, EspConfigKind};
 use crate::features::glow::{GlowConfig, GlowConfigKind};
 use crate::features::misc::MiscConfig;
 use crate::features::visuals::VisualsConfig;
 
 use dopamine_sdk::interfaces::input_system;
 use enum_map::Enum;
-use strum::VariantNames;
-
-use imgui::{ColorEditFlags, StyleVarKind, WindowFlags};
+use imgui::{ColorEditFlags, SelectableFlags, StyleVarKind, WindowFlags};
+use strum::{VariantArray, VariantNames};
 use windows::Win32::UI::WindowsAndMessaging::ShowCursor;
 
 #[derive(Default)]
@@ -18,6 +20,7 @@ struct ShouldDrawWindow {
   visuals: bool,
   glow: bool,
   chams: bool,
+  esp: bool,
   config: bool,
 }
 
@@ -78,6 +81,7 @@ impl Menu {
       self.draw_visuals_window(&mut config.visuals);
       self.draw_glow_window(&mut config.glow);
       self.draw_chams_window(&mut config.chams);
+      self.draw_esp_window(&mut config.esp);
       self.draw_config_window(config);
     }
     style.pop();
@@ -93,6 +97,8 @@ impl Menu {
         self.should_draw_window.glow = true;
       } else if imgui::menu_item("Chams") {
         self.should_draw_window.chams = true;
+      } else if imgui::menu_item("ESP") {
+        self.should_draw_window.esp = true;
       } else if imgui::menu_item("Config") {
         self.should_draw_window.config = true;
       }
@@ -159,7 +165,11 @@ impl Menu {
       .open(&mut self.should_draw_window.glow)
       .flags(Self::window_flags())
       .build(|| {
-        imgui::combo("##ConfigKind", &mut config.current_config_index, GlowConfigKind::VARIANTS);
+        imgui::combo_box(
+          "##ConfigKind",
+          &mut config.current_config_index,
+          GlowConfigKind::VARIANTS,
+        );
 
         imgui::separator();
 
@@ -190,7 +200,11 @@ impl Menu {
       .open(&mut self.should_draw_window.chams)
       .flags(Self::window_flags())
       .build(|| {
-        imgui::combo("##ConfigKind", &mut config.current_config_index, ChamsConfigKind::VARIANTS);
+        imgui::combo_box(
+          "##ConfigKind",
+          &mut config.current_config_index,
+          ChamsConfigKind::VARIANTS,
+        );
 
         let current_config_index = config.current_config_index;
         let cfg = &mut config.as_mut_slice()[current_config_index];
@@ -225,7 +239,46 @@ impl Menu {
         imgui::same_line();
         imgui::checkbox("Wireframe", &mut current_layer.wireframe);
 
-        imgui::combo("Material", &mut current_layer.material_index, ChamsMaterialKind::VARIANTS);
+        imgui::combo_box(
+          "Material",
+          &mut current_layer.material_index,
+          ChamsMaterialKind::VARIANTS,
+        );
+      });
+  }
+
+  fn draw_esp_window(&mut self, config: &mut EspConfig) {
+    if !self.should_draw_window.esp {
+      return;
+    }
+
+    imgui::window_ex("ESP")
+      .open(&mut self.should_draw_window.esp)
+      .flags(Self::window_flags())
+      .build(|| {
+        imgui::combo_box("##ConfigKind", &mut config.current_config_index, EspConfigKind::VARIANTS);
+
+        let current_config_index = config.current_config_index;
+        let cfg = &mut config.as_mut_slice()[current_config_index];
+
+        imgui::separator();
+
+        imgui::checkbox("Bounding box", &mut cfg.bounding_box.enabled);
+        imgui::same_line();
+        imgui::color_edit4_ex("##BoundingBoxColor", cfg.bounding_box.color.as_mut_array())
+          .flags(Self::color_edit_flags())
+          .build();
+
+        imgui::checkbox("Health", &mut cfg.health.enabled);
+        imgui::checkbox("Weapon", &mut cfg.weapon.enabled);
+
+        imgui::separator();
+
+        Self::multi_select("Player status", &mut cfg.player_status.status);
+        imgui::same_line();
+        imgui::color_edit4_ex("##PlayerStatusColor", cfg.player_status.color.as_mut_array())
+          .flags(Self::color_edit_flags())
+          .build();
       });
   }
 
@@ -250,5 +303,52 @@ impl Menu {
   #[inline(always)]
   fn color_edit_flags() -> ColorEditFlags {
     ColorEditFlags::ALPHA_BAR | ColorEditFlags::NO_INPUTS
+  }
+
+  fn multi_select<E>(label: &str, config: &mut MultiSelectConfig<E>)
+  where
+    E: VariantArray + Display + PartialEq,
+  {
+    fn make_preview_string<'a>(it: impl Iterator<Item = &'a str>) -> String {
+      let mut preview_value = String::with_capacity(128);
+
+      for (i, item) in it.enumerate().take(3) {
+        if i > 0 {
+          preview_value.push_str(", ");
+        }
+
+        if i > 1 {
+          preview_value.push_str("...");
+        } else {
+          preview_value.push_str(item);
+        }
+      }
+
+      if preview_value.is_empty() {
+        preview_value.push_str("None");
+      }
+
+      preview_value
+    }
+
+    imgui::combo(label, &make_preview_string(config.selected()), || {
+      imgui::multi_select(|| {
+        for (i, elem) in config.items.iter().enumerate() {
+          let selected = config.selected.contains(&i);
+
+          if imgui::selectable_ex(elem)
+            .selected(selected)
+            .flags(SelectableFlags::NO_AUTO_CLOSE_POPUS)
+            .build()
+          {
+            if selected {
+              config.selected.remove(&i);
+            } else {
+              config.selected.insert(i);
+            }
+          }
+        }
+      });
+    });
   }
 }

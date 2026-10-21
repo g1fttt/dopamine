@@ -1,4 +1,11 @@
-#![feature(once_cell_get_mut, str_from_raw_parts, core_intrinsics /* reserved for debug purpose */)]
+#![feature(
+  lock_value_accessors,
+  sync_nonpoison,
+  nonpoison_mutex,
+  once_cell_get_mut,
+  str_from_raw_parts,
+  core_intrinsics /* reserved for debug purpose */
+)]
 
 mod app;
 mod config;
@@ -6,6 +13,7 @@ mod entities;
 mod features;
 mod hooks;
 mod logger;
+mod state;
 mod ui;
 
 use app::App;

@@ -9,19 +9,19 @@ mod winapi;
 
 use d3d9::{PresentFn, ResetFn};
 
-use dopamine_sdk::math::{Angles, Vector3D};
-use dopamine_sdk::utils::Patterns;
-use dopamine_sdk::{Hook, HookResult, TrampolineHook, VmtHook, pcstr};
-use dopamine_sdk::{RenderableEntity, interfaces::*};
+use windows::Win32::Foundation::HWND;
+use windows::Win32::UI::WindowsAndMessaging::*;
 
-use dopamine_sdk::client::{Client, ClientMode};
+use dopamine_sdk::interfaces::*;
+use dopamine_sdk::math::{Angles, Vec3};
+use dopamine_sdk::utils::Patterns;
+use dopamine_sdk::{Hook, HookResult, RenderableEntity, TrampolineHook, VmtHook, pcstr};
+
+use dopamine_sdk::client::{Client, ClientMode, FrameStage};
 use dopamine_sdk::engine::{ModelRender, ModelRenderInfo};
 use dopamine_sdk::render_view::ViewSetup;
 use dopamine_sdk::surface::Surface;
 use dopamine_sdk::{Entity, UserCommand};
-
-use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::WindowsAndMessaging::*;
 
 use std::ffi::c_void;
 use std::mem;
@@ -40,6 +40,7 @@ pub struct Hooks {
 
   pub(self) level_init_post_entity: VmtHook<extern "C" fn(&Client)>,
   pub(self) level_shutdown: VmtHook<extern "C" fn(&Client)>,
+  pub(self) frame_stage_notify: VmtHook<extern "C" fn(&Client, FrameStage)>,
 
   pub(self) draw_model_execute:
     VmtHook<extern "C" fn(&ModelRender, *mut c_void, &ModelRenderInfo, *mut c_void)>,
@@ -47,11 +48,10 @@ pub struct Hooks {
   pub(self) is_cursor_visible: VmtHook<extern "C" fn(&Surface) -> bool>,
   pub(self) lock_cursor: VmtHook<extern "C" fn(&Surface)>,
 
-  pub(self) calc_viewmodel_view:
-    TrampolineHook<extern "C" fn(&Entity, &Entity, &Vector3D, &Angles)>,
+  pub(self) calc_viewmodel_view: TrampolineHook<extern "C" fn(&Entity, &Entity, &Vec3, &Angles)>,
 
   pub(self) calc_renderable_world_space_aabb_fast:
-    TrampolineHook<extern "C" fn(&RenderableEntity, &mut Vector3D, &mut Vector3D)>,
+    TrampolineHook<extern "C" fn(&RenderableEntity, &mut Vec3, &mut Vec3)>,
 }
 
 impl Hooks {
@@ -77,6 +77,7 @@ impl Hooks {
 
         level_init_post_entity: VmtHook::new(client(), 6),
         level_shutdown: VmtHook::new(client(), 7),
+        frame_stage_notify: VmtHook::new(client(), 35),
 
         draw_model_execute: VmtHook::new(model_render(), 19),
 
@@ -112,6 +113,7 @@ impl Hooks {
 
       self.level_init_post_entity.detour_to(client::level_init_post_entity)?;
       self.level_shutdown.detour_to(client::level_shutdown)?;
+      self.frame_stage_notify.detour_to(client::frame_stage_notify)?;
 
       self.draw_model_execute.detour_to(model_render::draw_model_execute)?;
 
@@ -143,6 +145,7 @@ impl Hooks {
 
       self.level_init_post_entity.remove()?;
       self.level_shutdown.remove()?;
+      self.frame_stage_notify.remove()?;
 
       self.draw_model_execute.remove()?;
 

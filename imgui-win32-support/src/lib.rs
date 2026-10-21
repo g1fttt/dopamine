@@ -39,8 +39,8 @@ fn lobyte(w: u16) -> u8 {
 }
 
 #[inline(always)]
-fn get_wheel_delta_wparam(w_param: WPARAM) -> u32 {
-  hiword(w_param.0 as u32) as u32
+fn get_wheel_delta_wparam(w_param: WPARAM) -> i16 {
+  hiword(w_param.0 as u32) as i16
 }
 
 #[inline(always)]
@@ -83,11 +83,7 @@ impl Win32 {
       )
     };
 
-    if n == 0 {
-      CP_ACP
-    } else {
-      u32::from_le_bytes(raw_kb_code_page)
-    }
+    if n == 0 { CP_ACP } else { u32::from_le_bytes(raw_kb_code_page) }
   }
 
   pub fn new_frame(&mut self) {
@@ -250,7 +246,7 @@ impl Win32 {
       VK_RWIN => Some(Key::RightSuper),
       VK_APPS => Some(Key::Menu),
 
-      VK_0 => Some(Key::Num1),
+      VK_0 => Some(Key::Num0),
       VK_1 => Some(Key::Num1),
       VK_2 => Some(Key::Num2),
       VK_3 => Some(Key::Num3),
@@ -381,8 +377,8 @@ impl Win32 {
           y: hiword(l_param.0 as u32) as i32
         };
 
-        if msg == WM_NCMOUSEMOVE && unsafe { ScreenToClient(hwnd, &mut mouse_pos).as_bool() } {
-          return Ok(0);
+        if msg == WM_NCMOUSEMOVE {
+          let _ = unsafe { ScreenToClient(hwnd, &mut mouse_pos) };
         }
 
         io.add_mouse_pos_event(mouse_pos.x as f32, mouse_pos.y as f32);
@@ -401,7 +397,7 @@ impl Win32 {
 
           self.mouse_tracked_area = 0;
 
-          io.add_mouse_pos_event(f32::MIN, f32::MAX);
+          io.add_mouse_pos_event(f32::MIN, f32::MIN);
         }
       },
       WM_DESTROY => {
@@ -418,7 +414,7 @@ impl Win32 {
           self.mouse_hwnd = HWND::default();
           self.mouse_tracked_area = 0;
 
-          io.add_mouse_pos_event(f32::MIN, f32::MAX);
+          io.add_mouse_pos_event(f32::MIN, f32::MIN);
         }
       },
       WM_LBUTTONDOWN | WM_LBUTTONDBLCLK |
@@ -455,10 +451,10 @@ impl Win32 {
       WM_LBUTTONUP | WM_RBUTTONUP |
       WM_MBUTTONUP | WM_XBUTTONUP => unsafe {
         let button = match msg {
-          WM_LBUTTONDOWN | WM_LBUTTONDBLCLK => 0,
-          WM_RBUTTONDOWN | WM_RBUTTONDBLCLK => 1,
-          WM_MBUTTONDOWN | WM_MBUTTONDBLCLK => 2,
-          WM_XBUTTONDOWN | WM_XBUTTONDBLCLK => if get_xbutton_wparam(w_param) == XBUTTON1 {
+          WM_LBUTTONUP => 0,
+          WM_RBUTTONUP => 1,
+          WM_MBUTTONUP => 2,
+          WM_XBUTTONUP => if get_xbutton_wparam(w_param) == XBUTTON1 {
             3
           } else {
             4
@@ -546,7 +542,7 @@ impl Win32 {
           let multibytestr = std::slice::from_raw_parts(w_param.0 as *const u8, 2);
           MultiByteToWideChar(self.keyboard_code_page, MB_PRECOMPOSED, multibytestr, Some(&mut wch));
 
-          // MultiByteToWideChar probably won't return invalid data
+          // NOTE: MultiByteToWideChar probably won't return invalid data
           let ch = char::from_u32_unchecked(wch[0] as u32);
           io.add_input_char(ch);
         }

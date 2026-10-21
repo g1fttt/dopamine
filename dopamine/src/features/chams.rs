@@ -35,17 +35,8 @@ impl Chams<'_> {
     self.applied
   }
 
-  pub fn draw(
-    &mut self,
-    config: &ChamsConfig,
-    draw_model_execute: &impl Fn(),
-    entity: Option<&Entity>,
-  ) {
+  pub fn draw(&mut self, config: &ChamsConfig, draw_model_execute: &impl Fn(), entity: &Entity) {
     self.applied = false;
-
-    let Some(entity) = entity else {
-      return;
-    };
 
     if entity.is_viewmodel() {
       self.apply_chams(draw_model_execute, &config[ChamsConfigKind::Viewmodel].layers);

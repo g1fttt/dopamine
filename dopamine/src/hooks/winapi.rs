@@ -1,4 +1,4 @@
-use crate::App;
+use crate::app::App;
 
 use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::UI::Input::KeyboardAndMouse::*;

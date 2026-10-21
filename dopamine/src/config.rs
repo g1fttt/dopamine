@@ -1,4 +1,5 @@
 use crate::features::chams::ChamsConfig;
+use crate::features::esp::EspConfig;
 use crate::features::glow::GlowConfig;
 use crate::features::misc::MiscConfig;
 use crate::features::visuals::VisualsConfig;
@@ -6,7 +7,11 @@ use crate::features::visuals::VisualsConfig;
 use educe::Educe;
 use enum_map::{EnumArray, EnumMap};
 use serde::{Deserialize, Serialize};
+use strum::VariantArray;
 
+use std::collections::HashSet;
+use std::fmt::Display;
+use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::path::Path;
 use std::{fs, io};
@@ -19,6 +24,7 @@ pub struct Config {
   pub visuals: VisualsConfig,
   pub glow: GlowConfig,
   pub chams: ChamsConfig,
+  pub esp: EspConfig,
 
   #[educe(Default = true)]
   pub blur_enabled: bool,
@@ -56,6 +62,52 @@ impl Config {
       .inspect_err(|err| log::error!("Failed to deserialize config file: {err}"))
       .unwrap();
     Ok(())
+  }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct MultiSelectConfig<E>
+where
+  E: VariantArray + Display + PartialEq,
+{
+  #[serde(default = "MultiSelectConfig::<E>::items", skip)]
+  pub items: Vec<String>,
+  pub selected: HashSet<usize>,
+  #[serde(skip)]
+  _e: PhantomData<E>,
+}
+
+impl<E> Default for MultiSelectConfig<E>
+where
+  E: VariantArray + Display + PartialEq,
+{
+  fn default() -> Self {
+    Self { items: Self::items(), selected: HashSet::default(), _e: PhantomData }
+  }
+}
+
+impl<E> MultiSelectConfig<E>
+where
+  E: VariantArray + Display + PartialEq,
+{
+  fn items() -> Vec<String> {
+    E::VARIANTS.iter().map(|item| item.to_string()).collect()
+  }
+
+  pub fn is_selected(&self, item: &E) -> bool {
+    E::VARIANTS
+      .iter()
+      .position(|item_| item_ == item)
+      .is_some_and(|idx| self.selected.contains(&idx))
+  }
+
+  pub fn selected(&self) -> impl Iterator<Item = &str> {
+    self
+      .items
+      .iter()
+      .enumerate()
+      .filter(|(i, _)| self.selected.contains(i))
+      .map(|(_, s)| s.as_str())
   }
 }
 

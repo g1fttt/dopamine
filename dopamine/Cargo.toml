@@ -11,9 +11,9 @@ workspace = true
 
 [dependencies]
 windows.workspace = true
-windows-numerics.workspace = true
 serde.workspace = true
 strum.workspace = true
+windows-numerics.workspace = true
 log.workspace = true
 
 dopamine-sdk.path = "../dopamine-sdk"
