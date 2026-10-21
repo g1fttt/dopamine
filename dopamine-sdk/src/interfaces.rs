@@ -6,8 +6,8 @@ use crate::game::render_view::RenderView;
 use crate::game::server::PlayerInfoManager;
 use crate::game::studio_render::StudioRender;
 use crate::game::surface::Surface;
+use crate::game::tier0::MemAlloc;
 
-use crate::tier0::MemAlloc;
 use crate::utils::resolve_rip;
 use crate::{cstr, pcstr, singleton_fields};
 

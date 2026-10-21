@@ -2,7 +2,7 @@ use crate::entities;
 
 use dopamine_sdk::interfaces::engine;
 use dopamine_sdk::math::{Mat3x4, Mat4x4, Vec3};
-use dopamine_sdk::{Entity, Hitbox};
+use dopamine_sdk::{Entity, Hitbox, WeaponId};
 
 #[derive(Debug, Default)]
 pub struct GameState {
@@ -44,14 +44,13 @@ impl GameState {
 pub struct PlayerInfo {
   pub health: i32,
   pub armor: i32,
-  pub ammo: Option<(i32, i32)>,
+  pub weapon: Option<WeaponInfo>,
   pub head_obb_mins: Vec3,
   pub head_obb_maxs: Vec3,
   pub head_to_world_transform: Mat3x4,
   pub is_dormant: bool,
   pub is_alive: bool,
   pub is_enemy: bool,
-  pub is_zoomed: bool,
   pub is_defusing: bool,
   pub is_planting: bool,
   pub has_c4: bool,
@@ -67,20 +66,35 @@ impl PlayerInfo {
     Some(PlayerInfo {
       health: entity.health(),
       armor: entity.armor(),
-      ammo: active_weapon.and_then(Entity::ammo),
+      weapon: active_weapon.and_then(WeaponInfo::new),
       head_obb_mins,
       head_obb_maxs,
       head_to_world_transform: head_to_world_matrix.clone(),
       is_dormant: entity.networkable().is_dormant(),
       is_alive: entity.is_alive(),
       is_enemy: Entity::local_player().is_some_and(|lp| lp.team() != entity.team()),
-      is_zoomed: active_weapon.map(Entity::is_in_scope).unwrap_or_default(),
       is_defusing: entity.is_defusing(),
       is_planting: entity.is_planting(),
       has_c4: entity.has_c4(),
       has_helmet: entity.has_helmet(),
       has_defuser: entity.has_defuser(),
     })
+  }
+}
+
+#[derive(Debug)]
+pub struct WeaponInfo {
+  pub id: WeaponId,
+  pub current_ammo: i32,
+  pub max_ammo: i32,
+  pub is_in_scope: bool,
+}
+
+impl WeaponInfo {
+  fn new(entity: &Entity) -> Option<Self> {
+    let (current_ammo, max_ammo) = entity.ammo()?;
+
+    Some(Self { id: entity.weapon_id(), current_ammo, max_ammo, is_in_scope: entity.is_in_scope() })
   }
 }
 

@@ -21,8 +21,8 @@ impl EntityList {
   virtual_method!(pub fn highest_entity_index[6](&self) -> i32);
 }
 
-#[derive(Clone, Copy)]
 #[open_enum]
+#[derive(Clone, Copy)]
 #[repr(C)]
 pub enum FrameStage {
   RenderEnd = 6,

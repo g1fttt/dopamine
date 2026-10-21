@@ -1,5 +1,5 @@
 use crate::config::{EnumMapConfig, MultiSelectConfig};
-use crate::state::{EntityInfo, EntityInfoExtra, GameState, PlayerInfo};
+use crate::state::{EntityInfo, EntityInfoExtra, GameState, PlayerInfo, WeaponInfo};
 
 use dopamine_sdk::Color;
 use dopamine_sdk::math::{Mat4x4, Vec3};
@@ -42,17 +42,11 @@ pub fn draw(config: &EspConfig, draw_list: &mut DrawList, state: &GameState) {
         draw_player_status(&config.player_status, player_status_pos, player_info, draw_list);
 
         let health_bar_pos = ImVec2 { x: bbox.mins.x - 7.0, y: bbox.mins.y };
-        draw_health_info(
-          &config.health_bar,
-          health_bar_pos,
-          height_max,
-          player_info.health,
-          draw_list,
-        );
+        draw_health_info(&config.health, health_bar_pos, height_max, player_info.health, draw_list);
 
-        if let Some(ammo) = player_info.ammo {
+        if let Some(weapon_info) = &player_info.weapon {
           let ammo_bar_pos = ImVec2 { x: bbox.mins.x, y: bbox.maxs.y + 3.5 };
-          draw_ammo_info(&config.ammo_bar, ammo_bar_pos, width_max, ammo, draw_list);
+          draw_weapon_info(&config.weapon, ammo_bar_pos, width_max, weapon_info, draw_list);
         }
       }
     };
@@ -144,8 +138,11 @@ fn draw_player_status(
     add_text_increment("Defuser", &config.color, &mut min, draw_list);
   }
 
-  if config.status.is_selected(&PlayerStatus::Zoomed) && player_info.is_zoomed {
-    add_text_increment("Zoom", &config.color, &mut min, draw_list);
+  if let Some(weapon) = &player_info.weapon
+    && config.status.is_selected(&PlayerStatus::Scoped)
+    && weapon.is_in_scope
+  {
+    add_text_increment("Scoped", &config.color, &mut min, draw_list);
   }
 
   if config.status.is_selected(&PlayerStatus::Defusing) && player_info.is_defusing {
@@ -167,7 +164,7 @@ fn draw_player_status(
 
 /// Draws a health bar and a health amount at the top point of the bar
 fn draw_health_info(
-  config: &HealthBarConfig,
+  config: &HealthConfig,
   min: ImVec2,
   height: f32,
   health: i32,
@@ -203,12 +200,13 @@ fn draw_health_info(
   draw_list.add_text(pos, imgui::im_col32(255.0, 255.0, 255.0, 255.0), health_string);
 }
 
-/// Draws an ammo bar and an ammo amount at the right bottom point of the bar
-fn draw_ammo_info(
-  config: &AmmoBarConfig,
+/// Draws an ammo bar and an ammo amount at the right bottom point of the bar.
+/// Draws localized weapon name underneath the ammo bar.
+fn draw_weapon_info(
+  config: &WeaponConfig,
   min: ImVec2,
   width: f32,
-  (current_ammo, max_ammo): (i32, i32),
+  weapon_info: &WeaponInfo,
   draw_list: &mut DrawList,
 ) {
   if !config.enabled {
@@ -223,17 +221,21 @@ fn draw_ammo_info(
     imgui::im_col32(0.0, 0.0, 0.0, 255.0),
   );
 
-  let max =
-    ImVec2 { x: max.x - ((max_ammo - current_ammo) as f32 / max_ammo as f32 * width), y: max.y };
+  let WeaponInfo { id: weapon_id, current_ammo, max_ammo, .. } = weapon_info;
+  let max_width = *max_ammo as f32 * width;
+  let current_width = (max_ammo - current_ammo) as f32;
+  let max = ImVec2 { x: max.x - current_width / max_width, y: max.y };
 
   draw_list.add_rect_filled(min, max, imgui::im_col32(100.0, 100.0, 100.0, 255.0));
 
-  let ammo_string = format!("{}/{}", current_ammo, max_ammo);
-  let text_size = imgui::calc_text_size(&ammo_string);
+  let weapon_string = format!("{} [{}/{}]", weapon_id.as_fmt_str(), current_ammo, max_ammo);
+  let weapon_string_size = imgui::calc_text_size(&weapon_string);
+  let pos = ImVec2 {
+    x: (min.x + (width - weapon_string_size.x) / 2.0).floor(),
+    y: max.y + DEFAULT_PADDING,
+  };
 
-  let pos = ImVec2 { x: max.x - text_size.x, y: max.y + DEFAULT_PADDING };
-
-  draw_list.add_text(pos, imgui::im_col32(255.0, 255.0, 255.0, 255.0), ammo_string);
+  draw_list.add_text(pos, imgui::im_col32(255.0, 255.0, 255.0, 255.0), weapon_string);
 }
 
 fn make_point(mins: &Vec3, maxs: &Vec3, i: usize) -> Vec3 {
@@ -281,13 +283,13 @@ pub struct BoundingBoxConfig {
 
 #[derive(Default, Serialize, Deserialize)]
 #[serde(default)]
-pub struct HealthBarConfig {
+pub struct HealthConfig {
   pub enabled: bool,
 }
 
 #[derive(Default, Serialize, Deserialize)]
 #[serde(default)]
-pub struct AmmoBarConfig {
+pub struct WeaponConfig {
   pub enabled: bool,
 }
 
@@ -303,14 +305,14 @@ pub struct PlayerStatusConfig {
 #[serde(default)]
 pub struct EspItemConfig {
   pub bounding_box: BoundingBoxConfig,
-  pub health_bar: HealthBarConfig,
-  pub ammo_bar: AmmoBarConfig,
+  pub health: HealthConfig,
+  pub weapon: WeaponConfig,
   pub player_status: PlayerStatusConfig,
 }
 
 #[derive(strum::Display, VariantArray, Serialize, Deserialize, PartialEq)]
 pub enum PlayerStatus {
-  Zoomed,
+  Scoped,
   #[strum(to_string = "Has C4")]
   HasC4,
   #[strum(to_string = "Has defuser")]

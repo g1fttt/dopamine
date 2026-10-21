@@ -46,11 +46,11 @@ impl Entity {
   }
 
   pub fn is_sniper_rifle(&self) -> bool {
-    matches!(self.weapon_id(), WeaponId::Scout | WeaponId::Awp | WeaponId::G3SG1 | WeaponId::SG550)
+    matches!(self.weapon_id(), WeaponId::Scout | WeaponId::Awp | WeaponId::G3SG1 | WeaponId::Sg550)
   }
 
   pub fn is_rifle_with_scope(&self) -> bool {
-    self.is_sniper_rifle() || matches!(self.weapon_id(), WeaponId::Aug | WeaponId::SG552)
+    self.is_sniper_rifle() || matches!(self.weapon_id(), WeaponId::Aug | WeaponId::Sg552)
   }
 
   pub fn is_in_scope(&self) -> bool {
@@ -169,8 +169,8 @@ impl Entity {
   netvar!(fn weapon_mode -> WeaponMode as CWeaponCSBase->m_weaponMode);
 }
 
-#[derive(Clone, Copy)]
 #[open_enum]
+#[derive(Clone, Copy)]
 #[repr(C)]
 pub enum Hitbox {
   Head = 12,
@@ -247,8 +247,8 @@ impl UserCommand {
   pub const IN_JUMP: i32 = 1 << 1;
 }
 
-#[derive(Clone, Copy)]
 #[open_enum]
+#[derive(Clone, Copy)]
 #[repr(C)]
 enum EntityFlags {
   OnGround = 1 << 0,
@@ -274,18 +274,76 @@ impl BitAnd for EntityFlags {
 #[derive(Clone, Copy, Hash, Debug)]
 #[repr(C)]
 pub enum WeaponId {
-  Glock = 2,
+  P228 = 1,
+  Glock,
   Scout,
-  Aug = 8,
-  SG550 = 13,
-  Awp = 17,
-  G3SG1 = 23,
-  SG552 = 26,
+  HeGrenade,
+  Xm1014,
+  C4,
+  Mac10,
+  Aug,
+  SmokeGrenade,
+  Elites,
+  FiveSeven,
+  Ump45,
+  Sg550,
+  Galil,
+  Famas,
+  Usp45,
+  Awp,
+  Mp5,
+  M249,
+  M3,
+  M4A1,
+  Tmp,
+  G3SG1,
+  Flashbang,
+  DesertEagle,
+  Sg552,
   AK47,
+  Knife,
+  P90,
 }
 
-#[derive(Clone, Copy)]
+impl WeaponId {
+  pub fn as_fmt_str(&self) -> &'static str {
+    match *self {
+      Self::P228 => "P228",
+      Self::Glock => "Glock",
+      Self::Scout => "Scout",
+      Self::HeGrenade => "HE Grenade",
+      Self::Xm1014 => "XM1014",
+      Self::C4 => "C4",
+      Self::Mac10 => "MAC-10",
+      Self::Aug => "AUG",
+      Self::SmokeGrenade => "Smoke Grenade",
+      Self::Elites => "Elites",
+      Self::FiveSeven => "Five-seven",
+      Self::Ump45 => "UMP45",
+      Self::Sg550 => "SG 550",
+      Self::Galil => "Galil",
+      Self::Famas => "Famas",
+      Self::Usp45 => "USP45",
+      Self::Awp => "AWP",
+      Self::Mp5 => "MP5",
+      Self::M249 => "M249",
+      Self::M3 => "M3",
+      Self::M4A1 => "M4A1",
+      Self::Tmp => "TMP",
+      Self::G3SG1 => "G3SG1",
+      Self::Flashbang => "Flashbang",
+      Self::DesertEagle => "Desert Eagle",
+      Self::Sg552 => "SG 552",
+      Self::AK47 => "AK-47",
+      Self::Knife => "Knife",
+      Self::P90 => "P90",
+      _ => unreachable!(),
+    }
+  }
+}
+
 #[open_enum]
+#[derive(Clone, Copy)]
 #[repr(C)]
 enum WeaponMode {
   Secondary = 1,

@@ -269,8 +269,8 @@ impl Menu {
           .flags(Self::color_edit_flags())
           .build();
 
-        imgui::checkbox("Health bar", &mut cfg.health_bar.enabled);
-        imgui::checkbox("Ammo bar", &mut cfg.ammo_bar.enabled);
+        imgui::checkbox("Health", &mut cfg.health.enabled);
+        imgui::checkbox("Weapon", &mut cfg.weapon.enabled);
 
         imgui::separator();
 

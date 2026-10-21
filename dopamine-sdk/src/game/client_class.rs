@@ -20,8 +20,8 @@ impl ClientClass<'_> {
   }
 }
 
-#[derive(Clone, Copy)]
 #[open_enum]
+#[derive(Clone, Copy)]
 #[repr(C)]
 pub enum ClassId {
   Ak47 = 1,
